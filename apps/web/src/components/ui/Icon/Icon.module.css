@@ -1,0 +1,28 @@
+.icon {
+  display: block;
+  flex: 0 0 auto;
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.control,
+.inline {
+  width: var(--icon-size-inline);
+  height: var(--icon-size-inline);
+}
+
+.navigation {
+  width: var(--icon-size-navigation);
+  height: var(--icon-size-navigation);
+}
+
+.empty {
+  width: var(--icon-size-empty);
+  height: var(--icon-size-empty);
+}
+
+.loadingTrack {
+  opacity: var(--control-disabled-opacity);
+}

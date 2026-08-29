@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0A0A0A" />
+<title>Transactions — BlackRed</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/favicon.png">
+  <meta name="theme-color" content="#0E0500">
+  <!-- BR-PWA START -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BlackRed">
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+<!-- iOS splash screens (per device size) -->
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-pro-max.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-pro.png"     media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-x.png"       media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-xr.png"      media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-se.png"      media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-ipad-pro-11.png"    media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-ipad.png"           media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)">
+<!-- BR-PWA END -->
+<meta name="description" content="Your deposits and withdrawals on BlackRed." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --red: #C8102E;
+    --red-hover: #e01835;
+    --red-dim: #8a0b1f;
+    --black: #0A0A0A;
+    --black-2: #141414;
+    --black-3: #1c1c1c;
+    --cream: #F6F1E7;
+    --cream-2: #efe7d3;
+    --cream-3: #faf6ea;
+    --gold: #E0B84B;
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --amber: #f59e0b;
+
+    --sidebar-w: 264px;
+    --topbar-h: 68px;
+    --bottomnav-h: 72px;
+    --content-max: 1280px;
+
+    --font-display: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Sora', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: var(--font-sans);
+    background: var(--black); color: var(--cream);
+    min-height: 100vh; min-height: 100svh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    padding-bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom, 0));
+  }
+  @media (min-width: 1024px) { body { padding-bottom: 0; } }
+  img, svg { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; border: none; cursor: pointer; background: none; color: inherit; }
+  ::selection { background: var(--red); color: var(--cream); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+
+  /* ============================================================
+     APP SHELL
+     ============================================================ */
+  .app-shell { min-height: 100vh; min-height: 100svh; position: relative; }
+
+  .sidebar {
+    display: none;
+    position: fixed; top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh; height: 100svh;
+    background: #080808;
+    border-right: 1px solid rgba(246,241,231,0.06);
+    z-index: 40;
+    flex-direction: column;
+    padding: 22px 16px;
+  }
+  @media (min-width: 1024px) { .sidebar { display: flex; } }
+
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 12px;
+    padding: 6px 10px 22px;
+    border-bottom: 1px solid rgba(246,241,231,0.06);
+    margin-bottom: 16px;
+  }
+  .sidebar-brand-mark {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: var(--red); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 900;
+    font-size: 17px; letter-spacing: -0.04em; color: var(--cream);
+    box-shadow: 0 6px 20px -4px rgba(200,16,46,0.55);
+  }
+/* Sidebar brand lockup (replaces .sidebar-brand-mark + .sidebar-brand-text) */
+  .sidebar-brand-logo {
+    height: 70px; width: auto;
+    display: block;
+    object-fit: contain;
+  }
+
+  .sidebar-brand-text {
+    font-family: var(--font-display); font-weight: 800;
+    font-size: 20px; letter-spacing: -0.035em; color: var(--cream);
+  }
+  .sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    font-size: 14px; font-weight: 500;
+    color: rgba(246,241,231,0.65);
+    transition: all 0.18s;
+    position: relative;
+  }
+  .sidebar-link:hover { color: var(--cream); background: rgba(246,241,231,0.04); }
+  .sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .sidebar-link .link-right {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--red); color: var(--cream);
+    letter-spacing: 0.08em;
+  }
+  .sidebar-link.active {
+    background: linear-gradient(90deg, rgba(200,16,46,0.15), rgba(200,16,46,0.02));
+    color: var(--cream); font-weight: 600;
+  }
+  .sidebar-link.active::before {
+    content: '';
+    position: absolute;
+    left: -16px; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 22px;
+    background: var(--red); border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 12px rgba(200,16,46,0.7);
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid rgba(246,241,231,0.06);
+  }
+  .sidebar-profile {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(246,241,231,0.03);
+    border: 1px solid rgba(246,241,231,0.06);
+  }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 999px;
+    background: linear-gradient(135deg, var(--red) 0%, #8a0b1f 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800;
+    font-size: 14px; color: var(--cream);
+    letter-spacing: -0.02em; flex-shrink: 0;
+    box-shadow: 0 4px 12px -2px rgba(200,16,46,0.5);
+  }
+  .sidebar-profile-text { min-width: 0; flex: 1; }
+  .sidebar-profile-name {
+    font-size: 13px; font-weight: 600; color: var(--cream);
+    line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sidebar-profile-role {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--red); margin-top: 2px;
+  }
+
+  .topbar {
+    position: sticky; top: 0;
+    height: var(--topbar-h);
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(246,241,231,0.06);
+    z-index: 30;
+    display: flex; align-items: center;
+    padding: 0 16px;
+  }
+  @media (min-width: 1024px) {
+    .topbar { padding: 0 32px 0 calc(var(--sidebar-w) + 32px); }
+  }
+  .topbar-inner {
+    width: 100%; max-width: var(--content-max); margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .topbar-left {
+    display: flex; align-items: center; gap: 10px;
+    min-width: 0; flex: 1;
+  }
+  .topbar-back {
+    width: 40px; height: 40px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    color: rgba(246,241,231,0.75);
+    transition: all 0.2s;
+  }
+  .topbar-back:hover { color: var(--cream); background: rgba(246,241,231,0.06); }
+  .topbar-back svg { width: 18px; height: 18px; }
+  .topbar-title {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 16px; letter-spacing: -0.02em;
+    color: var(--cream);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  @media (min-width: 1024px) { .topbar-title { font-size: 18px; } }
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    color: rgba(246,241,231,0.7);
+    transition: all 0.2s;
+  }
+  .icon-btn:hover { color: var(--cream); background: rgba(246,241,231,0.06); }
+  .icon-btn svg { width: 20px; height: 20px; }
+  .topbar-avatar {
+    width: 36px; height: 36px; border-radius: 999px;
+    background: linear-gradient(135deg, var(--red) 0%, #8a0b1f 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800;
+    font-size: 13px; color: var(--cream);
+    letter-spacing: -0.02em;
+    cursor: pointer;
+    box-shadow: 0 4px 12px -2px rgba(200,16,46,0.5);
+  }
+
+  .main { padding: 16px; }
+  @media (min-width: 768px) { .main { padding: 24px 32px; } }
+  @media (min-width: 1024px) {
+    .main { padding: 24px 32px 48px calc(var(--sidebar-w) + 32px); }
+  }
+
+  .main-inner {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* ============================================================
+     PAGE HEADER
+     ============================================================ */
+  .page-label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 10px;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .page-label::before {
+    content: ''; width: 24px; height: 1px; background: var(--red);
+  }
+  .page-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 5.5vw, 2.2rem);
+    font-weight: 800; letter-spacing: -0.035em;
+    line-height: 1;
+    margin: 0 0 22px;
+    color: var(--cream);
+  }
+  @media (min-width: 1024px) { .page-title { font-size: 2.2rem; } }
+  .page-title em { font-style: normal; font-weight: 900; color: var(--red); }
+
+  /* ============================================================
+     TOTALS STRIP (shows summary for current view)
+     ============================================================ */
+  .totals-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+  @media (min-width: 768px) { .totals-strip { gap: 12px; } }
+  .total-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(246,241,231,0.03);
+    border: 1px solid rgba(246,241,231,0.08);
+    min-width: 0;
+  }
+  @media (min-width: 768px) { .total-card { padding: 14px 16px; } }
+  .total-label {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: rgba(246,241,231,0.5);
+    margin-bottom: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  @media (min-width: 768px) { .total-label { font-size: 10px; } }
+  .total-value {
+    font-family: var(--font-mono); font-weight: 700;
+    font-size: 15px;
+    color: var(--cream);
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    word-break: break-all;
+  }
+  @media (min-width: 768px) { .total-value { font-size: 17px; } }
+  .total-value .cur {
+    font-size: 0.6em;
+    color: rgba(246,241,231,0.45);
+    margin-right: 3px;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .total-card.green .total-value { color: var(--green); }
+  .total-card.green .total-value .cur { color: rgba(34,197,94,0.5); }
+  .total-card.amber .total-value { color: var(--amber); }
+  .total-card.amber .total-value .cur { color: rgba(245,158,11,0.5); }
+
+  /* ============================================================
+     TABS (Deposits / Withdrawals)
+     ============================================================ */
+  .tabs {
+    display: flex; gap: 4px;
+    padding: 4px;
+    background: rgba(246,241,231,0.04);
+    border: 1px solid rgba(246,241,231,0.08);
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-family: var(--font-sans);
+    font-size: 13px; font-weight: 600;
+    color: rgba(246,241,231,0.55);
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  @media (min-width: 768px) { .tab { font-size: 14px; padding: 11px 16px; } }
+  .tab:hover:not(.active) { color: var(--cream); }
+  .tab.active {
+    background: var(--red);
+    color: var(--cream);
+    box-shadow: 0 4px 12px -2px rgba(200,16,46,0.45);
+  }
+  .tab svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .tab-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(246,241,231,0.1);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .tab.active .tab-count {
+    background: rgba(10,10,10,0.25);
+    color: var(--cream);
+  }
+
+  /* ============================================================
+     DATE FILTER PILLS (Today / This Week / This Month)
+     ============================================================ */
+  .filter-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(246,241,231,0.45);
+  }
+  .filters {
+    display: flex; gap: 6px;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .filter-pill {
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(246,241,231,0.04);
+    border: 1px solid rgba(246,241,231,0.08);
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em;
+    color: rgba(246,241,231,0.6);
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .filter-pill:hover:not(.active) {
+    color: var(--cream);
+    background: rgba(246,241,231,0.08);
+  }
+  .filter-pill.active {
+    background: rgba(200,16,46,0.12);
+    border-color: var(--red);
+    color: var(--cream);
+    box-shadow: 0 0 0 2px rgba(200,16,46,0.15);
+  }
+
+  /* ============================================================
+     DAY GROUP HEADER (dates shown between transactions)
+     ============================================================ */
+  .day-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 2px 8px;
+  }
+  .day-header-text {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: rgba(246,241,231,0.45);
+    flex-shrink: 0;
+  }
+  .day-header-text strong {
+    color: rgba(246,241,231,0.8);
+    font-weight: 700;
+  }
+  .day-header-rule {
+    flex: 1;
+    height: 1px;
+    background: rgba(246,241,231,0.06);
+  }
+
+  /* ============================================================
+     TRANSACTION ROWS
+     ============================================================ */
+  .txn-list {
+    display: flex; flex-direction: column;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .txn {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 12px;
+    padding: 14px 14px;
+    border-radius: 14px;
+    background: rgba(246,241,231,0.03);
+    border: 1px solid rgba(246,241,231,0.08);
+    align-items: center;
+    transition: all 0.2s;
+  }
+  @media (min-width: 768px) {
+    .txn {
+      grid-template-columns: 48px 1fr auto auto;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+  }
+  .txn:hover {
+    background: rgba(246,241,231,0.05);
+    border-color: rgba(246,241,231,0.12);
+  }
+  .txn.failed { background: rgba(255,107,107,0.04); border-color: rgba(255,107,107,0.15); }
+  .txn.failed:hover { background: rgba(255,107,107,0.06); border-color: rgba(255,107,107,0.25); }
+
+  .txn-icon {
+    width: 44px; height: 44px;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .txn-icon svg { width: 18px; height: 18px; }
+  .txn-icon.deposit {
+    background: rgba(34,197,94,0.12);
+    color: var(--green);
+  }
+  .txn-icon.withdraw {
+    background: rgba(245,158,11,0.12);
+    color: var(--amber);
+  }
+  .txn-icon.failed {
+    background: rgba(255,107,107,0.1);
+    color: #ff6b6b;
+  }
+
+  .txn-info { min-width: 0; }
+  .txn-title {
+    font-size: 14px; font-weight: 600;
+    color: var(--cream);
+    line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 3px;
+  }
+  @media (min-width: 768px) { .txn-title { font-size: 15px; } }
+  .txn-meta {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 500;
+    color: rgba(246,241,231,0.45);
+    letter-spacing: 0.02em;
+  }
+  @media (min-width: 768px) { .txn-meta { font-size: 11px; } }
+  .txn-meta-sep {
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(246,241,231,0.2);
+  }
+
+  .txn-amount {
+    font-family: var(--font-mono);
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 0.02em;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (min-width: 768px) { .txn-amount { font-size: 15px; } }
+  .txn-amount.pos { color: var(--green); }
+  .txn-amount.neg { color: var(--cream); }
+  .txn-amount.strike {
+    color: rgba(246,241,231,0.4);
+    text-decoration: line-through;
+    text-decoration-color: rgba(255,107,107,0.6);
+  }
+  .txn-amount .cur {
+    font-size: 0.75em;
+    opacity: 0.65;
+    margin-right: 2px;
+  }
+
+  .txn-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    white-space: nowrap;
+    grid-column: 2 / 4;
+    justify-self: start;
+    margin-top: 6px;
+  }
+  @media (min-width: 768px) {
+    .txn-status {
+      grid-column: auto;
+      justify-self: auto;
+      margin-top: 0;
+      font-size: 10px;
+    }
+  }
+  .txn-status svg {
+    width: 10px; height: 10px;
+    flex-shrink: 0;
+  }
+  .txn-status.success {
+    background: rgba(34,197,94,0.12);
+    color: var(--green);
+  }
+  .txn-status.failed {
+    background: rgba(255,107,107,0.12);
+    color: #ff6b6b;
+  }
+
+  /* ============================================================
+     EMPTY STATE
+     ============================================================ */
+  .empty {
+    text-align: center;
+    padding: 56px 20px;
+    border-radius: 18px;
+    background: rgba(246,241,231,0.02);
+    border: 1px dashed rgba(246,241,231,0.12);
+  }
+  .empty-icon {
+    width: 64px; height: 64px;
+    margin: 0 auto 18px;
+    border-radius: 18px;
+    background: rgba(246,241,231,0.04);
+    border: 1px solid rgba(246,241,231,0.08);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(246,241,231,0.35);
+  }
+  .empty-icon svg { width: 28px; height: 28px; }
+  .empty-title {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 18px;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+  }
+  .empty-sub {
+    font-size: 13px; line-height: 1.55;
+    color: rgba(246,241,231,0.5);
+    margin: 0 auto 20px;
+    max-width: 300px;
+  }
+  .empty-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 18px;
+    border-radius: 999px;
+    background: var(--red);
+    color: var(--cream);
+    font-size: 13px; font-weight: 600;
+    transition: all 0.2s;
+    box-shadow: 0 8px 20px -6px rgba(200,16,46,0.5);
+  }
+  .empty-cta:hover {
+    background: var(--red-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px -6px rgba(200,16,46,0.65);
+  }
+  .empty-cta svg { width: 14px; height: 14px; }
+
+  /* ============================================================
+     PENDING STATUS PILL
+     ============================================================ */
+  .txn-status.pending {
+    background: rgba(245,158,11,0.14);
+    color: var(--amber);
+  }
+  .txn.pending {
+    background: rgba(245,158,11,0.04);
+    border-color: rgba(245,158,11,0.18);
+  }
+  .txn.pending:hover {
+    background: rgba(245,158,11,0.06);
+    border-color: rgba(245,158,11,0.28);
+  }
+
+  /* ============================================================
+     INLINE REFRESH BUTTON ON PENDING ROWS
+     ============================================================ */
+  .row-refresh {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    background: rgba(245,158,11,0.15);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--amber);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    grid-column: 4;
+    grid-row: 1;
+    transition: all 0.18s;
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    cursor: pointer;
+  }
+  .row-refresh:hover:not(.cooldown):not(.spinning) {
+    background: rgba(245,158,11,0.22);
+    border-color: rgba(245,158,11,0.45);
+  }
+  .row-refresh svg { width: 14px; height: 14px; }
+  .row-refresh.spinning svg { animation: spin 0.8s linear infinite; }
+  .row-refresh.cooldown {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* On mobile, .txn is 3-col grid: icon | info | amount. Refresh sits as a
+     4th column when present. The row will still wrap status to next line. */
+  @media (min-width: 768px) {
+    .txn { grid-template-columns: 48px 1fr auto auto auto; }
+  }
+
+  /* ============================================================
+     SKELETON LOADING ROWS
+     ============================================================ */
+  .txn.skeleton {
+    pointer-events: none;
+  }
+  .txn.skeleton .skel {
+    background: linear-gradient(90deg, rgba(246,241,231,0.04), rgba(246,241,231,0.08), rgba(246,241,231,0.04));
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite linear;
+    border-radius: 6px;
+  }
+  .txn.skeleton .txn-icon.skel {
+    border-radius: 11px;
+  }
+  .txn.skeleton .skel-line {
+    height: 12px;
+    width: 60%;
+    color: transparent;
+  }
+  .txn.skeleton .skel-line.short { width: 35%; height: 10px; }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ============================================================
+     LOAD MORE BUTTON
+     ============================================================ */
+  .loadmore-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(246,241,231,0.04);
+    border: 1px solid rgba(246,241,231,0.1);
+    color: rgba(246,241,231,0.75);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .loadmore-btn:hover:not(:disabled) {
+    background: rgba(246,241,231,0.08);
+    border-color: rgba(246,241,231,0.2);
+    color: var(--cream);
+  }
+  .loadmore-btn:disabled { cursor: progress; opacity: 0.7; }
+  .spinner-sm {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(246,241,231,0.2);
+    border-top-color: rgba(246,241,231,0.85);
+    animation: spin 0.7s linear infinite;
+  }
+
+  /* ============================================================
+     BOTTOM NAV
+     ============================================================ */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: var(--bottomnav-h);
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(246,241,231,0.06);
+    z-index: 40;
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  @media (min-width: 1024px) { .bottom-nav { display: none; } }
+  .bottom-nav-inner {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    width: 100%;
+  }
+  .bn-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; padding: 8px 4px;
+    color: rgba(246,241,231,0.45);
+    transition: color 0.2s;
+    position: relative;
+  }
+  .bn-item.active { color: var(--cream); }
+  .bn-item svg { width: 22px; height: 22px; }
+  .bn-item .label {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .bn-item.active::before {
+    content: '';
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 28px; height: 2px;
+    background: var(--red);
+    border-radius: 0 0 2px 2px;
+    box-shadow: 0 0 12px rgba(200,16,46,0.7);
+  }
+  .bn-play .fab {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--red); color: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 22px -4px rgba(200,16,46,0.65);
+    margin-top: -18px;
+  }
+  .bn-play .fab svg { width: 22px; height: 22px; }
+  .bn-play .label {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--red);
+  }
+
+  /* Fade animations */
+  .fade-up {
+    opacity: 0; transform: translateY(6px);
+    animation: fadeIn 0.4s ease forwards;
+  }
+  @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="../assets/logo.png" alt="BlackRed" class="sidebar-brand-logo">
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="3" width="8" height="5" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="10" width="8" height="11" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.7"/></svg>
+        Dashboard
+      </a>
+      <a href="play.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M12 3v18" stroke="currentColor" stroke-width="1.7"/><circle cx="8.5" cy="7" r="1" fill="currentColor"/><circle cx="15.5" cy="17" r="1" fill="currentColor"/></svg>
+        Play Now
+        <span class="link-right">LIVE</span>
+      </a>
+      <a href="stakes.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10m6 10V4m6 16v-8m6 8v-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Stake History
+      </a>
+      <a href="transactions.html" class="sidebar-link active">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Transactions
+      </a>
+      <a href="account.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Account
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-profile">
+        <div class="avatar" id="sidebarAvatar">KM</div>
+        <div class="sidebar-profile-text">
+          <div class="sidebar-profile-name" id="sidebarName">Kwame Mensah</div>
+          <div class="sidebar-profile-role">024 • MTN MoMo</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <a href="dashboard.html" class="topbar-back" aria-label="Back">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <div class="topbar-title">Transactions</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" aria-label="Search" type="button">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button>
+        <div class="topbar-avatar" id="topAvatar">KM</div>
+      </div>
+    </div>
+  </header>
+
+  
+  <main class="main">
+    <div class="main-inner">
+
+      
+      <div class="page-label">Your Activity</div>
+      <h1 class="page-title">Transactions</h1>
+
+      
+      <div class="totals-strip" id="totalsStrip">
+        <div class="total-card">
+          <div class="total-label" id="totalLabel1">Total</div>
+          <div class="total-value"><span class="cur">GHS</span><span id="totalValue1">0.00</span></div>
+        </div>
+        <div class="total-card green">
+          <div class="total-label" id="totalLabel2">Successful</div>
+          <div class="total-value"><span class="cur">GHS</span><span id="totalValue2">0.00</span></div>
+        </div>
+      </div>
+
+      
+      <div class="tabs" id="tabs">
+        <button type="button" class="tab active" data-tab="deposits">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v9m0 0l-3-3m3 3l3-3M2 13h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Deposits
+          <span class="tab-count" id="tabCountDeposits">0</span>
+        </button>
+        <button type="button" class="tab" data-tab="withdrawals">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 13V4m0 0l-3 3m3-3l3 3M2 3h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Withdrawals
+          <span class="tab-count" id="tabCountWithdrawals">0</span>
+        </button>
+      </div>
+
+      
+      <div class="filter-row">
+        <div class="filter-label">Show</div>
+        <div class="filters" id="filters">
+          <button type="button" class="filter-pill active" data-filter="today">Today</button>
+          <button type="button" class="filter-pill" data-filter="week">This Week</button>
+          <button type="button" class="filter-pill" data-filter="month">This Month</button>
+        </div>
+      </div>
+
+      
+      <div id="listContainer">
+        
+      </div>
+
+      
+      <div id="loadMoreWrap" style="display:none;margin-top:12px;">
+        <button type="button" id="loadMoreBtn" class="loadmore-btn">
+          <span>Load more</span>
+        </button>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="Primary">
+  <div class="bottom-nav-inner">
+    <a href="dashboard.html" class="bn-item">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="3" width="8" height="5" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="10" width="8" height="11" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.7"/></svg>
+      <span class="label">Dashboard</span>
+    </a>
+    <a href="stakes.html" class="bn-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10m6 10V4m6 16v-8m6 8v-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span class="label">Stakes</span>
+    </a>
+    <a href="play.html" class="bn-item bn-play">
+      <div class="fab">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 4l14 8-14 8V4z" fill="currentColor"/></svg>
+      </div>
+      <span class="label">Play Now</span>
+    </a>
+    <a href="transactions.html" class="bn-item active">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span class="label">Transactions</span>
+    </a>
+    <a href="account.html" class="bn-item">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span class="label">Account</span>
+    </a>
+  </div>
+</nav>
+
+<script>
+const API_BASE = function() {
+  const path = window.location.pathname;
+  const idx = path.indexOf("/app/");
+  const root = idx >= 0 ? path.substring(0, idx) : "";
+  return root + "/api";
+}();
+
+async function apiGet(path) {
+  let res, data;
+  try {
+    res = await fetch(API_BASE + path, {
+      credentials: "include",
+      headers: {
+        Accept: "application/json"
+      }
+    });
+  } catch (e) {
+    throw {
+      error: "network_error",
+      message: "Could not reach the server."
+    };
+  }
+  if (res.status === 401) {
+    window.location.replace("index.html");
+    throw {
+      error: "unauthorized"
+    };
+  }
+  try {
+    data = await res.json();
+  } catch {
+    throw {
+      error: "invalid_response"
+    };
+  }
+  if (!res.ok) {
+    throw {
+      error: data.error || "unknown_error",
+      message: data.message || "Could not load."
+    };
+  }
+  return data;
+}
+
+async function apiPost(path, body) {
+  let res, data;
+  try {
+    res = await fetch(API_BASE + path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify(body || {})
+    });
+  } catch (e) {
+    throw {
+      error: "network_error"
+    };
+  }
+  try {
+    data = await res.json();
+  } catch {
+    throw {
+      error: "invalid_response"
+    };
+  }
+  if (!res.ok) {
+    throw {
+      error: data.error || "unknown_error",
+      message: data.message || "Failed."
+    };
+  }
+  return data;
+}
+
+function formatPhoneLocal(canonical) {
+  if (!canonical || canonical.length !== 12) {
+    return canonical || "";
+  }
+  const local = "0" + canonical.substring(3);
+  return local.slice(0, 3) + " " + local.slice(3, 6) + " " + local.slice(6);
+}
+
+function formatMoney(s) {
+  return s ? s : "0.00";
+}
+
+function splitName(fullName) {
+  if (!fullName) {
+    return {
+      firstName: "Player",
+      initial: "P"
+    };
+  }
+  const first = String(fullName).trim().split(/\s+/)[0];
+  const tc = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+  return {
+    firstName: tc,
+    initial: tc.charAt(0)
+  };
+}
+
+function providerInfo(p) {
+  if (p === "MTN") {
+    return {
+      full: "MTN MoMo",
+      short: "MTN"
+    };
+  }
+  if (p === "ATL") {
+    return {
+      full: "AirtelTigo Money",
+      short: "AirtelTigo"
+    };
+  }
+  if (p === "TEL") {
+    return {
+      full: "Telecel Cash",
+      short: "Telecel"
+    };
+  }
+  return {
+    full: p || "",
+    short: p || ""
+  };
+}
+
+function parseDateTime(s) {
+  if (!s) {
+    return null;
+  }
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/);
+  if (!m) {
+    return new Date(s);
+  }
+  return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+}
+
+function formatTime(d) {
+  return d.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+}
+
+function sameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function formatDayHeader(d) {
+  const today = new Date;
+  const yesterday = new Date;
+  yesterday.setDate(today.getDate() - 1);
+  if (sameDay(d, today)) {
+    return "Today";
+  }
+  if (sameDay(d, yesterday)) {
+    return "Yesterday";
+  }
+  const dayName = d.toLocaleDateString("en-US", {
+    weekday: "long"
+  });
+  const diffDays = Math.floor((today - d) / (1e3 * 60 * 60 * 24));
+  if (diffDays < 7) {
+    return dayName;
+  }
+  return d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short"
+  });
+}
+
+const PAGE_SIZE = 15;
+
+const state = {
+  tab: "deposits",
+  filter: "today",
+  items: [],
+  nextCursor: null,
+  hasMore: false,
+  loading: false,
+  initialLoad: true,
+  pendingCooldowns: {}
+};
+
+let me = null;
+
+async function loadMe() {
+  try {
+    me = await apiGet("/me");
+  } catch (e) {
+    return;
+  }
+  if (!me || !me.player) {
+    return;
+  }
+  const {firstName: firstName, initial: initial} = splitName(me.player.registeredName);
+  document.getElementById("topAvatar").textContent = initial;
+  document.getElementById("sidebarAvatar").textContent = initial;
+  document.getElementById("sidebarName").textContent = firstName;
+  const sidebarRole = document.querySelector(".sidebar-profile-role");
+  if (sidebarRole && me.player.phone) {
+    const local = formatPhoneLocal(me.player.phone);
+    const prefix = local.slice(0, 3);
+    const prov = providerInfo(me.player.paymentProvider);
+    sidebarRole.textContent = prefix + " • " + prov.full;
+  }
+}
+
+loadMe();
+
+function dateRangeOf(filter) {
+  const now = new Date;
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  if (filter === "week") {
+    const day = start.getDay();
+    const back = day === 0 ? 6 : day - 1;
+    start.setDate(start.getDate() - back);
+  } else if (filter === "month") {
+    start.setDate(1);
+  }
+  return {
+    start: start,
+    end: now
+  };
+}
+
+function applyClientFilter(items, filter) {
+  if (filter === "all") {
+    return items;
+  }
+  const {start: start, end: end} = dateRangeOf(filter);
+  return items.filter(it => {
+    const d = parseDateTime(it.initiatedAt);
+    return d >= start && d <= end;
+  });
+}
+
+async function fetchPage(reset) {
+  if (state.loading) {
+    return;
+  }
+  state.loading = true;
+  if (reset) {
+    state.items = [];
+    state.nextCursor = null;
+    state.hasMore = false;
+    renderSkeleton();
+  } else {
+    renderLoadMoreLoading(true);
+  }
+  const apiType = state.tab === "deposits" ? "deposit" : "withdraw";
+  const params = new URLSearchParams({
+    type: apiType,
+    limit: String(PAGE_SIZE)
+  });
+  if (state.nextCursor) {
+    params.set("cursor", state.nextCursor);
+  }
+  try {
+    const page = await apiGet("/transactions?" + params.toString());
+    state.items = state.items.concat(page.items || []);
+    state.nextCursor = page.nextCursor || null;
+    state.hasMore = !!page.hasMore;
+  } catch (e) {
+    if (e.error !== "unauthorized") {
+      renderError(e.message || "Could not load transactions.");
+    }
+    state.loading = false;
+    return;
+  }
+  state.loading = false;
+  state.initialLoad = false;
+  render();
+}
+
+async function refreshOneTransaction(item, btnEl) {
+  if (!item) {
+    return;
+  }
+  if (state.pendingCooldowns[item.id] && state.pendingCooldowns[item.id].interval) {
+    return;
+  }
+  btnEl.classList.add("spinning");
+  const path = item.type === "deposit" ? "/deposits/" + item.id + "/verify" : "/withdrawals/" + item.id + "/verify";
+  let updated;
+  try {
+    updated = await apiPost(path, {});
+  } catch (e) {
+    btnEl.classList.remove("spinning");
+    startCooldown(item.id);
+    return;
+  }
+  btnEl.classList.remove("spinning");
+  if (updated && updated.status) {
+    const raw = String(updated.status);
+    let mapped = "failed";
+    if (raw === "succeeded") {
+      mapped = "succeeded";
+    } else if (raw === "pending" || raw === "initiated" || raw === "reconciling") {
+      mapped = "pending";
+    }
+    const idx = state.items.findIndex(x => x.type === item.type && x.id === item.id);
+    if (idx !== -1) {
+      state.items[idx].status = mapped;
+      if (mapped === "failed" && updated.failureReason) {
+        state.items[idx].failureReason = updated.failureReason;
+      }
+      if (updated.completedAt) {
+        state.items[idx].completedAt = updated.completedAt;
+      }
+    }
+    render();
+    if (mapped === "pending") {
+      startCooldown(item.id);
+    }
+  } else {
+    startCooldown(item.id);
+  }
+}
+
+function startCooldown(id) {
+  const co = {
+    secondsLeft: 5,
+    interval: null
+  };
+  state.pendingCooldowns[id] = co;
+  co.interval = setInterval(() => {
+    co.secondsLeft--;
+    if (co.secondsLeft <= 0) {
+      clearInterval(co.interval);
+      delete state.pendingCooldowns[id];
+    }
+    const btn = document.querySelector('[data-refresh-row="' + id + '"]');
+    if (btn) {
+      if (co.secondsLeft > 0) {
+        btn.classList.add("cooldown");
+        btn.innerHTML = co.secondsLeft + "s";
+      } else {
+        btn.classList.remove("cooldown");
+        btn.innerHTML = ICONS.refreshSm;
+      }
+    }
+  }, 1e3);
+  render();
+}
+
+const ICONS = {
+  depositIn: '<svg viewBox="0 0 16 16" fill="none"><path d="M8 3v9m0 0l-3-3m3 3l3-3M2 13h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  withdrawOut: '<svg viewBox="0 0 16 16" fill="none"><path d="M8 13V4m0 0l-3 3m3-3l3 3M2 3h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  internal: '<svg viewBox="0 0 16 16" fill="none"><path d="M3 5h8m0 0L8 2m3 3L8 8M13 11H5m0 0l3-3m-3 3l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  pending: '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M8 5v3.5l2 1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  failed: '<svg viewBox="0 0 16 16" fill="none"><path d="M5 5l6 6m0-6l-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  refreshSm: '<svg viewBox="0 0 14 14" fill="none"><path d="M2 7a5 5 0 018.5-3.5L12 5M12 2.5V5h-2.5M12 7a5 5 0 01-8.5 3.5L2 9M2 11.5V9h2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  checkCircle: '<svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5L9.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  xCircle: '<svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+};
+
+function buildTxnRow(t) {
+  const isDeposit = t.type === "deposit";
+  const isInternal = !isDeposit && t.subtype === "PLAY";
+  const isPending = t.status === "pending";
+  const isFailed = t.status === "failed";
+  const isSuccess = t.status === "succeeded";
+  let iconClass = "deposit", iconSvg = ICONS.depositIn, title = "Deposit from MoMo";
+  if (isFailed) {
+    iconClass = "failed";
+    iconSvg = ICONS.failed;
+    title = isDeposit ? "Deposit failed" : isInternal ? "Move to Play failed" : "Withdrawal failed";
+  } else if (isPending) {
+    iconClass = "pending";
+    iconSvg = ICONS.pending;
+    title = isDeposit ? "Deposit pending" : isInternal ? "Move to Play pending" : "Withdrawal pending";
+  } else if (isDeposit) {
+    iconClass = "deposit";
+    iconSvg = ICONS.depositIn;
+    title = "Deposit from MoMo";
+  } else if (isInternal) {
+    iconClass = "withdraw";
+    iconSvg = ICONS.internal;
+    title = "Move to Play balance";
+  } else {
+    iconClass = "withdraw";
+    iconSvg = ICONS.withdrawOut;
+    title = "Withdrawal to MoMo";
+  }
+  let amountClass, amountPrefix;
+  if (isFailed) {
+    amountClass = "strike";
+    amountPrefix = isDeposit ? "+ " : "− ";
+  } else if (isPending) {
+    amountClass = "neg";
+    amountPrefix = isDeposit ? "+ " : "− ";
+  } else if (isDeposit) {
+    amountClass = "pos";
+    amountPrefix = "+ ";
+  } else if (isInternal) {
+    amountClass = "neg";
+    amountPrefix = "↻ ";
+  } else {
+    amountClass = "neg";
+    amountPrefix = "− ";
+  }
+  const time = formatTime(parseDateTime(t.initiatedAt));
+  const phone = formatPhoneLocal(t.phone);
+  const meta = [ time, t.reference ];
+  if (isFailed && t.failureReason) {
+    meta.push(t.failureReason);
+  }
+  const metaHtml = meta.map(p => "<span>" + p + "</span>").join('<span class="txn-meta-sep"></span>');
+  let statusHtml = "";
+  if (isSuccess) {
+    statusHtml = '<span class="txn-status success">' + ICONS.checkCircle + "<span>Successful</span></span>";
+  } else if (isPending) {
+    statusHtml = '<span class="txn-status pending">' + ICONS.pending + "<span>Pending</span></span>";
+  } else {
+    statusHtml = '<span class="txn-status failed">' + ICONS.xCircle + "<span>Failed</span></span>";
+  }
+  let refreshBtn = "";
+  if (isPending) {
+    const co = state.pendingCooldowns[t.id];
+    if (co && co.secondsLeft > 0) {
+      refreshBtn = '<button class="row-refresh cooldown" data-refresh-row="' + t.id + '">' + co.secondsLeft + "s</button>";
+    } else {
+      refreshBtn = '<button class="row-refresh" data-refresh-row="' + t.id + '" aria-label="Refresh status">' + ICONS.refreshSm + "</button>";
+    }
+  }
+  return `\n      <div class="txn ${isFailed ? "failed" : isPending ? "pending" : ""}">\n        <div class="txn-icon ${iconClass}">${iconSvg}</div>\n        <div class="txn-info">\n          <div class="txn-title">${title}</div>\n          <div class="txn-meta">${metaHtml}</div>\n        </div>\n        <div class="txn-amount ${amountClass}">${amountPrefix}<span class="cur">GHS </span>${formatMoney(t.amountFormatted)}</div>\n        ${statusHtml}\n        ${refreshBtn}\n      </div>\n    `;
+}
+
+function renderSkeleton() {
+  const container = document.getElementById("listContainer");
+  let html = '<div class="txn-list">';
+  for (let i = 0; i < 4; i++) {
+    html += `\n        <div class="txn skeleton">\n          <div class="txn-icon skel"></div>\n          <div class="txn-info">\n            <div class="txn-title skel skel-line"></div>\n            <div class="txn-meta skel skel-line short"></div>\n          </div>\n          <div class="txn-amount skel skel-line short"></div>\n        </div>\n      `;
+  }
+  html += "</div>";
+  container.innerHTML = html;
+  const lm = document.getElementById("loadMoreWrap");
+  if (lm) {
+    lm.style.display = "none";
+  }
+}
+
+function renderError(msg) {
+  document.getElementById("listContainer").innerHTML = `\n      <div class="empty">\n        <div class="empty-icon">\n          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v5M12 16v.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>\n        </div>\n        <h3 class="empty-title">Couldn't load</h3>\n        <p class="empty-sub">${msg}</p>\n      </div>\n    `;
+  const lm = document.getElementById("loadMoreWrap");
+  if (lm) {
+    lm.style.display = "none";
+  }
+}
+
+function renderLoadMoreLoading(loading) {
+  const btn = document.getElementById("loadMoreBtn");
+  if (!btn) {
+    return;
+  }
+  btn.disabled = loading;
+  btn.innerHTML = loading ? '<span class="spinner-sm"></span><span>Loading…</span>' : "<span>Load more</span>";
+}
+
+function render() {
+  const filtered = applyClientFilter(state.items, state.filter);
+  const depCount = state.tab === "deposits" ? state.items.length : 0;
+  const wdCount = state.tab === "withdrawals" ? state.items.length : 0;
+  const cdEl = document.getElementById("tabCountDeposits");
+  const cwEl = document.getElementById("tabCountWithdrawals");
+  if (cdEl) {
+    cdEl.textContent = depCount + (state.hasMore && state.tab === "deposits" ? "+" : "");
+  }
+  if (cwEl) {
+    cwEl.textContent = wdCount + (state.hasMore && state.tab === "withdrawals" ? "+" : "");
+  }
+  const successList = filtered.filter(t => t.status === "succeeded");
+  const totalAmount = filtered.reduce((s, t) => s + t.amountPesewas / 100, 0);
+  const successAmount = successList.reduce((s, t) => s + t.amountPesewas / 100, 0);
+  document.getElementById("totalLabel1").textContent = state.tab === "deposits" ? "Deposited" : "Withdrawn";
+  document.getElementById("totalLabel2").textContent = "Successful";
+  document.getElementById("totalValue1").textContent = totalAmount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  document.getElementById("totalValue2").textContent = successAmount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  const container = document.getElementById("listContainer");
+  if (filtered.length === 0) {
+    const typeLabel = state.tab === "deposits" ? "deposits" : "withdrawals";
+    const periodLabel = state.filter === "today" ? "today" : state.filter === "week" ? "this week" : "this month";
+    const ctaHref = state.tab === "deposits" ? "deposit.html" : "withdraw.html";
+    const ctaLabel = state.tab === "deposits" ? "Make a deposit" : "Make a withdrawal";
+    const ctaIcon = state.tab === "deposits" ? ICONS.depositIn : ICONS.withdrawOut;
+    container.innerHTML = `\n        <div class="empty fade-up">\n          <div class="empty-icon">\n            <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M4 11h16M8 16h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>\n          </div>\n          <h3 class="empty-title">No ${typeLabel} ${periodLabel}</h3>\n          <p class="empty-sub">${state.tab === "deposits" ? "When you fund your account, your deposits will show up here." : "When you cash out winnings, your withdrawals will show up here."}</p>\n          <a href="${ctaHref}" class="empty-cta">${ctaIcon}${ctaLabel}</a>\n        </div>\n      `;
+    const lm = document.getElementById("loadMoreWrap");
+    if (lm) {
+      lm.style.display = "none";
+    }
+    return;
+  }
+  filtered.sort((a, b) => parseDateTime(b.initiatedAt) - parseDateTime(a.initiatedAt));
+  let lastDayKey = null;
+  let html = "";
+  let currentGroup = "";
+  filtered.forEach(t => {
+    const d = parseDateTime(t.initiatedAt);
+    const dayKey = d.toDateString();
+    if (dayKey !== lastDayKey) {
+      if (currentGroup) {
+        html += '<div class="txn-list fade-up">' + currentGroup + "</div>";
+        currentGroup = "";
+      }
+      const label = formatDayHeader(d);
+      const fullDate = d.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+      html += `<div class="day-header"><div class="day-header-text"><strong>${label}</strong> · ${fullDate}</div><div class="day-header-rule"></div></div>`;
+      lastDayKey = dayKey;
+    }
+    currentGroup += buildTxnRow(t);
+  });
+  if (currentGroup) {
+    html += '<div class="txn-list fade-up">' + currentGroup + "</div>";
+  }
+  container.innerHTML = html;
+  container.querySelectorAll("[data-refresh-row]").forEach(b => {
+    b.addEventListener("click", e => {
+      e.stopPropagation();
+      const id = parseInt(b.getAttribute("data-refresh-row"), 10);
+      const item = state.items.find(x => x.id === id);
+      if (!item) {
+        return;
+      }
+      if (b.classList.contains("cooldown")) {
+        return;
+      }
+      refreshOneTransaction(item, b);
+    });
+  });
+  const lm = document.getElementById("loadMoreWrap");
+  if (lm) {
+    lm.style.display = state.hasMore ? "block" : "none";
+  }
+  renderLoadMoreLoading(false);
+}
+
+document.querySelectorAll("#tabs .tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.tab === state.tab) {
+      return;
+    }
+    state.tab = btn.dataset.tab;
+    document.querySelectorAll("#tabs .tab").forEach(b => b.classList.toggle("active", b === btn));
+    fetchPage(true);
+  });
+});
+
+document.querySelectorAll("#filters .filter-pill").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.filter === state.filter) {
+      return;
+    }
+    state.filter = btn.dataset.filter;
+    document.querySelectorAll("#filters .filter-pill").forEach(b => b.classList.toggle("active", b === btn));
+    if (state.filter === "month" || state.filter === "week") {
+      fetchPage(true);
+    } else {
+      render();
+    }
+  });
+});
+
+document.getElementById("loadMoreBtn").addEventListener("click", () => {
+  if (state.loading || !state.hasMore) {
+    return;
+  }
+  fetchPage(false);
+});
+
+fetchPage(true);
+</script>
+
+<!-- BR-NAV-LOADER START -->
+<style>
+  .br-nav-loader {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #0E0500;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 240ms ease;
+  }
+  .br-nav-loader.show { opacity: 1; pointer-events: auto; }
+  .br-nav-loader-mark {
+    font-family: 'Sora', system-ui, sans-serif;
+    font-weight: 800; font-size: 28px; letter-spacing: 0.02em;
+    color: #F6F1E7; margin-bottom: 22px;
+  }
+  .br-nav-loader-mark em { color: #C8102E; font-style: normal; }
+  .br-nav-loader-spinner {
+    width: 44px; height: 44px;
+    border: 3px solid rgba(246, 241, 231, 0.12);
+    border-top-color: #C8102E;
+    border-radius: 50%;
+    animation: br-nav-spin 800ms linear infinite;
+  }
+  .br-nav-loader-msg {
+    margin-top: 18px;
+    font-family: 'Sora', system-ui, sans-serif;
+    font-size: 13px; color: rgba(246, 241, 231, 0.55);
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  @keyframes br-nav-spin { to { transform: rotate(360deg); } }
+</style>
+<div class="br-nav-loader" id="brNavLoader" aria-hidden="true">
+  <div class="br-nav-loader-mark">Black<em>Red</em></div>
+  <div class="br-nav-loader-spinner"></div>
+  <div class="br-nav-loader-msg" id="brNavLoaderMsg">Loading</div>
+</div>
+<script>
+(function () {
+  var loader = document.getElementById('brNavLoader');
+  var msgEl  = document.getElementById('brNavLoaderMsg');
+  if (!loader) return;
+
+  function show(msg) {
+    if (msg && msgEl) msgEl.textContent = msg;
+    loader.classList.add('show');
+    loader.setAttribute('aria-hidden', 'false');
+  }
+  function hide() {
+    loader.classList.remove('show');
+    loader.setAttribute('aria-hidden', 'true');
+  }
+
+  // Expose so other code can summon the loader (e.g. before window.location)
+  window.BRNavLoader = { show: show, hide: hide };
+
+  // Hide on every fresh page load (in case it was cached as visible)
+  hide();
+  // Hide if user navigates back via bfcache
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) hide();
+  });
+
+  // Intercept internal anchor clicks: any <a href="*.html"> within the app dir
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href');
+    if (!href) return;
+    // Only intercept same-origin navigation to .html files
+    if (a.target === '_blank') return;
+    if (a.hasAttribute('download')) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    if (a.classList.contains('br-no-loader')) return;
+    if (a.getAttribute('aria-disabled') === 'true') return;
+    // Skip if href points outside the app
+    if (href.startsWith('http://') || href.startsWith('https://')) {
+      try {
+        var u = new URL(href);
+        if (u.host !== location.host) return; // external
+      } catch (_) { return; }
+    }
+    if (href.startsWith('#')) return;
+    if (href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return;
+    // It's an internal navigation — show loader and let the browser do its thing
+    show('Loading');
+  }, true);
+
+  // Intercept form submissions too (auth screens etc.)
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    if (!f || f.classList.contains('br-no-loader')) return;
+    show('Loading');
+  }, true);
+})();
+</script>
+<!-- BR-NAV-LOADER END -->
+<!-- BR-PWA-REGISTER START -->
+<script>
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  // Defer registration until after page has settled — prevents the SW
+  // install from competing with the initial page load.
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js', { scope: './' })
+      .then(function (reg) {
+        // Auto-update: if the SW finds a new version, prompt it to take over
+        reg.addEventListener('updatefound', function () {
+          var newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', function () {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New SW ready; activate it on next navigation
+              newWorker.postMessage('SKIP_WAITING');
+            }
+          });
+        });
+      })
+      .catch(function (err) {
+        // SW registration is best-effort. Don't break the app if it fails.
+        console.warn('SW register failed:', err);
+      });
+  });
+
+  // -----------------------------------------------------------
+  // INSTALL PROMPT HANDLER (Android Chrome / Edge)
+  //
+  // The browser fires beforeinstallprompt when the PWA criteria are met
+  // (manifest present, SW registered, served over HTTPS, not already
+  // installed). We capture the event so we can trigger it ourselves when:
+  //
+  //   1. The URL has ?install=1 — user came from marketing site button
+  //   2. (future) An "Install" button on the dashboard is tapped
+  //
+  // iOS does NOT fire this event; iOS install is manual only.
+  // -----------------------------------------------------------
+  var deferredInstallPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    // Prevent Chrome's auto-banner; we'll trigger it manually
+    e.preventDefault();
+    deferredInstallPrompt = e;
+
+    // If marketing site sent them with ?install=1, fire prompt immediately
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('install') === '1') {
+      // Slight delay so the page renders first — feels less abrupt
+      setTimeout(triggerInstallPrompt, 600);
+    }
+  });
+
+  // Hook into a global so other code (e.g. an Install button) can call it
+  window.BRTriggerInstall = triggerInstallPrompt;
+
+  function triggerInstallPrompt() {
+    if (!deferredInstallPrompt) {
+      // Either already installed, or browser doesn't support install
+      // (e.g. iOS Safari, old browsers). Nothing to do.
+      return false;
+    }
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(function (choice) {
+      // choice.outcome is 'accepted' or 'dismissed'
+      // Either way, the event can only fire once — clear it.
+      deferredInstallPrompt = null;
+      // Clean up the URL so a refresh doesn't re-trigger
+      if (window.history && window.history.replaceState) {
+        var url = new URL(window.location.href);
+        url.searchParams.delete('install');
+        window.history.replaceState({}, '', url.toString());
+      }
+    });
+    return true;
+  }
+
+  // Detect successful install (Android only fires this)
+  window.addEventListener('appinstalled', function () {
+    deferredInstallPrompt = null;
+    console.log('[PWA] Installed');
+  });
+})();
+</script>
+<!-- BR-PWA-REGISTER END -->
+</body>
+</html>

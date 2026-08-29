@@ -1,0 +1,132 @@
+.hero {
+  display: grid;
+  gap: var(--bp-space-12);
+  padding: var(--bp-space-12) var(--gutter);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+.eyebrow {
+  font-size: var(--type-small-size);
+  font-weight: var(--type-body-strong-weight);
+  color: var(--action-primary);
+  margin-bottom: var(--bp-space-3);
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bp-space-2);
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-size: var(--type-h2-size);
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.promise {
+  font-family: var(--font-display);
+  font-size: var(--type-display-size);
+  font-weight: var(--type-display-weight);
+  line-height: var(--type-display-leading);
+}
+
+.summary {
+  max-width: 52ch;
+  margin-top: var(--bp-space-4);
+  font-size: 18px;
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bp-space-4);
+  margin-top: var(--bp-space-6);
+}
+
+.ageNote {
+  margin-top: var(--bp-space-6);
+  font-size: var(--type-caption-size);
+  color: var(--text-secondary);
+}
+
+.panel {
+  border: var(--elevation-border);
+  border-radius: var(--bp-radius-feature);
+  background: var(--surface-base);
+  padding: var(--bp-space-6);
+  display: grid;
+  gap: var(--bp-space-3);
+}
+
+.chipRow {
+  display: flex;
+  gap: var(--bp-space-3);
+}
+
+.chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bp-space-1);
+  padding: var(--bp-space-4);
+  border-radius: var(--bp-radius-card);
+  border: 1px solid var(--border-default);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.chipBlack {
+  background: var(--bp-ink-950);
+  color: var(--bp-canvas);
+}
+
+.chipRed {
+  background: var(--bp-coral-700);
+  color: var(--bp-white);
+}
+
+.chipLetter {
+  font-size: 28px;
+}
+
+.chipLabel {
+  font-size: var(--type-caption-size);
+  font-weight: var(--type-caption-weight);
+  letter-spacing: 0.04em;
+}
+
+.walletChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--bp-space-4);
+  border-radius: var(--bp-radius-card);
+  background: var(--surface-subtle);
+}
+
+.walletLabel {
+  font-size: var(--type-small-size);
+  color: var(--text-secondary);
+}
+
+.walletValue {
+  font-family: var(--font-display);
+  font-size: var(--type-h3-size);
+  font-weight: 700;
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    padding-top: var(--bp-space-16);
+    padding-bottom: var(--bp-space-16);
+  }
+}

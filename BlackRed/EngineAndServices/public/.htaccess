@@ -1,0 +1,120 @@
+# =============================================================================
+# public/.htaccess — Front controller routing + security headers
+#
+# This file works whether the app is mounted at the document root or in a
+# subdirectory (e.g. https://host.com/blackred/public/...). The trick is the
+# pattern in RewriteRule: it matches ANY path containing /api somewhere in
+# it, captures everything from there, and routes to index.php.
+# =============================================================================
+
+# Disable directory listing
+Options -Indexes
+Options +FollowSymLinks
+
+# -----------------------------------------------------------------------------
+# Security headers (defense in depth — also set in PHP middleware)
+# -----------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+    # HSTS — uncomment ONLY when fully on HTTPS in production
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header unset X-Powered-By
+    Header unset Server
+</IfModule>
+
+<IfModule mod_php.c>
+    php_flag expose_php Off
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# Block access to dotfiles
+# -----------------------------------------------------------------------------
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# -----------------------------------------------------------------------------
+# Front-controller routing
+#
+# Strategy: any URL that maps to a real file or directory is served as-is
+# (so /app/dashboard.html still works as static). Otherwise, route to
+# index.php which handles all /api/* paths.
+#
+# This pattern avoids needing RewriteBase, which is brittle across hosts.
+# -----------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If the request maps to an existing file or directory, serve it directly.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Otherwise, hand off to the front controller.
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# Custom error pages
+#
+# Static HTML pages served directly by the web server (no PHP) so they work
+# even when PHP is down or DB is unreachable. The paths are absolute from
+# the document root so they work regardless of where /blackred/public is
+# mounted.
+# -----------------------------------------------------------------------------
+ErrorDocument 403 /errors/403.html
+ErrorDocument 404 /errors/404.html
+ErrorDocument 500 /errors/500.html
+ErrorDocument 502 /errors/500.html
+ErrorDocument 503 /errors/503.html
+ErrorDocument 504 /errors/500.html
+
+# -----------------------------------------------------------------------------
+# Cache control for static assets (UI files)
+# -----------------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 day"
+    ExpiresByType application/javascript "access plus 1 day"
+    ExpiresByType image/png "access plus 7 days"
+    ExpiresByType image/jpeg "access plus 7 days"
+    ExpiresByType image/svg+xml "access plus 7 days"
+    ExpiresByType image/webp "access plus 7 days"
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# PWA — manifest + service worker
+#
+# Manifest must be served as application/manifest+json or browsers may reject
+# it. .webmanifest is the spec extension; .json works too if the MIME is set.
+#
+# Service worker must NOT be cached aggressively. If sw.js is cached, updates
+# never reach users. Browsers SHOULD respect Service-Worker-Allowed headers
+# but we set explicit Cache-Control for safety.
+# -----------------------------------------------------------------------------
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+</IfModule>
+
+<FilesMatch "manifest\.json$">
+    <IfModule mod_headers.c>
+        Header set Content-Type "application/manifest+json"
+    </IfModule>
+</FilesMatch>
+
+<FilesMatch "sw\.js$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+        Header set Service-Worker-Allowed "/"
+    </IfModule>
+</FilesMatch>

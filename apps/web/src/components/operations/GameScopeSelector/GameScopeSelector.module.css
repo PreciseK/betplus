@@ -1,0 +1,41 @@
+.field {
+  min-width: 168px;
+  display: grid;
+  grid-template-columns: auto minmax(112px, 1fr);
+  align-items: center;
+  gap: var(--ops-tight-gap);
+}
+
+.field label {
+  color: var(--text-secondary);
+  font-size: var(--type-caption-size);
+  font-weight: var(--type-body-strong-weight);
+}
+
+.field select {
+  min-height: 40px;
+  padding-inline: var(--ops-compact-padding) 34px;
+  border: var(--ops-panel-border);
+  border-radius: var(--ops-control-radius);
+  background: var(--ops-panel-background);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--type-small-size);
+  font-weight: var(--type-body-strong-weight);
+}
+
+@media (max-width: 620px) {
+  .field {
+    min-width: 138px;
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .field label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+}

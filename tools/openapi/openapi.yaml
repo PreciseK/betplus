@@ -1,0 +1,374 @@
+openapi: 3.0.3
+info:
+  title: Betplus Platform API
+  version: "1"
+servers:
+  - url: /v1
+paths:
+  /identity/verify-bvn:
+    post:
+      summary: Verify BVN to reach KYC Tier 2 (REQ-ID-020; required by REQ-PAY-004 before any deposit)
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bvn]
+              properties:
+                bvn:
+                  type: string
+                  pattern: "^\\d{11}$"
+      responses:
+        "200":
+          description: verified_tier_2 | tier_1_required | bvn_not_verified
+        "401":
+          description: Missing or expired access token.
+        "422":
+          description: bvn is not 11 digits.
+
+  /wallet:
+    get:
+      summary: Both balances (Story 2.2, Betplus_PRD.md §12.3)
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: play_balance_kobo, winnings_balance_kobo, currency, registered_source_label.
+
+  /wallet/transactions:
+    get:
+      summary: Deposit history (Story 2.6)
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: List of MoneyTransaction-shaped rows with status_history.
+
+  /wallet/deposits/quote:
+    post:
+      summary: Fee quote for a deposit — always fee-free, but still confirmed server-side (UX-DR13)
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount_kobo]
+              properties:
+                amount_kobo: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: quote_id (pass to /wallet/deposits), amount_kobo, fee_kobo (always 0), source_label, destination_label, expected_timing, reversible (always false).
+
+  /wallet/deposits:
+    post:
+      summary: >
+        Create an OPay BankAccount collection (Story 2.3). Requires a verified BVN on
+        file (REQ-PAY-004) — status "bvn_required" means call /identity/verify-bvn first.
+        Endpoint/field names for the underlying OPay call are best-effort (Betplus_PRD.md
+        §12.6 gives the path; no full Collections API doc exists in this repo) — treat as
+        unverified until confirmed against sandbox.
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quote_id]
+              properties:
+                quote_id: { type: string, description: From /wallet/deposits/quote. }
+      responses:
+        "200":
+          description: status (otp_required | bvn_required | invalid_quote | error), collection_id when otp_required.
+
+  /wallet/deposits/{id}/otp:
+    post:
+      summary: Submit the OPay OTP to complete a deposit (Story 2.3). Idempotent — replaying after "paid" does not re-credit.
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [otp]
+              properties:
+                otp: { type: string, pattern: "^\\d{6}$" }
+      responses:
+        "200":
+          description: On "paid", returns the full MoneyTransaction shape; otherwise {status}.
+
+  /identity/verify-nin:
+    post:
+      summary: Submit date of birth and NIN to reach KYC Tier 1 (Story 1.9, REQ-ID-020..024)
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date_of_birth, nin]
+              properties:
+                date_of_birth:
+                  type: string
+                  format: date
+                nin:
+                  type: string
+                  pattern: "^\\d{11}$"
+      responses:
+        "200":
+          description: >
+            "under_age" blocks play/deposit immediately — the account is frozen.
+            "nin_not_verified" leaves the player at Tier 0, retryable.
+            "verified_tier_1" upgrades kycTier to 1 (₦200,000/month deposit limit, play
+            permitted). The raw NIN is never in this response, only in the vault (Story 1.10).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [verified_tier_1, under_age, nin_not_verified]
+        "401":
+          description: Missing or expired access token.
+        "422":
+          description: date_of_birth is not a valid past date, or nin is not 11 digits.
+
+  /auth/register:
+    post:
+      summary: Start or resume phone registration (Story 1.7, REQ-ID-001..003)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [msisdn]
+              properties:
+                msisdn:
+                  type: string
+                  description: Any accepted Nigerian format; normalised server-side to E.164.
+                  example: "08031234567"
+      responses:
+        "200":
+          description: >
+            OTP sent (or already pending). Response is identical whether or not an
+            account already exists for this number (UX-DR17 non-disclosure).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [otp_sent]
+                  expires_in:
+                    type: integer
+                    description: Seconds until the OTP expires.
+        "422":
+          description: msisdn is not a valid Nigerian mobile number.
+
+  /auth/register/confirm-identity:
+    post:
+      summary: Look up the OPay-registered name for a verified MSISDN (Story 1.8, REQ-ID-010..013)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [msisdn]
+              properties:
+                msisdn:
+                  type: string
+      responses:
+        "200":
+          description: Lookup result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [confirm, no_wallet, error, otp_not_verified]
+                  registered_name:
+                    type: string
+                    description: >
+                      Present only when status is "confirm". Authoritative for payout
+                      matching; the client presents it for confirmation but never lets
+                      the player edit it (REQ-ID-013).
+        "422":
+          description: msisdn is not a valid Nigerian mobile number.
+
+  /auth/register/complete:
+    post:
+      summary: Create the player account from a confirmed identity (Story 1.8)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [msisdn]
+              properties:
+                msisdn:
+                  type: string
+      responses:
+        "200":
+          description: >
+            Completion result. On "registered", the player is signed in immediately —
+            access_token/refresh_token/expires_in are present and the same HttpOnly
+            cookies as /auth/sign-in/complete are set (Story 1.11).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [registered, identity_not_confirmed, already_registered]
+                      player_id:
+                        type: integer
+                  - $ref: "#/components/schemas/SessionTokens"
+        "422":
+          description: msisdn is not a valid Nigerian mobile number.
+
+  /auth/sign-in/complete:
+    post:
+      summary: >
+        Issue a session for an existing account after OTP verification (Story 1.11,
+        REQ-ID-026). Call /auth/register then /auth/register/verify first — this is
+        what "next": "sign_in" in the verify response leads to.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [msisdn]
+              properties:
+                msisdn:
+                  type: string
+      responses:
+        "200":
+          description: Sign-in result.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [signed_in, otp_not_verified, no_account]
+                  - $ref: "#/components/schemas/SessionTokens"
+        "422":
+          description: msisdn is not a valid Nigerian mobile number.
+
+  /auth/refresh:
+    post:
+      summary: Rotate a refresh token (Story 1.11, REQ-ID-026 — rotation with reuse detection)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        "200":
+          description: >
+            Reuse of an already-rotated refresh token revokes its entire token family —
+            every session descended from that sign-in is terminated, not just this one.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [signed_in, invalid_token, expired, reuse_detected]
+                  - $ref: "#/components/schemas/SessionTokens"
+
+  /auth/register/verify:
+    post:
+      summary: Verify the OTP sent by /auth/register (Story 1.7)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [msisdn, code]
+              properties:
+                msisdn:
+                  type: string
+                code:
+                  type: string
+                  pattern: "^[0-9]{6}$"
+      responses:
+        "200":
+          description: Verification result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [verified, invalid_or_expired]
+                  next:
+                    type: string
+                    enum: [sign_in, identity_confirmation, resend]
+                    description: >
+                      sign_in: an account already exists for this number (only revealed
+                      after OTP ownership is proven). identity_confirmation: proceed to
+                      Story 1.8. resend: code was wrong/expired or too many attempts were made.
+        "422":
+          description: msisdn is not a valid Nigerian mobile number.
+
+components:
+  securitySchemes:
+    AccessToken:
+      type: http
+      scheme: bearer
+      description: >
+        Issued by /auth/sign-in/complete or /auth/register/complete. Also accepted as an
+        HttpOnly access_token cookie for web (Story 1.11).
+  schemas:
+    SessionTokens:
+      type: object
+      description: >
+        Present only when status is "signed_in"/"registered". Also set as HttpOnly,
+        Secure, SameSite=Lax cookies (access_token, refresh_token) for web — these
+        body fields are for non-cookie clients (mobile app, USSD adapter).
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+          description: Access token TTL in seconds (REQ-ID-026 — 30 minutes).

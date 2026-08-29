@@ -1,0 +1,5 @@
+.state { width: min(100%, var(--state-content-width)); margin-inline: auto; padding: var(--state-padding); display: grid; justify-items: start; gap: var(--state-gap); border-block: var(--elevation-border); }
+.icon { display: grid; width: var(--control-target-min); height: var(--control-target-min); place-items: center; border: var(--state-icon-border); border-radius: var(--control-radius); background: var(--state-icon-surface); color: var(--text-secondary); }
+.state h2 { margin: 0; font-size: var(--type-h2-size); line-height: var(--type-h2-leading); }
+.state p { max-width: 58ch; margin: 0; color: var(--text-secondary); line-height: var(--type-body-leading); }
+.action { margin-block-start: var(--field-label-gap); }

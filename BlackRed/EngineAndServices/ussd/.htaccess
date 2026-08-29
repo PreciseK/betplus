@@ -1,0 +1,44 @@
+# =============================================================================
+# BlackRed USSD — LiteSpeed/Apache .htaccess
+#
+# Two web-accessible entrypoints only:
+#   - /ussd/index.php                (Nalo USSD webhook)
+#   - /ussd/callbacks/momo.php       (ANM MoMo settlement callback)
+#
+# Everything else (lib/, states/, logs/, config.php, migrations/, workers/)
+# is denied. Defense in depth so deploy mistakes don't expose code.
+#
+# Note: LiteSpeed in .htaccess context does NOT support <DirectoryMatch>.
+# We use mod_rewrite rules instead, which work on both Apache and LiteSpeed.
+# =============================================================================
+
+# Disable directory listing
+Options -Indexes
+
+RewriteEngine On
+
+# Block any URL that starts with one of the protected subdirectories.
+# Returns 403 Forbidden — same effect as the old DirectoryMatch deny.
+RewriteRule ^lib(/|$)         - [F,L]
+RewriteRule ^states(/|$)      - [F,L]
+RewriteRule ^workers(/|$)     - [F,L]
+RewriteRule ^migrations(/|$)  - [F,L]
+RewriteRule ^logs(/|$)        - [F,L]
+RewriteRule ^tests(/|$)       - [F,L]
+
+# Block direct access to any .php file EXCEPT the two real entrypoints.
+# The negative lookahead is what does it: anything that isn't exactly
+# index.php (at the root) or callbacks/momo.php gets a 403.
+RewriteCond %{REQUEST_URI} !^/ussd/index\.php$
+RewriteCond %{REQUEST_URI} !^/ussd/callbacks/momo\.php$
+RewriteRule \.php$ - [F,L]
+
+# Block sensitive file types directly (config, env, sql dumps, logs, etc.)
+<FilesMatch "\.(sql|log|md|env|ini|conf|example\.php)$">
+    Require all denied
+</FilesMatch>
+
+# Block hidden files (.env, .git, .htaccess itself)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>

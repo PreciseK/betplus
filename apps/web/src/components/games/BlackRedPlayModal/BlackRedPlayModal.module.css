@@ -1,0 +1,1010 @@
+/* BlackRed Interactive Play Modal Design System */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10, 10, 10, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.28s ease-out forwards;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalWindow {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  background: linear-gradient(180deg, #120505 0%, #0c0808 60%, #060606 100%);
+  border: 1px solid rgba(255, 0, 0, 0.35);
+  box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.85), 0 0 50px -10px rgba(255, 0, 0, 0.25);
+  border-radius: 24px;
+  color: #F6F1E7;
+  overflow: hidden;
+  max-height: 92vh;
+  max-height: 92svh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Top Header */
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(246, 241, 231, 0.08);
+  background: rgba(18, 5, 5, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+.brandLockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandLogo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(255, 0, 0, 0.6));
+}
+
+.brandTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.soundBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(246, 241, 231, 0.8);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.soundBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 0, 0, 0.4);
+}
+
+.closeBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(246, 241, 231, 0.8);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 0, 0, 0.2);
+  color: #fff;
+  border-color: #FF0000;
+}
+
+/* Modal Body */
+.modalBody {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Progress Step Bar */
+.progressWrap {
+  margin-bottom: 24px;
+}
+
+.progressLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.7);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.progressLabel .stepNumber {
+  color: #FF0000;
+  font-weight: 800;
+}
+
+.progressBar {
+  display: flex;
+  gap: 8px;
+}
+
+.progressStep {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(246, 241, 231, 0.12);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.progressStep.done {
+  background: rgba(255, 0, 0, 0.5);
+}
+
+.progressStep.active {
+  background: #FF0000;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+}
+
+/* Typography for Steps */
+.stepTitle {
+  font-size: clamp(1.5rem, 4vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 8px;
+  color: #fff;
+}
+
+.stepTitle em {
+  font-style: normal;
+  color: #FF0000;
+  font-weight: 900;
+}
+
+.stepSubtitle {
+  font-size: 14px;
+  color: rgba(246, 241, 231, 0.8);
+  margin: 0 0 20px;
+}
+
+/* ========================================================
+   STEP 1: GAME TYPES TILES
+   ======================================================== */
+.gameTypesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.gameTypeTile {
+  padding: 16px 12px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(246, 241, 231, 0.04) 0%, rgba(246, 241, 231, 0.01) 100%);
+  border: 1px solid rgba(246, 241, 231, 0.12);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gameTypeTile:hover {
+  background: linear-gradient(180deg, rgba(255, 0, 0, 0.1) 0%, rgba(255, 0, 0, 0.02) 100%);
+  border-color: rgba(255, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.gameTypeTile.active {
+  background: linear-gradient(180deg, rgba(255, 0, 0, 0.25) 0%, rgba(255, 0, 0, 0.06) 100%);
+  border-color: #FF0000;
+  box-shadow: 0 10px 24px -6px rgba(255, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.tileCardCount {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.tileLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(246, 241, 231, 0.85);
+  margin-bottom: 8px;
+}
+
+.tileMultiplier {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 0, 0, 0.18);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  font-size: 12px;
+  color: #FF0000;
+}
+
+.gameTypeTile.active .tileMultiplier {
+  background: #FF0000;
+  color: #fff;
+  border-color: #FF0000;
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.6);
+}
+
+.tileSub {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.5);
+  margin-top: 8px;
+}
+
+/* ========================================================
+   STEP 2: COLOUR PICKER + STAKE
+   ======================================================== */
+.pickerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: rgba(246, 241, 231, 0.04);
+  border: 1px solid rgba(246, 241, 231, 0.1);
+  margin-bottom: 16px;
+}
+
+.pickerHeadLeft {
+  display: flex;
+  flex-direction: column;
+}
+
+.pickerHeadLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.6);
+}
+
+.pickerHeadValue {
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.pickerHeadMult {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #FF0000;
+  color: #fff;
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.5);
+}
+
+/* Card Toggles Grid */
+.cardsGrid {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.cardsGrid1 { grid-template-columns: 1fr; max-width: 180px; margin-inline: auto; }
+.cardsGrid2 { grid-template-columns: repeat(2, 1fr); }
+.cardsGrid3 { grid-template-columns: repeat(3, 1fr); }
+.cardsGrid4 { grid-template-columns: repeat(4, 1fr); }
+.cardsGrid5 { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+
+@media (max-width: 540px) {
+  .cardsGrid4 { grid-template-columns: repeat(2, 1fr); }
+  .cardsGrid5 { grid-template-columns: repeat(3, 1fr); }
+}
+
+.cardPickerItem {
+  padding: 12px 8px 14px;
+  border-radius: 14px;
+  background: rgba(246, 241, 231, 0.03);
+  border: 1px solid rgba(246, 241, 231, 0.1);
+  text-align: center;
+}
+
+.cardPickerNum {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.6);
+  margin-bottom: 8px;
+}
+
+.colorToggle {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.colorToggle.red {
+  background: linear-gradient(145deg, #FF1A1A 0%, #FF0000 60%, #B30000 100%);
+  box-shadow: 0 8px 20px -4px rgba(255, 0, 0, 0.65), inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.colorToggle.black {
+  background: linear-gradient(145deg, #222222 0%, #111111 60%, #060606 100%);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.8), inset 0 -3px 0 rgba(255, 255, 255, 0.08);
+  border-color: rgba(246, 241, 231, 0.18);
+}
+
+.colorToggle:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.colorToggle:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.cardPickerHint {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(246, 241, 231, 0.5);
+  margin-top: 6px;
+}
+
+/* Stake Block */
+.stakeBlock {
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #180808 0%, #0f0505 100%);
+  border: 1px solid rgba(255, 0, 0, 0.25);
+  margin-bottom: 20px;
+}
+
+.stakeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.stakeTitle {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.7);
+}
+
+.stakeBalanceBadge {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: rgba(246, 241, 231, 0.8);
+}
+
+.stakeInputRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.currencyPrefix {
+  font-family: var(--font-mono, monospace);
+  font-size: 24px;
+  font-weight: 700;
+  color: rgba(246, 241, 231, 0.7);
+}
+
+.stakeInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  font-size: clamp(2.2rem, 8vw, 3rem);
+  color: #fff;
+  text-align: center;
+  width: auto;
+  max-width: 260px;
+  caret-color: #FF0000;
+}
+
+.chipList {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 480px) {
+  .chipList { grid-template-columns: repeat(3, 1fr); }
+}
+
+.chipBtn {
+  padding: 8px 4px;
+  border-radius: 8px;
+  background: rgba(246, 241, 231, 0.06);
+  border: 1px solid rgba(246, 241, 231, 0.12);
+  color: #fff;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.chipBtn:hover {
+  background: rgba(255, 0, 0, 0.18);
+  border-color: rgba(255, 0, 0, 0.4);
+}
+
+.potentialWinBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(246, 241, 231, 0.08);
+}
+
+.potentialWinLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.65);
+}
+
+.potentialWinValue {
+  font-family: var(--font-mono, monospace);
+  font-size: 18px;
+  font-weight: 800;
+  color: #E0B84B;
+}
+
+/* ========================================================
+   STEP 3: READY TO PLAY (CONFIRMATION)
+   ======================================================== */
+.confirmHero {
+  padding: 20px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #180808 0%, #0d0404 100%);
+  border: 1px solid rgba(255, 0, 0, 0.35);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.confirmLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #FF0000;
+  margin-bottom: 14px;
+}
+
+.confirmPicksRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.confirmPickCard {
+  width: 48px;
+  height: 64px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.confirmPickCard.red {
+  background: linear-gradient(145deg, #FF1A1A 0%, #FF0000 60%, #B30000 100%);
+  box-shadow: 0 6px 16px -2px rgba(255, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.confirmPickCard.black {
+  background: linear-gradient(145deg, #222222 0%, #111111 60%, #060606 100%);
+  box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(246, 241, 231, 0.15);
+}
+
+.confirmBreakdown {
+  border-radius: 16px;
+  background: rgba(246, 241, 231, 0.03);
+  border: 1px solid rgba(246, 241, 231, 0.08);
+  padding: 8px 18px;
+  margin-bottom: 24px;
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.breakdownRow + .breakdownRow {
+  border-top: 1px solid rgba(246, 241, 231, 0.06);
+}
+
+.fieldError {
+  color: var(--br-error, #ef4444);
+  font-size: 11px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.breakdownRowLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(246, 241, 231, 0.7);
+  text-transform: uppercase;
+}
+
+.breakdownRowVal {
+  font-family: var(--font-mono, monospace);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.breakdownRowVal.gold {
+  color: #E0B84B;
+  font-size: 18px;
+}
+
+/* ========================================================
+   STEP 4: DECK INSPECTION & 3D RIFFLE SHUFFLE
+   ======================================================== */
+.deckContainer {
+  padding: 28px 16px;
+  text-align: center;
+  border-radius: 22px;
+  background: linear-gradient(160deg, #180808 0%, #0c0404 100%);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.deckPhaseBadge {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #FF0000;
+  margin-bottom: 10px;
+}
+
+/* Fan of 12 inspect cards */
+.inspectDeckFan {
+  position: relative;
+  width: 320px;
+  height: 180px;
+  margin: 16px auto 24px;
+}
+
+@media (max-width: 420px) {
+  .inspectDeckFan { width: 270px; height: 160px; }
+}
+
+.inspectCard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 68px;
+  height: 98px;
+  margin-left: -34px;
+  margin-top: -49px;
+  border-radius: 8px;
+  border: 2px solid #0A0A0A;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 3px;
+  font-weight: 900;
+  line-height: 1;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+.inspectCard.red {
+  background: linear-gradient(145deg, #faf6ea 0%, #ede1c7 100%);
+  color: #FF0000;
+  border-color: rgba(255, 0, 0, 0.4);
+}
+
+.inspectCard.black {
+  background: linear-gradient(145deg, #1c1c1c 0%, #0a0a0a 100%);
+  color: #F6F1E7;
+  border-color: rgba(246, 241, 231, 0.2);
+}
+
+.inspectRank {
+  font-size: 13px;
+  letter-spacing: -0.05em;
+  align-self: flex-start;
+  padding-left: 2px;
+}
+
+.inspectSuit {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.inspectSummaryPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(246, 241, 231, 0.06);
+  border: 1px solid rgba(246, 241, 231, 0.12);
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.inspectCountRed { color: #FF0000; }
+.inspectCountBlack { color: #fff; }
+
+/* 3D Riffle Shuffle Animation Stack */
+.shuffleStack {
+  position: relative;
+  width: 280px;
+  height: 220px;
+  margin: 10px auto 24px;
+  perspective: 1200px;
+}
+
+.shuffleCard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 90px;
+  height: 130px;
+  margin-left: -45px;
+  margin-top: -65px;
+  border-radius: 10px;
+  border: 3px solid #0A0A0A;
+  background: repeating-linear-gradient(45deg, #B30000 0 6px, #FF0000 6px 12px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 20px;
+  color: rgba(246, 241, 231, 0.8);
+  animation: shuffleFly 3.6s infinite cubic-bezier(.6, .05, .35, 1), shufflePulse 1.8s infinite ease-in-out;
+}
+
+@keyframes shuffleFly {
+  0% { transform: translate(var(--base-x, 0px), 0) rotate(var(--base-r, 0deg)); z-index: 1; }
+  8% { transform: translate(var(--base-x, 0px), 0) rotate(var(--base-r, 0deg)); z-index: 20; }
+  20% { transform: translate(var(--base-x, 0px), -50px) rotate(calc(var(--base-r, 0deg) * -0.8)) scale(1.06); z-index: 20; }
+  50% { transform: translate(calc(var(--base-x, 0px) * -1), -60px) rotate(calc(var(--base-r, 0deg) * 0.3)) scale(1.06); z-index: 20; }
+  70% { transform: translate(calc(var(--base-x, 0px) * -1), 0) rotate(calc(var(--base-r, 0deg) * -1)) scale(1); z-index: 15; }
+  100% { transform: translate(calc(var(--base-x, 0px) * -1), 0) rotate(calc(var(--base-r, 0deg) * -1)); z-index: 1; }
+}
+
+@keyframes shufflePulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+
+/* ========================================================
+   STEP 5: 3D CARD FLIP REVEAL & DRAW
+   ======================================================== */
+.revealHeader {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.runningCounter {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(246, 241, 231, 0.05);
+  border: 1px solid rgba(246, 241, 231, 0.1);
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.hitsCount { color: #22c55e; }
+.missesCount { color: #FF0000; }
+
+.revealRow {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.revealCardWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.revealPickTag {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(246, 241, 231, 0.7);
+}
+
+.flipCard {
+  width: 72px;
+  height: 102px;
+  perspective: 800px;
+}
+
+.flipInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flipCard.flipped .flipInner {
+  transform: rotateY(180deg);
+}
+
+.flipFace {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  border: 3px solid #0A0A0A;
+}
+
+.flipBack {
+  background: repeating-linear-gradient(45deg, #B30000 0 6px, #FF0000 6px 12px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 22px;
+  color: rgba(246, 241, 231, 0.8);
+}
+
+.flipFront {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px;
+  font-weight: 900;
+}
+
+.flipFront.red {
+  background: linear-gradient(145deg, #faf6ea 0%, #ede1c7 100%);
+  color: #FF0000;
+  box-shadow: 0 8px 18px rgba(255, 0, 0, 0.35);
+}
+
+.flipFront.black {
+  background: linear-gradient(145deg, #1c1c1c 0%, #0a0a0a 100%);
+  color: #F6F1E7;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+}
+
+.flipCard.flipped.hit .flipFront {
+  box-shadow: 0 0 0 2px #22c55e, 0 8px 20px rgba(34, 197, 94, 0.5);
+}
+
+.flipCard.flipped.miss .flipFront {
+  opacity: 0.75;
+  box-shadow: 0 0 0 2px #FF0000, 0 8px 20px rgba(255, 0, 0, 0.4);
+}
+
+.matchIndicator {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.matchIndicator.hit {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.matchIndicator.miss {
+  background: rgba(255, 0, 0, 0.2);
+  color: #FF0000;
+  border: 1px solid rgba(255, 0, 0, 0.4);
+}
+
+/* Celebration / Result Banner */
+.resultPanel {
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.resultPanel.win {
+  background: linear-gradient(160deg, #0d1e11 0%, #070f09 100%);
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  box-shadow: 0 20px 50px rgba(34, 197, 94, 0.3);
+}
+
+.resultPanel.lose {
+  background: linear-gradient(160deg, #180808 0%, #0d0404 100%);
+  border: 1px solid rgba(255, 0, 0, 0.35);
+  box-shadow: 0 20px 50px rgba(255, 0, 0, 0.2);
+}
+
+.resultTitle {
+  font-size: 28px;
+  font-weight: 900;
+  margin: 0 0 8px;
+}
+
+.resultTitle.win { color: #22c55e; }
+.resultTitle.lose { color: #FF0000; }
+
+.resultAmount {
+  font-family: var(--font-mono, monospace);
+  font-size: 32px;
+  font-weight: 800;
+  margin: 10px 0;
+  color: #fff;
+}
+
+.resultRef {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: rgba(246, 241, 231, 0.6);
+  margin-bottom: 20px;
+}
+
+/* Action Buttons */
+.btnGroup {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btnPrimary {
+  flex: 1;
+  padding: 15px 22px;
+  border-radius: 14px;
+  background: #FF0000;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 8px 24px -4px rgba(255, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: #e60000;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px -4px rgba(255, 0, 0, 0.8);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btnGold {
+  background: linear-gradient(135deg, #E0B84B 0%, #b88a30 100%);
+  color: #0A0A0A;
+  box-shadow: 0 8px 24px -4px rgba(224, 184, 75, 0.6);
+}
+
+.btnGold:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ebc65a 0%, #E0B84B 100%);
+  box-shadow: 0 12px 30px -4px rgba(224, 184, 75, 0.8);
+}
+
+.btnSecondary {
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgba(246, 241, 231, 0.06);
+  border: 1px solid rgba(246, 241, 231, 0.12);
+  color: rgba(246, 241, 231, 0.85);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSecondary:hover {
+  background: rgba(246, 241, 231, 0.12);
+  color: #fff;
+}

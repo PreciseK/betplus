@@ -1,0 +1,13 @@
+{
+  "name": "@betplus/api-types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "types": "index.d.ts",
+  "scripts": {
+    "generate": "openapi-typescript ../../tools/openapi/openapi.yaml -o index.d.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.4.0"
+  }
+}

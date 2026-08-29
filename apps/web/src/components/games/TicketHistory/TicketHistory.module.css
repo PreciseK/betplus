@@ -1,0 +1,105 @@
+.history {
+  width: 100%;
+  background: #1f182e;
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  color: #ffffff;
+}
+
+.history > header {
+  padding-block-end: 16px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--wallet-history-header-gap);
+  border-block-end: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.history header div,
+.details,
+.summary {
+  display: grid;
+  min-width: 0;
+}
+
+.history header div {
+  gap: var(--field-label-gap);
+}
+
+.history header p,
+.history header h2 {
+  margin: 0;
+}
+
+.history header p,
+.history header > span,
+.details span,
+.details time {
+  color: var(--text-secondary);
+  font-size: var(--type-small-size);
+}
+
+.history header h2 {
+  font-size: var(--type-h3-size);
+}
+
+.row {
+  min-height: var(--control-target-min);
+  padding-block: var(--transaction-row-padding-block);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--transaction-row-gap);
+  border-block-end: var(--transaction-row-border);
+}
+
+.icon {
+  width: var(--control-target-min);
+  height: var(--control-target-min);
+  display: grid;
+  place-items: center;
+  border: var(--game-choice-border);
+  border-radius: var(--control-radius);
+  background: var(--surface-subtle);
+}
+
+.details strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summary {
+  justify-items: end;
+  gap: var(--field-label-gap);
+}
+
+.summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--field-label-gap);
+  color: var(--text-secondary);
+  font-size: var(--type-caption-size);
+  font-weight: var(--type-caption-weight);
+}
+
+.summary > span[data-outcome="win"] {
+  color: var(--feedback-success);
+}
+
+.chevron {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .chevron {
+    display: none;
+  }
+}

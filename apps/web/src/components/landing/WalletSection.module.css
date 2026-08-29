@@ -1,0 +1,96 @@
+.section {
+  padding: var(--section-gap) var(--gutter);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  display: grid;
+  gap: var(--bp-space-8);
+  align-items: center;
+}
+
+.eyebrow {
+  font-size: var(--type-small-size);
+  font-weight: var(--type-body-strong-weight);
+  color: var(--action-primary);
+  margin-bottom: var(--bp-space-2);
+}
+
+.story p {
+  margin: var(--bp-space-4) 0;
+  max-width: 48ch;
+  color: var(--text-secondary);
+}
+
+.receipt {
+  border: var(--elevation-border);
+  border-radius: var(--bp-radius-card);
+  background: var(--surface-base);
+  padding: var(--bp-space-6);
+  max-width: var(--form-column-width);
+}
+
+.receiptCaption {
+  font-size: var(--type-caption-size);
+  color: var(--text-secondary);
+  margin-bottom: var(--bp-space-3);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  padding: var(--bp-space-1) var(--bp-space-3);
+  border-radius: var(--bp-radius-pill);
+  background: color-mix(in srgb, var(--feedback-success) 14%, transparent);
+  color: var(--feedback-success);
+  font-size: var(--type-small-size);
+  font-weight: var(--type-body-strong-weight);
+  margin-bottom: var(--bp-space-4);
+}
+
+.statusIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.rows {
+  display: grid;
+  gap: var(--bp-space-2);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--type-small-size);
+  color: var(--text-secondary);
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--bp-space-3);
+  margin-top: var(--bp-space-2);
+  border-top: var(--elevation-border);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--type-h3-size);
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--bp-space-4);
+  font-size: var(--type-caption-size);
+  color: var(--text-secondary);
+}
+
+.footnote {
+  margin-top: var(--bp-space-4);
+  font-size: var(--type-caption-size);
+  color: var(--text-secondary);
+}
+
+@media (min-width: 1024px) {
+  .section {
+    grid-template-columns: 1fr 1fr;
+  }
+}

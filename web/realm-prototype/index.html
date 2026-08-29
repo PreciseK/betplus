@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15100A">
+  <meta name="description" content="Betplus Realm prototype — explore Heritage and a free BlackRed card-colour demo.">
+  <title>Betplus Realm — Interactive landing prototype</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23231A12'/%3E%3Cpath d='M20 12v40m0-32h17c8 0 12 5 12 11s-4 10-12 10H20m17 0c8 0 12 4 12 11M9 32h46' fill='none' stroke='%23F3E9D8' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to the realm</a>
+
+  <header class="realm-bar" aria-label="Betplus controls">
+    <a class="brand" href="#gate" aria-label="Betplus — return to the Gate">
+      <span class="brand-sigil" aria-hidden="true">
+        <svg viewBox="0 0 56 56" role="img">
+          <path d="M18 9v38M18 14h15c7 0 11 4 11 10s-4 9-11 9H18m15 0c8 0 12 4 12 11"/>
+          <path d="M8 28h40"/>
+        </svg>
+      </span>
+      <span>Betplus</span>
+    </a>
+
+    <div class="realm-tools">
+      <button class="tool-button" id="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to morning theme">
+        <span class="tool-icon" aria-hidden="true">◐</span>
+        <span class="tool-label">Morning</span>
+      </button>
+      <button class="tool-button" id="sound-toggle" type="button" aria-pressed="false" aria-label="Turn sound on">
+        <span class="tool-icon" aria-hidden="true">♪</span>
+        <span class="tool-label">Sound off</span>
+      </button>
+      <span class="age-mark" aria-label="Adults only, age 18 and over">18+</span>
+    </div>
+  </header>
+
+  <nav class="journey" aria-label="Journey through Betplus">
+    <span class="journey-track" aria-hidden="true"><span id="journey-fill"></span></span>
+    <ol>
+      <li><a href="#gate" data-journey="gate"><span>01</span><b>Gate</b></a></li>
+      <li><a href="#fork" data-journey="fork"><span>02</span><b>Fork</b></a></li>
+      <li><a href="#court" data-journey="court"><span>03</span><b>Court</b></a></li>
+      <li><a href="#codex" data-journey="codex"><span>04</span><b>Codex</b></a></li>
+      <li><a href="#duel" data-journey="duel"><span>05</span><b>Duel</b></a></li>
+      <li><a href="#seal" data-journey="seal"><span>06</span><b>Seal</b></a></li>
+      <li><a href="#threshold" data-journey="threshold"><span>07</span><b>Threshold</b></a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+    <section class="place gate" id="gate" data-place="gate" aria-labelledby="gate-title">
+      <div class="gate-sun parallax-layer" data-depth="0.2" aria-hidden="true"></div>
+      <div class="gate-weave parallax-layer" data-depth="0.45" aria-hidden="true"></div>
+      <div class="gate-pillars parallax-layer" data-depth="0.62" aria-hidden="true">
+        <i></i><i></i>
+      </div>
+      <div class="gate-sigil parallax-layer" data-depth="0.8" aria-hidden="true">
+        <svg viewBox="0 0 160 160">
+          <path d="M52 20v120M52 36h42c22 0 34 12 34 30S116 94 94 94H52m42 0c25 0 38 13 38 34"/>
+          <path d="M24 80h112"/>
+        </svg>
+      </div>
+      <div class="gate-copy reveal-group">
+        <p class="place-index">The Gate <span>01 / 07</span></p>
+        <h1 id="gate-title">Two games.<br>One living realm.</h1>
+        <p class="gate-line">Enter a world shaped by Nigerian craft, honest odds, and two very different ways to play.</p>
+        <a class="action-button magnetic" id="enter-realm" href="#fork">Choose your path <span aria-hidden="true">↓</span></a>
+        <p class="gate-legal"><strong>18+ only.</strong> Demo interactions on this page do not use money.</p>
+      </div>
+      <div class="scroll-cue" aria-hidden="true"><span></span>Travel</div>
+    </section>
+
+    <section class="place fork" id="fork" data-place="fork" aria-labelledby="fork-title">
+      <div class="place-heading reveal-group">
+        <p class="place-index">The Fork <span>02 / 07</span></p>
+        <h2 id="fork-title">The realm divides here.</h2>
+        <p>Bring one path forward. The other will wait.</p>
+      </div>
+
+      <div class="path-doors" id="path-doors">
+        <a class="path-door heritage-door" href="#court" data-path="heritage">
+          <span class="door-number">I</span>
+          <span class="door-texture" aria-hidden="true"></span>
+          <span class="door-copy">
+            <small>Tradition, form, ceremony</small>
+            <strong>Heritage</strong>
+            <span>Dress the royal figure</span>
+          </span>
+          <span class="door-enter">Enter the Court <b aria-hidden="true">→</b></span>
+        </a>
+        <a class="path-door duel-door" href="#duel" data-path="duel">
+          <span class="door-number">II</span>
+          <span class="door-texture" aria-hidden="true"></span>
+          <span class="door-copy">
+            <small>Colour, chance, resolve</small>
+            <strong>BlackRed</strong>
+            <span>Turn one honest card</span>
+          </span>
+          <span class="door-enter">Enter the Duel <b aria-hidden="true">→</b></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="place court" id="court" data-place="court" aria-labelledby="court-title">
+      <div class="court-copy reveal-group">
+        <p class="place-index">The Royal Court <span>03 / 07</span></p>
+        <h2 id="court-title">Place each form with care.</h2>
+        <p>This interactive figure is an abstract game representation. It depicts no specific palace or living monarch.</p>
+      </div>
+
+      <div class="court-layout">
+        <div class="monarch-stage" aria-live="polite">
+          <div class="stage-motif" aria-hidden="true"></div>
+          <svg class="monarch" viewBox="0 0 360 540" role="img" aria-labelledby="monarch-title monarch-desc">
+            <title id="monarch-title">Abstract royal figure placement study</title>
+            <desc id="monarch-desc">A neutral silhouette that changes as abstract regalia studies are selected.</desc>
+            <g class="body-base">
+              <circle cx="180" cy="105" r="49"/>
+              <path d="M115 171c22-24 108-24 130 0l42 260c-64 45-150 45-214 0z"/>
+              <path d="M118 187 62 340M242 187l56 153"/>
+            </g>
+            <g class="regalia-layer layer-head" data-layer="head">
+              <path d="M123 83c13-57 102-57 115 0l-15 27h-86z"/>
+              <path d="M139 64 180 30l42 34"/>
+              <circle cx="154" cy="74" r="6"/><circle cx="180" cy="59" r="6"/><circle cx="207" cy="74" r="6"/>
+            </g>
+            <g class="regalia-layer layer-neck" data-layer="neck">
+              <path d="M126 145c28 30 80 30 108 0l17 31c-42 44-100 44-142 0z"/>
+              <path d="M127 163h107M121 177h119"/>
+            </g>
+            <g class="regalia-layer layer-torso" data-layer="torso">
+              <path d="M111 176c39 24 99 24 138 0l28 206c-57 38-137 38-194 0z"/>
+              <path d="M117 214h126M106 257h148M98 300h164M91 344h178"/>
+            </g>
+            <g class="regalia-layer layer-hand" data-layer="hand">
+              <path d="M298 328v157M284 485h29"/>
+              <path d="m299 333-19-28 19-27 19 27z"/>
+            </g>
+          </svg>
+          <div class="stage-caption">
+            <span id="placed-count">0 forms placed</span>
+            <button class="text-button" id="clear-regalia" type="button">Clear figure</button>
+          </div>
+        </div>
+
+        <div class="regalia-rail">
+          <div class="regalia-intro">
+            <p id="regalia-name">Choose an abstract study</p>
+            <span id="regalia-origin">Seven traditions are represented as review-gated references.</span>
+          </div>
+          <div class="regalia-list" role="group" aria-label="Abstract regalia placement studies">
+            <button class="regalia-piece" type="button" data-slot="head" data-name="Beaded crown study" data-origin="Yoruba" data-context="A sacred royal form, intentionally abstract while recorded cultural-advisor approval is pending.">
+              <span class="piece-mark piece-head" aria-hidden="true"></span><b>Beaded crown study</b><small>Yoruba</small>
+            </button>
+            <button class="regalia-piece" type="button" data-slot="neck" data-name="Coral collar study" data-origin="Edo (Benin)" data-context="Coral carries royal significance; this geometric placement study avoids copying palace regalia.">
+              <span class="piece-mark piece-neck" aria-hidden="true"></span><b>Coral collar study</b><small>Edo (Benin)</small>
+            </button>
+            <button class="regalia-piece" type="button" data-slot="torso" data-name="Royal wrapper study" data-origin="Igbo" data-context="A layered textile placeholder whose tradition-specific treatment remains unpublished pending sign-off.">
+              <span class="piece-mark piece-cloth" aria-hidden="true"></span><b>Royal wrapper study</b><small>Igbo</small>
+            </button>
+            <button class="regalia-piece" type="button" data-slot="head" data-name="Ceremonial turban study" data-origin="Hausa–Fulani" data-context="A structured head-form study shown without reference to a living ruler.">
+              <span class="piece-mark piece-turban" aria-hidden="true"></span><b>Ceremonial turban study</b><small>Hausa–Fulani</small>
+            </button>
+            <button class="regalia-piece" type="button" data-slot="neck" data-name="Court necklace study" data-origin="Efik–Ibibio" data-context="A neutral neck-form placeholder awaiting advisor-supplied naming and cultural context.">
+              <span class="piece-mark piece-necklace" aria-hidden="true"></span><b>Court necklace study</b><small>Efik–Ibibio</small>
+            </button>
+            <button class="regalia-piece" type="button" data-slot="hand" data-name="Royal staff study" data-origin="Ijaw" data-context="A symbol-of-office silhouette, deliberately stripped of palace-specific marks.">
+              <span class="piece-mark piece-staff" aria-hidden="true"></span><b>Royal staff study</b><small>Ijaw</small>
+            </button>
+            <button class="regalia-piece" type="button" data-slot="torso" data-name="Embroidered robe study" data-origin="Middle Belt" data-context="A garment layer whose final tradition-specific weave and description require recorded sign-off.">
+              <span class="piece-mark piece-robe" aria-hidden="true"></span><b>Embroidered robe study</b><small>Middle Belt</small>
+            </button>
+          </div>
+          <p class="cultural-note" id="regalia-context">Prototype policy: specific depictions and extended cultural claims remain sealed until an advisor approval reference is connected.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="place codex" id="codex" data-place="codex" aria-labelledby="codex-title">
+      <div class="codex-heading reveal-group">
+        <div>
+          <p class="place-index">The Codex <span>04 / 07</span></p>
+          <h2 id="codex-title">Ninety places in the archive.</h2>
+        </div>
+        <p>Most remain silhouetted. Discovery reveals what is documented; it does not unlock a reward.</p>
+      </div>
+      <div class="codex-layout">
+        <div class="codex-grid" id="codex-grid" aria-label="Heritage catalogue of 90 review-gated positions"></div>
+        <aside class="codex-detail" id="codex-detail" aria-live="polite">
+          <span class="codex-number">No. 07</span>
+          <h3>Beaded crown study</h3>
+          <p class="codex-origin">Yoruba · Head form</p>
+          <p>A sacred royal form represented abstractly pending recorded advisory approval.</p>
+          <span class="review-status">Preview silhouette · not cleared for publication</span>
+        </aside>
+      </div>
+    </section>
+
+    <section class="place duel" id="duel" data-place="duel" aria-labelledby="duel-title">
+      <div class="duel-heading reveal-group">
+        <p class="place-index">The Duel <span>05 / 07</span></p>
+        <h2 id="duel-title">Call the colour.<br>Then face the card.</h2>
+        <p class="demo-label">Free demo · no stake · no payout</p>
+      </div>
+
+      <div class="duel-arena">
+        <div class="duel-controls">
+          <fieldset>
+            <legend>Your call</legend>
+            <div class="colour-choices">
+              <button class="colour-choice black-choice" type="button" data-colour="Black" aria-pressed="false"><span></span>Black</button>
+              <button class="colour-choice red-choice" type="button" data-colour="Red" aria-pressed="false"><span></span>Red</button>
+            </div>
+          </fieldset>
+          <div class="odds-pair" aria-label="Demo odds and multiplier">
+            <div><span>True chance</span><strong>1 in 2</strong></div>
+            <div><span>Live-game multiplier</span><strong>1.85×</strong></div>
+          </div>
+          <button class="action-button magnetic" id="deal-card" type="button" disabled>Turn the card</button>
+          <p class="decision-copy">In live play, the outcome is decided when the bet is placed. <a href="#rules">Read the rules</a>.</p>
+        </div>
+
+        <div class="card-table" aria-live="polite">
+          <div class="card-shadow" aria-hidden="true"></div>
+          <div class="playing-card" id="playing-card">
+            <div class="card-face card-back" aria-hidden="true">
+              <span class="card-sigil">BP</span>
+            </div>
+            <div class="card-face card-front" id="card-front">
+              <span class="card-rank">A</span>
+              <span class="card-suit" aria-hidden="true">◆</span>
+              <span class="card-colour-label">Red</span>
+            </div>
+          </div>
+          <div class="duel-result" id="duel-result">
+            <span>Your call will resolve here.</span>
+            <strong>Odds 1 in 2 · 1.85×</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="place seal" id="seal" data-place="seal" aria-labelledby="seal-title">
+      <div class="seal-mark" aria-hidden="true">
+        <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="81"/><circle cx="100" cy="100" r="58"/><path d="M66 101h68M100 67v68"/><path d="m100 20 9 18 20-2-4 20 16 12-16 12 4 20-20-2-9 18-9-18-20 2 4-20-16-12 16-12-4-20 20 2z"/></svg>
+      </div>
+      <div class="seal-copy reveal-group">
+        <p class="place-index">The Seal <span>06 / 07</span></p>
+        <h2 id="seal-title">Standing is earned in the details.</h2>
+        <p>Trust claims in this prototype are deliberately bounded. Production registration references must be verified before publication.</p>
+      </div>
+      <dl class="trust-ledger" id="license-details">
+        <div><dt>Gaming licence</dt><dd>Nigerian licence reference required <span>Insert the verified federal or state reference before publication</span></dd></div>
+        <div><dt>SCUML registration</dt><dd>Registration reference required <span>Production value is not present in the repository</span></dd></div>
+        <div><dt>Game outcome</dt><dd>RNG certificate reference required <span>Publish only after the certificate has been verified</span></dd></div>
+        <div><dt>Payout route</dt><dd>OPay destination <span>Subject to account and payment checks</span></dd></div>
+        <div id="responsible-play"><dt>Player protection</dt><dd>18+ only <span><a href="#responsible-play">Responsible gambling</a> in one tap</span></dd></div>
+      </dl>
+    </section>
+
+    <section class="place threshold" id="threshold" data-place="threshold" aria-labelledby="threshold-title">
+      <div class="threshold-line" aria-hidden="true"></div>
+      <div class="threshold-copy reveal-group">
+        <p class="place-index">The Threshold <span>07 / 07</span></p>
+        <h2 id="threshold-title">The realm is open.<br>Your choice is still yours.</h2>
+        <p>Explore either game, see the odds, and set your limits before you play.</p>
+        <div class="threshold-actions">
+          <a class="action-button magnetic" href="../index.html#games">Enter Betplus</a>
+          <a class="quiet-link" href="#fork">Return to the two paths</a>
+        </div>
+        <div class="threshold-meta" id="rules">
+          <span>18+ only</span>
+          <a href="#responsible-play">Responsible gambling</a>
+          <span>Outcomes are decided when a bet is placed</span>
+          <a href="#license-details">Licence details</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

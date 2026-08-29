@@ -1,0 +1,17 @@
+[Unit]
+Description=Betplus Horizon queue supervisor
+After=network.target redis.service mariadb.service
+
+[Service]
+Type=simple
+# Adjust user/group and paths for the real deploy target — these are placeholders.
+User=betplus
+Group=betplus
+WorkingDirectory=/var/www/betplus/apps/platform
+ExecStart=/usr/bin/php artisan horizon
+ExecStop=/usr/bin/php artisan horizon:terminate
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

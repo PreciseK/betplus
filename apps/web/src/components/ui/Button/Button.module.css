@@ -1,0 +1,103 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding-inline: 20px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.98);
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.button[aria-disabled="true"] {
+  pointer-events: none;
+}
+
+.primary {
+  background: linear-gradient(135deg, #150061 0%, #10004a 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+}
+
+.primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: linear-gradient(135deg, #d71108 0%, #150061 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.45);
+}
+
+.secondary {
+  background: #ffffff;
+  color: #1c1917;
+  border: 1px solid #f1ece5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #10004a;
+  transform: translateY(-1px);
+}
+
+.quiet {
+  background: transparent;
+  color: #150061;
+  border-color: transparent;
+}
+
+.quiet:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: #fff7ed;
+  color: #10004a;
+}
+
+.dark {
+  background: #1c1917;
+  color: #ffffff;
+}
+
+.dark:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: #292524;
+}
+
+.success {
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+
+.success:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: #15803d;
+}
+
+.error {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+}
+
+.error:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: #b91c1c;
+}

@@ -1,0 +1,11 @@
+parameters:
+    # Level 8 — this adapter's whole job is calling the platform API and rendering screens
+    # correctly. It has no framework magic to accommodate, so there is no reason to run it
+    # looser than the engines.
+    level: 8
+    paths:
+        - src
+    tmpDir: build/phpstan
+    # Single-process — see apps/engine-blackred/phpstan.neon.dist for why.
+    parallel:
+        maximumNumberOfProcesses: 1

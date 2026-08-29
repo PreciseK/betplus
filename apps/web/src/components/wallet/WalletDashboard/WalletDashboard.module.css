@@ -1,0 +1,119 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.balances {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* ── Action buttons row ── */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  color: #f6f1e7;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.actionBtn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(234,88,12,0.08) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.22s;
+  pointer-events: none;
+}
+
+.actionBtn:hover::before {
+  opacity: 1;
+}
+
+.actionBtn:hover {
+  border-color: rgba(21, 0, 97, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -8px rgba(234, 88, 12, 0.25);
+}
+
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.actionBtnWithdraw::before {
+  background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, transparent 100%);
+}
+
+.actionBtnWithdraw:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 8px 24px -8px rgba(16, 185, 129, 0.2);
+}
+
+.actionBtnIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(234, 88, 12, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.actionBtnText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.actionBtnLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.45);
+}
+
+.actionBtnArrow {
+  color: rgba(246, 241, 231, 0.3);
+  flex-shrink: 0;
+  transition: transform 0.22s, color 0.22s;
+}
+
+.actionBtn:hover .actionBtnArrow {
+  transform: translateX(3px);
+  color: rgba(246, 241, 231, 0.7);
+}
+
+@media (max-width: 768px) {
+  .balances {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+}

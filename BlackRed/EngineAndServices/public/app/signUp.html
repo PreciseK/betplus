@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0A0A0A" />
+<title>Sign Up — BlackRed</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/favicon.png">
+  <meta name="theme-color" content="#0E0500">
+  <!-- BR-PWA START -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BlackRed">
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+<!-- iOS splash screens (per device size) -->
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-pro-max.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-pro.png"     media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-x.png"       media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-xr.png"      media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-iphone-se.png"      media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-ipad-pro-11.png"    media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)">
+<link rel="apple-touch-startup-image" href="../assets/icons/splash-ipad.png"           media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)">
+<!-- BR-PWA END -->
+<meta name="description" content="Create your BlackRed account." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --red: #C8102E;
+    --red-hover: #e01835;
+    --red-dim: #8a0b1f;
+    --black: #0A0A0A;
+    --black-2: #141414;
+    --black-3: #1c1c1c;
+    --cream: #F6F1E7;
+    --cream-2: #efe7d3;
+    --cream-3: #faf6ea;
+    --gold: #E0B84B;
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --font-display: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Sora', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--black);
+    color: var(--cream);
+    min-height: 100vh;
+    min-height: 100svh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  img, svg { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; border: none; cursor: pointer; background: none; color: inherit; }
+  input { font: inherit; color: inherit; }
+  ::selection { background: var(--red); color: var(--cream); }
+
+  /* ============================================================
+     PAGE SHELL — Split layout on desktop, stacked on mobile
+     ============================================================ */
+  .shell {
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: 1fr;
+    position: relative;
+  }
+  @media (min-width: 1024px) {
+    .shell { grid-template-columns: 5fr 7fr; }
+  }
+
+  /* LEFT / TOP — brand panel */
+  .brand-panel {
+    position: relative;
+    padding: 24px 20px 40px;
+    background: var(--black);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  @media (min-width: 768px) {
+    .brand-panel { padding: 32px 40px 48px; }
+  }
+  @media (min-width: 1024px) {
+    .brand-panel {
+      padding: 40px 48px;
+      min-height: 100vh;
+      min-height: 100svh;
+      justify-content: space-between;
+    }
+  }
+
+  .brand-panel::before {
+    content: '';
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 15% 20%, rgba(200,16,46,0.22), transparent 60%),
+      radial-gradient(ellipse 70% 60% at 85% 80%, rgba(200,16,46,0.14), transparent 55%);
+    z-index: 0;
+  }
+  .brand-panel::after {
+    content: '';
+    position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.06; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.9'/></svg>");
+    z-index: 0;
+  }
+
+  .brand-panel-inner { position: relative; z-index: 1; }
+
+  .brand-logo {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 24px;
+  }
+  .brand-logo-mark {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: var(--red);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 900;
+    font-size: 20px; letter-spacing: -0.04em;
+    color: var(--cream);
+    box-shadow: 0 6px 20px -4px rgba(200,16,46,0.5);
+  }
+.brand-logo-img {
+    height: 70px; width: auto;
+    display: block;
+    object-fit: contain;
+  }
+
+  .brand-logo-text {
+    font-family: var(--font-display); font-weight: 800;
+    font-size: 22px; letter-spacing: -0.035em;
+    color: var(--cream);
+  }
+
+  .brand-headline {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    line-height: 0.95; letter-spacing: -0.035em;
+    font-weight: 800;
+    margin: 0 0 12px;
+    color: var(--cream);
+  }
+  @media (min-width: 1024px) {
+    .brand-headline {
+      font-size: clamp(2.6rem, 3.4vw, 3.8rem);
+      margin-bottom: 16px;
+    }
+  }
+  .brand-headline em {
+    font-style: normal; font-weight: 900;
+    color: var(--red);
+  }
+  .brand-sub {
+    font-size: 15px; line-height: 1.55;
+    color: rgba(246,241,231,0.7);
+    max-width: 420px;
+    margin: 0 0 24px;
+  }
+  @media (min-width: 1024px) {
+    .brand-sub { font-size: 17px; margin-bottom: 32px; }
+  }
+
+  .brand-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 999px;
+    background: rgba(246,241,231,0.06);
+    border: 1px solid rgba(246,241,231,0.12);
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: rgba(246,241,231,0.8);
+    margin-bottom: 16px;
+  }
+  .brand-badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px rgba(200,16,46,0.7);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  /* Trust markers — desktop only */
+  .brand-trust {
+    display: none;
+    position: relative; z-index: 1;
+  }
+  @media (min-width: 1024px) {
+    .brand-trust {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(246,241,231,0.08);
+    }
+  }
+  .brand-trust-item .label {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(246,241,231,0.4);
+    margin-bottom: 6px;
+  }
+  .brand-trust-item .val {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 16px; color: var(--cream);
+    letter-spacing: -0.02em;
+  }
+  .brand-trust-item .val .red { color: var(--red); }
+
+  /* ============================================================
+     FORM PANEL
+     ============================================================ */
+  .form-panel {
+    background: var(--black);
+    padding: 0 20px 80px;
+    display: flex; align-items: flex-start; justify-content: center;
+    position: relative;
+  }
+  @media (min-width: 768px) {
+    .form-panel { padding: 0 40px 80px; }
+  }
+  @media (min-width: 1024px) {
+    .form-panel {
+      background: linear-gradient(180deg, #0f0707 0%, var(--black) 100%);
+      padding: 40px 48px;
+      min-height: 100vh;
+      min-height: 100svh;
+      align-items: center;
+    }
+  }
+
+  .form-wrap {
+    width: 100%; max-width: 460px;
+    position: relative;
+    padding-top: 8px;
+  }
+  @media (min-width: 1024px) { .form-wrap { padding-top: 0; } }
+
+  /* Progress dots */
+  .progress {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 24px;
+  }
+  .progress-step {
+    flex: 1; height: 3px; border-radius: 2px;
+    background: rgba(246,241,231,0.1);
+    overflow: hidden; position: relative;
+    transition: background 0.3s;
+  }
+  .progress-step.active { background: var(--red); }
+  .progress-step.done { background: var(--red); opacity: 0.55; }
+  .progress-label {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(246,241,231,0.5);
+    margin-bottom: 14px;
+  }
+  .progress-label .count { color: var(--red); }
+
+  /* ============================================================
+     STEP CARDS — animated between states
+     ============================================================ */
+  .step {
+    display: none;
+    animation: stepIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .step.active { display: block; }
+  @keyframes stepIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-h {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 6vw, 2.4rem);
+    line-height: 1.0; letter-spacing: -0.035em;
+    font-weight: 800;
+    margin: 0 0 10px;
+    color: var(--cream);
+  }
+  .step-h em { font-style: normal; font-weight: 900; color: var(--red); }
+  .step-sub {
+    font-size: 14px; line-height: 1.55;
+    color: rgba(246,241,231,0.65);
+    margin: 0 0 28px;
+    max-width: 380px;
+  }
+  @media (min-width: 768px) { .step-sub { font-size: 15px; } }
+
+  /* ============================================================
+     FIELDS
+     ============================================================ */
+  .field { margin-bottom: 18px; }
+  .field-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(246,241,231,0.55);
+    margin-bottom: 10px;
+  }
+
+  /* Phone input with +233 prefix */
+  .phone-input {
+    display: flex; align-items: stretch;
+    border: 1px solid rgba(246,241,231,0.15);
+    border-radius: 14px;
+    background: rgba(246,241,231,0.03);
+    transition: all 0.2s;
+    overflow: hidden;
+  }
+  .phone-input:focus-within {
+    border-color: var(--red);
+    background: rgba(200,16,46,0.05);
+    box-shadow: 0 0 0 4px rgba(200,16,46,0.12);
+  }
+  .phone-input.error {
+    border-color: var(--red);
+    background: rgba(200,16,46,0.08);
+    animation: shake 0.4s ease;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+  .phone-prefix {
+    display: flex; align-items: center;
+    padding: 0 14px 0 16px;
+    font-family: var(--font-mono);
+    font-size: 16px; font-weight: 600;
+    color: rgba(246,241,231,0.55);
+    border-right: 1px solid rgba(246,241,231,0.1);
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+  .phone-field {
+    flex: 1;
+    padding: 16px 14px;
+    font-family: var(--font-mono);
+    font-size: 17px; font-weight: 600;
+    background: transparent;
+    border: none; outline: none;
+    color: var(--cream);
+    letter-spacing: 0.05em;
+    min-width: 0;
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .phone-field { font-size: 18px; padding: 18px 16px; }
+    .phone-prefix { font-size: 17px; padding: 0 16px 0 18px; }
+  }
+  .phone-field::placeholder { color: rgba(246,241,231,0.25); letter-spacing: 0.05em; }
+
+  .field-hint {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: rgba(246,241,231,0.4);
+    min-height: 14px;
+  }
+  .field-hint.error { color: #ff6b6b; }
+  .field-hint.ok { color: var(--green); }
+  .field-hint svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+  /* Network picker — 4 Nigerian cards */
+  .network-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 480px) { .network-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
+  @media (min-width: 481px) { .network-grid { gap: 10px; } }
+
+  .network-card {
+    position: relative;
+    padding: 12px 6px 10px;
+    border: 1px solid rgba(246,241,231,0.12);
+    border-radius: 14px;
+    background: rgba(246,241,231,0.03);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    text-align: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .network-card:hover { border-color: rgba(246,241,231,0.22); background: rgba(246,241,231,0.05); }
+  .network-card.selected {
+    border-color: #ea580c;
+    background: rgba(234, 88, 12, 0.12);
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.2);
+  }
+  .network-card.selected::before {
+    content: '';
+    position: absolute; top: 6px; right: 6px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #ea580c;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 6l2 2 4-4' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-size: 10px; background-position: center; background-repeat: no-repeat;
+    box-shadow: 0 2px 6px rgba(234, 88, 12, 0.5);
+  }
+
+  .network-logo-img {
+    width: 44px; height: 44px; border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .network-name {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(246,241,231,0.85);
+    line-height: 1;
+  }
+  .network-card.selected .network-name { color: var(--cream); }
+
+  /* Name reveal card */
+  .name-reveal {
+    margin-top: 22px;
+    padding: 18px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(34,197,94,0.02) 100%);
+    border: 1px solid rgba(34,197,94,0.28);
+    display: flex; align-items: center; gap: 14px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.4s, transform 0.4s;
+    pointer-events: none;
+  }
+  .name-reveal.show {
+    opacity: 1; transform: translateY(0);
+    pointer-events: auto;
+  }
+  .name-reveal.loading {
+    background: rgba(246,241,231,0.04);
+    border-color: rgba(246,241,231,0.1);
+  }
+  .name-check {
+    width: 40px; height: 40px; border-radius: 999px;
+    background: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--cream);
+    flex-shrink: 0;
+  }
+  .name-check svg { width: 22px; height: 22px; }
+  .name-reveal.loading .name-check {
+    background: rgba(246,241,231,0.08);
+    color: rgba(246,241,231,0.5);
+  }
+  .name-reveal.loading .name-check svg { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .name-reveal-text { flex: 1; min-width: 0; }
+  .name-reveal-label {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 3px;
+  }
+  .name-reveal.loading .name-reveal-label {
+    color: rgba(246,241,231,0.5);
+  }
+  .name-reveal-name {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 19px;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    text-transform: uppercase;
+    word-break: break-word;
+  }
+  .name-reveal.loading .name-reveal-name {
+    color: rgba(246,241,231,0.4);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    font-size: 14px;
+  }
+
+  /* ============================================================
+     STEP 2 — USSD INSTRUCTION + 6-DIGIT BOXES
+     ============================================================ */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px 6px 6px;
+    margin-bottom: 12px;
+    margin-left: -6px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(246,241,231,0.55);
+    transition: all 0.2s;
+  }
+  .back-btn:hover { color: var(--cream); background: rgba(246,241,231,0.06); }
+  .back-btn svg { width: 14px; height: 14px; }
+
+  .ussd-panel {
+    padding: 20px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(200,16,46,0.1) 0%, rgba(200,16,46,0.02) 100%);
+    border: 1px solid rgba(200,16,46,0.3);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ussd-panel::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(45deg, rgba(200,16,46,0.05) 0 2px, transparent 2px 20px);
+    pointer-events: none;
+  }
+  .ussd-step-label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: #fff;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .ussd-instruction {
+    font-size: 14px; line-height: 1.5;
+    color: rgba(246,241,231,0.78);
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .ussd-code-display {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--black);
+    border: 1px solid rgba(246,241,231,0.15);
+    position: relative;
+  }
+  .ussd-code-val {
+    font-family: var(--font-mono);
+    font-size: 22px; font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--cream);
+  }
+  @media (min-width: 480px) { .ussd-code-val { font-size: 26px; } }
+  .ussd-dial-btn {
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: var(--red);
+    color: var(--cream);
+    font-family: var(--font-sans);
+    font-size: 12px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 6px 16px -4px rgba(200,16,46,0.5);
+  }
+  .ussd-dial-btn:hover { background: var(--red-hover); }
+  .ussd-dial-btn:active { transform: scale(0.97); }
+  .ussd-dial-btn svg { width: 13px; height: 13px; }
+
+  /* 6-digit boxes */
+  .otp-wrap {
+    display: flex; justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  @media (min-width: 380px) { .otp-wrap { gap: 8px; } }
+  @media (min-width: 480px) { .otp-wrap { gap: 10px; } }
+  .otp-box {
+    flex: 1;
+    min-width: 0;
+    aspect-ratio: 1 / 1.15;
+    max-height: 64px;
+    border-radius: 12px;
+    background: rgba(246,241,231,0.03);
+    border: 1.5px solid rgba(246,241,231,0.15);
+    font-family: var(--font-mono);
+    font-size: 24px; font-weight: 700;
+    text-align: center;
+    color: var(--cream);
+    outline: none;
+    transition: all 0.2s;
+    -moz-appearance: textfield;
+  }
+  .otp-box::-webkit-outer-spin-button,
+  .otp-box::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  @media (min-width: 480px) { .otp-box { font-size: 28px; } }
+  .otp-box:focus {
+    border-color: var(--red);
+    background: rgba(200,16,46,0.06);
+    box-shadow: 0 0 0 3px rgba(200,16,46,0.15);
+    transform: translateY(-1px);
+  }
+  .otp-box.filled {
+    border-color: rgba(200,16,46,0.55);
+    background: rgba(200,16,46,0.08);
+    color: var(--cream);
+  }
+  .otp-box.error {
+    border-color: #ff6b6b;
+    background: rgba(255,107,107,0.08);
+    animation: shake 0.4s ease;
+  }
+  .otp-box.success {
+    border-color: var(--green);
+    background: rgba(34,197,94,0.1);
+  }
+
+  /* Timer + resend + clear */
+  .otp-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .otp-timer {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 600;
+    color: rgba(246,241,231,0.6);
+  }
+  .otp-timer.warning { color: var(--gold); }
+  .otp-timer.expired { color: #ff6b6b; }
+  .otp-timer .icon {
+    width: 14px; height: 14px;
+  }
+  .otp-timer-val {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+    color: var(--cream);
+  }
+  .otp-timer.warning .otp-timer-val { color: var(--gold); }
+  .otp-timer.expired .otp-timer-val { color: #ff6b6b; }
+
+  .otp-actions {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .link-btn {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(246,241,231,0.55);
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: color 0.2s;
+  }
+  .link-btn:hover { color: var(--cream); }
+  .link-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .link-btn.resend { color: var(--red); }
+  .link-btn.resend:disabled { color: rgba(246,241,231,0.3); }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn-primary {
+    width: 100%;
+    padding: 16px 24px;
+    border-radius: 14px;
+    background: var(--red);
+    color: var(--cream);
+    font-family: var(--font-sans);
+    font-size: 15px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.25s;
+    box-shadow: 0 10px 28px -8px rgba(200,16,46,0.55);
+    margin-top: 8px;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--red-hover);
+    box-shadow: 0 14px 36px -8px rgba(200,16,46,0.7);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active:not(:disabled) { transform: translateY(0); }
+  .btn-primary:disabled {
+    background: rgba(246,241,231,0.08);
+    color: rgba(246,241,231,0.3);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .btn-primary svg { transition: transform 0.25s; }
+  .btn-primary:hover:not(:disabled) svg { transform: translateX(3px); }
+  .btn-primary .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(246,241,231,0.2);
+    border-top-color: var(--cream);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .btn-primary.loading .spinner { display: block; }
+  .btn-primary.loading .btn-text,
+  .btn-primary.loading .arrow { display: none; }
+
+  .footer-link {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 13px;
+    color: rgba(246,241,231,0.5);
+  }
+  .footer-link a {
+    color: var(--cream);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(200,16,46,0.4);
+    padding-bottom: 1px;
+  }
+  .footer-link a:hover { color: var(--red); border-bottom-color: var(--red); }
+
+  /* Terms note */
+  .terms {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: rgba(246,241,231,0.35);
+    text-align: center;
+    margin-top: 20px;
+    line-height: 1.5;
+  }
+  .terms a { color: rgba(246,241,231,0.6); text-decoration: underline; text-decoration-color: rgba(200,16,46,0.4); text-underline-offset: 3px; }
+  .terms a:hover { color: var(--cream); }
+
+  /* ============================================================
+     SUCCESS STATE
+     ============================================================ */
+  .success-wrap {
+    text-align: center;
+    padding: 20px 0;
+  }
+  .success-circle {
+    width: 84px; height: 84px; margin: 0 auto 24px;
+    border-radius: 999px;
+    background: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 12px 32px -6px rgba(34,197,94,0.5);
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes pop {
+    from { transform: scale(0.3); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .success-circle svg {
+    width: 44px; height: 44px; color: var(--cream);
+    stroke-dasharray: 30; stroke-dashoffset: 30;
+    animation: draw 0.6s ease-out 0.2s forwards;
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .success-h {
+    font-family: var(--font-display);
+    font-size: 1.9rem; font-weight: 800;
+    letter-spacing: -0.035em;
+    color: var(--cream);
+    margin: 0 0 10px;
+  }
+  .success-h em { font-style: normal; font-weight: 900; color: var(--red); }
+  .success-p {
+    font-size: 14px; line-height: 1.55;
+    color: rgba(246,241,231,0.65);
+    max-width: 320px;
+    margin: 0 auto 28px;
+  }
+
+  /* ============================================================
+     PASSWORD FIELDS
+     ============================================================ */
+  .password-input {
+    position: relative;
+    display: flex; align-items: stretch;
+    border: 1px solid rgba(246,241,231,0.15);
+    border-radius: 14px;
+    background: rgba(246,241,231,0.03);
+    transition: all 0.2s;
+    overflow: hidden;
+  }
+  .password-input:focus-within {
+    border-color: var(--red);
+    background: rgba(200,16,46,0.05);
+    box-shadow: 0 0 0 4px rgba(200,16,46,0.12);
+  }
+  .password-input.valid:not(:focus-within) {
+    border-color: rgba(34,197,94,0.4);
+  }
+  .password-input.mismatch {
+    border-color: #ff6b6b;
+    background: rgba(255,107,107,0.05);
+  }
+  .password-field {
+    flex: 1;
+    padding: 16px 14px 16px 16px;
+    font-family: var(--font-sans);
+    font-size: 16px; font-weight: 500;
+    background: transparent;
+    border: none; outline: none;
+    color: var(--cream);
+    letter-spacing: 0.02em;
+    min-width: 0;
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .password-field { font-size: 17px; padding: 18px 14px 18px 18px; }
+  }
+  .password-field::placeholder { color: rgba(246,241,231,0.25); }
+  .password-toggle {
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 16px;
+    color: rgba(246,241,231,0.5);
+    transition: color 0.2s;
+    flex-shrink: 0;
+  }
+  .password-toggle:hover { color: var(--cream); }
+  .password-toggle svg { width: 18px; height: 18px; }
+
+  /* Strength meter */
+  .strength-wrap {
+    margin-top: 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .strength-bars {
+    flex: 1;
+    display: flex; gap: 4px;
+  }
+  .strength-bar {
+    flex: 1; height: 4px;
+    border-radius: 2px;
+    background: rgba(246,241,231,0.1);
+    transition: background 0.3s;
+  }
+  .strength-bar.filled-1 { background: #ff6b6b; }
+  .strength-bar.filled-2 { background: var(--gold); }
+  .strength-bar.filled-3 { background: var(--green); }
+  .strength-label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: rgba(246,241,231,0.4);
+    min-width: 50px;
+    text-align: right;
+  }
+  .strength-label.weak { color: #ff6b6b; }
+  .strength-label.fair { color: var(--gold); }
+  .strength-label.strong { color: var(--green); }
+
+  /* Rules checklist */
+  .rules-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 12px;
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(246,241,231,0.03);
+    border: 1px solid rgba(246,241,231,0.08);
+  }
+  @media (max-width: 380px) {
+    .rules-list { grid-template-columns: 1fr; }
+  }
+  .rule {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 500;
+    color: rgba(246,241,231,0.5);
+    transition: color 0.2s;
+  }
+  .rule-icon {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: rgba(246,241,231,0.1);
+    border: 1px solid rgba(246,241,231,0.15);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .rule-icon svg {
+    width: 10px; height: 10px;
+    color: rgba(246,241,231,0.3);
+    transition: color 0.2s;
+  }
+  .rule.met { color: var(--green); }
+  .rule.met .rule-icon {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .rule.met .rule-icon svg { color: var(--cream); }
+
+  /* Match indicator */
+  .match-hint {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    min-height: 14px;
+    color: rgba(246,241,231,0.4);
+  }
+  .match-hint.ok { color: var(--green); }
+  .match-hint.error { color: #ff6b6b; }
+  .match-hint svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+  /* ============================================================
+     CHECKBOXES (EULA + T&Cs)
+     ============================================================ */
+  .checks {
+    margin-top: 22px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .check {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(246,241,231,0.03);
+    border: 1px solid rgba(246,241,231,0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .check:hover { background: rgba(246,241,231,0.05); border-color: rgba(246,241,231,0.18); }
+  .check.checked {
+    background: rgba(200,16,46,0.06);
+    border-color: rgba(200,16,46,0.35);
+  }
+  .check input {
+    position: absolute;
+    opacity: 0; width: 0; height: 0;
+  }
+  .check-box {
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    background: rgba(246,241,231,0.06);
+    border: 1.5px solid rgba(246,241,231,0.25);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.2s;
+  }
+  .check.checked .check-box {
+    background: var(--red);
+    border-color: var(--red);
+    box-shadow: 0 2px 8px rgba(200,16,46,0.35);
+  }
+  .check-box svg {
+    width: 12px; height: 12px;
+    color: var(--cream);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s;
+  }
+  .check.checked .check-box svg {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .check-text {
+    font-size: 13px; line-height: 1.45;
+    color: rgba(246,241,231,0.75);
+    flex: 1;
+  }
+  .check-text a {
+    color: var(--cream);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(200,16,46,0.5);
+    padding-bottom: 1px;
+  }
+  .check-text a:hover { color: var(--red); border-bottom-color: var(--red); }
+  .check-text strong {
+    font-weight: 700;
+    color: var(--cream);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* ============================================================
+     FINAL SUCCESS SCREEN (step 4)
+     ============================================================ */
+  .login-cta {
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(246,241,231,0.04);
+    border: 1px solid rgba(246,241,231,0.1);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px;
+    transition: all 0.2s;
+  }
+  .login-cta:hover {
+    background: rgba(200,16,46,0.06);
+    border-color: rgba(200,16,46,0.3);
+  }
+  .login-cta-text { text-align: left; min-width: 0; }
+  .login-cta-label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(246,241,231,0.5);
+    margin-bottom: 4px;
+  }
+  .login-cta-main {
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 16px;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+  }
+  .login-cta-arrow {
+    width: 36px; height: 36px;
+    border-radius: 999px;
+    background: var(--red);
+    color: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .login-cta:hover .login-cta-arrow { transform: translateX(4px); }
+  .login-cta-arrow svg { width: 16px; height: 16px; }
+
+  /* ============================================================
+     TOP PROGRESS BAR
+     ============================================================ */
+  .top-progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .top-progress.active { opacity: 1; }
+  .top-progress::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -40%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      rgba(246,241,231,0) 0%,
+      rgba(246,241,231,0.85) 60%,
+      rgba(246,241,231,1) 100%);
+    box-shadow: 0 0 8px rgba(246,241,231,0.4);
+    border-radius: 0 2px 2px 0;
+    animation: top-progress-slide 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  @keyframes top-progress-slide {
+    0%   { left: -40%; }
+    100% { left: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  
+  <aside class="brand-panel">
+    <div class="brand-panel-inner">
+      <div class="brand-logo">
+        <img src="../assets/logo.png" alt="BlackRed" class="brand-logo-img">
+      </div>
+
+    
+
+    </div>
+
+    
+    <div class="brand-trust">
+      <div class="brand-trust-item">
+        <div class="label">Licensed</div>
+        <div class="val">NLA <span class="red">Caritas</span></div>
+      </div>
+      <div class="brand-trust-item">
+        <div class="label">Payout</div>
+        <div class="val">MoMo <span class="red">Direct</span></div>
+      </div>
+      <div class="brand-trust-item">
+        <div class="label">Min. Stake</div>
+        <div class="val">GHS <span class="red">2</span></div>
+      </div>
+    </div>
+  </aside>
+
+  
+  <main class="form-panel">
+    <div class="form-wrap">
+
+      
+      <div id="progressWrap">
+        <div class="progress-label">Step <span class="count" id="progressCount">1</span> of 3</div>
+        <div class="progress">
+          <div class="progress-step active" id="progressStep1"></div>
+          <div class="progress-step" id="progressStep2"></div>
+          <div class="progress-step" id="progressStep3"></div>
+        </div>
+      </div>
+
+      
+      <section class="step active" id="step1">
+        <h2 class="step-h">Let's get <em>you in.</em></h2>
+        <p class="step-sub">Enter the phone number linked to your Mobile Money account.</p>
+
+        
+        <div class="field">
+          <label class="field-label" for="phone">Nigerian Phone Number</label>
+          <div class="phone-input" id="phoneWrap">
+            <span class="phone-prefix">+234</span>
+            <input
+              type="tel"
+              id="phone"
+              class="phone-field"
+              placeholder="801 XXX XXXX"
+              autocomplete="tel"
+              inputmode="numeric"
+              maxlength="14"
+            />
+          </div>
+          <div class="field-hint" id="phoneHint">
+            Nigeria numbers only. Linked to your OPay wallet.
+          </div>
+        </div>
+
+        
+        <div class="field">
+          <label class="field-label">Mobile Network Provider</label>
+          <div class="network-grid" id="networkGrid">
+            <div class="network-card selected" data-network="mtn" tabindex="0" role="button" aria-label="MTN">
+              <img src="/assets/providers/mtn.png" class="network-logo-img" alt="MTN" />
+              <div class="network-name">MTN</div>
+            </div>
+            <div class="network-card" data-network="airtel" tabindex="0" role="button" aria-label="Airtel">
+              <img src="/assets/providers/airtel.png" class="network-logo-img" alt="Airtel" />
+              <div class="network-name">Airtel</div>
+            </div>
+            <div class="network-card" data-network="glo" tabindex="0" role="button" aria-label="Glo">
+              <img src="/assets/providers/glo.png" class="network-logo-img" alt="Glo" />
+              <div class="network-name">Glo</div>
+            </div>
+            <div class="network-card" data-network="9mobile" tabindex="0" role="button" aria-label="9mobile">
+              <img src="/assets/providers/9mobile.png" class="network-logo-img" alt="9mobile" />
+              <div class="network-name">9mobile</div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="name-reveal" id="nameReveal" aria-live="polite">
+          <div class="name-check">
+            <svg viewBox="0 0 24 24" fill="none" id="nameCheckIcon">
+              <path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="name-reveal-text">
+            <div class="name-reveal-label" id="nameRevealLabel">MoMo Name Verified</div>
+            <div class="name-reveal-name" id="nameRevealName">KWAME MENSAH</div>
+          </div>
+        </div>
+
+        
+        <button type="button" class="btn-primary" id="btnContinue" disabled>
+          <span class="btn-text">Continue</span>
+          <svg class="arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M1 8h13m0 0L8 2m6 6l-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="spinner"></div>
+        </button>
+
+        <p class="terms">
+          By continuing, you agree to BlackRed's <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.<br>
+          You must be 18 or older to play.
+        </p>
+      </section>
+
+      
+      <section class="step" id="step2">
+        <button type="button" class="back-btn" id="backBtn">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
+
+        <h2 class="step-h">Verify your <em>number.</em></h2>
+
+        
+        <div class="ussd-panel">
+          <div class="ussd-step-label">We sent a 4-digit code via SMS</div>
+          <hr><br>
+         
+        </div>
+
+        
+        <div class="field" style="margin-bottom: 10px;">
+          <label class="field-label">Enter the 4-digit code</label>
+          <div class="otp-wrap" id="otpWrap">
+            <input type="text" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" data-index="0" autocomplete="one-time-code" />
+            <input type="text" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" data-index="1" />
+            <input type="text" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" data-index="2" />
+            <input type="text" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" data-index="3" />
+          </div>
+          <div class="field-hint" id="otpHint">
+            The code expires in 5 minutes.
+          </div>
+        </div>
+
+        
+        <button type="button" class="btn-primary" id="btnProceed" disabled style="margin-top: 28px;">
+          <span class="btn-text">Proceed</span>
+          <svg class="arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M1 8h13m0 0L8 2m6 6l-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="spinner"></div>
+        </button>
+
+      </section>
+
+      
+      <section class="step" id="step3">
+        <h2 class="step-h">Secure your <em>account.</em></h2>
+        <p class="step-sub">Create a 4-digit PIN for <strong id="pwdNameDisplay" style="color:var(--cream);font-weight:600;">your account</strong>.</p>
+
+        
+        <div class="field">
+          <label class="field-label" for="pin0">Set a 4-digit PIN</label>
+          <div class="otp-wrap" id="pinWrap">
+            <input type="password" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" id="pin0" data-pin-index="0" autocomplete="new-password" />
+            <input type="password" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" id="pin1" data-pin-index="1" autocomplete="new-password" />
+            <input type="password" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" id="pin2" data-pin-index="2" autocomplete="new-password" />
+            <input type="password" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" id="pin3" data-pin-index="3" autocomplete="new-password" />
+          </div>
+          <div class="field-hint" id="pinHint">You'll use this with your phone number to sign in.</div>
+        </div>
+
+        
+        <div class="field">
+          <label class="field-label" for="pinConfirm0">Confirm your PIN</label>
+          <div class="otp-wrap" id="pinConfirmWrap">
+            <input type="password" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" id="pinConfirm0" data-pin-confirm-index="0" autocomplete="new-password" />
+            <input type="password" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" id="pinConfirm1" data-pin-confirm-index="1" autocomplete="new-password" />
+            <input type="password" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" id="pinConfirm2" data-pin-confirm-index="2" autocomplete="new-password" />
+            <input type="password" inputmode="numeric" maxlength="1" pattern="\d" class="otp-box" id="pinConfirm3" data-pin-confirm-index="3" autocomplete="new-password" />
+          </div>
+          <div class="match-hint" id="matchHint"></div>
+        </div>
+
+        
+        <div class="checks">
+          <label class="check" id="checkEula">
+            <input type="checkbox" id="eulaBox" />
+            <div class="check-box">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5L9.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="check-text">
+              <strong>End User Licence Agreement</strong>
+              I have read and agree to the <a href="#" onclick="event.stopPropagation();">BlackRed EULA</a>.
+            </div>
+          </label>
+
+          <label class="check" id="checkTerms">
+            <input type="checkbox" id="termsBox" />
+            <div class="check-box">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5L9.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="check-text">
+              <strong>Terms &amp; Conditions</strong>
+              I accept the <a href="#" onclick="event.stopPropagation();">Terms &amp; Conditions</a> and <a href="#" onclick="event.stopPropagation();">Privacy Policy</a>. I am 18+.
+            </div>
+          </label>
+        </div>
+
+        
+        <button type="button" class="btn-primary" id="btnCreate" disabled style="margin-top: 22px;">
+          <span class="btn-text">Create Account</span>
+          <svg class="arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M1 8h13m0 0L8 2m6 6l-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="spinner"></div>
+        </button>
+      </section>
+
+      
+      <section class="step" id="step4">
+        <div class="success-wrap">
+          <div class="success-circle">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 class="success-h">You're <em>in.</em></h2>
+          <p class="success-p">
+            Welcome to BlackRed, <strong id="successName" style="color:var(--cream);font-weight:600;">Kwame</strong>. Your account is ready — let's pick your first card.
+          </p>
+
+          
+          <a href="dashboard.html" class="login-cta" id="loginCta">
+            <div class="login-cta-text">
+              <div class="login-cta-label">Ready to play</div>
+              <div class="login-cta-main">Enter BlackRed</div>
+            </div>
+            <div class="login-cta-arrow">
+              <svg viewBox="0 0 16 16" fill="none">
+                <path d="M1 8h13m0 0L8 2m6 6l-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      
+      <p class="footer-link" id="signInLink">
+        Already have an account? <a href="index.html">Sign in</a>
+      </p>
+
+    </div>
+  </main>
+
+  
+  <div class="modal-overlay" id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+    <div class="modal-card" role="alertdialog" aria-modal="true" aria-labelledby="modalTitle" style="background:var(--cream,#f6f1e7);color:#222;border-radius:18px;max-width:420px;width:100%;padding:24px 22px 20px;box-shadow:0 24px 60px -10px rgba(0,0,0,0.5);transform:scale(0.95);opacity:0;transition:transform 0.25s cubic-bezier(0.22,1,0.36,1),opacity 0.25s;">
+      <div id="modalIcon" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+        <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 7v6M12 16v.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h3 id="modalTitle" style="margin:0 0 6px;font-size:19px;font-weight:800;line-height:1.25;">Error</h3>
+      <p id="modalMessage" style="margin:0 0 18px;font-size:14px;line-height:1.5;color:#444;">Something went wrong.</p>
+      <button type="button" id="modalClose" class="btn-primary" style="width:100%;">
+        <span class="btn-text">OK</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = function() {
+  const path = window.location.pathname;
+  const idx = path.indexOf("/app/");
+  const root = idx >= 0 ? path.substring(0, idx) : "";
+  return root + "/api";
+}();
+
+const modalOverlay = document.getElementById("modalOverlay");
+
+const modalCard = modalOverlay.querySelector(".modal-card");
+
+const modalTitle = document.getElementById("modalTitle");
+
+const modalMessage = document.getElementById("modalMessage");
+
+const modalIcon = document.getElementById("modalIcon");
+
+const modalClose = document.getElementById("modalClose");
+
+function showModal(title, message, variant) {
+  modalTitle.textContent = title || "Notice";
+  modalMessage.textContent = message || "";
+  const v = variant || "error";
+  if (v === "error") {
+    modalIcon.style.background = "rgba(200,16,46,0.12)";
+    modalIcon.style.color = "var(--red,#c8102e)";
+  } else if (v === "success") {
+    modalIcon.style.background = "rgba(34,180,90,0.12)";
+    modalIcon.style.color = "#22b45a";
+  } else {
+    modalIcon.style.background = "rgba(0,0,0,0.08)";
+    modalIcon.style.color = "#444";
+  }
+  modalOverlay.style.display = "flex";
+  requestAnimationFrame(() => {
+    modalCard.style.transform = "scale(1)";
+    modalCard.style.opacity = "1";
+  });
+  setTimeout(() => modalClose.focus(), 50);
+}
+
+function hideModal() {
+  modalCard.style.transform = "scale(0.95)";
+  modalCard.style.opacity = "0";
+  setTimeout(() => {
+    modalOverlay.style.display = "none";
+  }, 200);
+}
+
+modalClose.addEventListener("click", hideModal);
+
+modalOverlay.addEventListener("click", e => {
+  if (e.target === modalOverlay) {
+    hideModal();
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && modalOverlay.style.display !== "none") {
+    hideModal();
+  }
+});
+
+const __progressBar = function() {
+  let el = null;
+  let activeCount = 0;
+  function ensure() {
+    if (el) {
+      return el;
+    }
+    el = document.createElement("div");
+    el.className = "top-progress";
+    el.setAttribute("role", "progressbar");
+    el.setAttribute("aria-label", "Loading");
+    document.body.appendChild(el);
+    return el;
+  }
+  return {
+    start() {
+      activeCount++;
+      ensure().classList.add("active");
+    },
+    done() {
+      activeCount = Math.max(0, activeCount - 1);
+      if (activeCount === 0 && el) {
+        el.classList.remove("active");
+      }
+    }
+  };
+}();
+
+async function apiPost(path, body) {
+  __progressBar.start();
+  let res, data;
+  try {
+    res = await fetch(API_BASE + path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify(body || {})
+    });
+  } catch (networkErr) {
+    __progressBar.done();
+    throw {
+      error: "network_error",
+      message: "Could not reach the server. Check your connection and try again."
+    };
+  }
+  try {
+    data = await res.json();
+  } catch (parseErr) {
+    __progressBar.done();
+    throw {
+      error: "invalid_response",
+      message: "The server returned an unexpected response. Please try again."
+    };
+  }
+  __progressBar.done();
+  if (!res.ok) {
+    throw {
+      error: data.error || "unknown_error",
+      message: data.message || "Something went wrong.",
+      status: res.status,
+      extra: data
+    };
+  }
+  return data;
+}
+
+let state = {
+  step: 1,
+  phone: "",
+  phoneValid: false,
+  network: null,
+  name: "",
+  nameLoading: false,
+  otpCode: ""
+};
+
+function goToStep(n) {
+  state.step = n;
+  document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+  document.getElementById("step" + n).classList.add("active");
+  const progressWrap = document.getElementById("progressWrap");
+  const signInLink = document.getElementById("signInLink");
+  if (n === 4) {
+    progressWrap.style.display = "none";
+    signInLink.style.display = "none";
+  } else {
+    progressWrap.style.display = "block";
+    signInLink.style.display = "block";
+    document.getElementById("progressCount").textContent = n;
+    const p1 = document.getElementById("progressStep1");
+    const p2 = document.getElementById("progressStep2");
+    const p3 = document.getElementById("progressStep3");
+    p1.className = "progress-step";
+    p2.className = "progress-step";
+    p3.className = "progress-step";
+    if (n === 1) {
+      p1.className = "progress-step active";
+    }
+    if (n === 2) {
+      p1.className = "progress-step done";
+      p2.className = "progress-step active";
+    }
+    if (n === 3) {
+      p1.className = "progress-step done";
+      p2.className = "progress-step done";
+      p3.className = "progress-step active";
+    }
+  }
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+  if (n === 2) {
+    // Display a masked echo of the phone the user just entered.
+    // state.phone is "0244XXXXXXX" form; mask middle digits for display.
+    const echo = document.getElementById("otpPhoneEcho");
+    if (echo && state.phone && state.phone.length === 10) {
+      echo.textContent = state.phone.slice(0, 3) + " ••• " + state.phone.slice(-4);
+    }
+    setTimeout(() => {
+      document.querySelector('.otp-box[data-index="0"]').focus();
+    }, 250);
+  }
+  if (n === 3) {
+    const firstName = (state.name || "").split(" ")[0];
+    const displayName = firstName ? firstName.charAt(0) + firstName.slice(1).toLowerCase() : "your account";
+    document.getElementById("pwdNameDisplay").textContent = displayName;
+    setTimeout(() => document.getElementById("pin0").focus(), 250);
+  }
+}
+
+const phoneInput = document.getElementById("phone");
+
+const phoneWrap = document.getElementById("phoneWrap");
+
+const phoneHint = document.getElementById("phoneHint");
+
+phoneInput.addEventListener("input", e => {
+  let raw = e.target.value.replace(/\D/g, "");
+  if (raw.startsWith("0")) {
+    raw = raw.slice(1);
+  }
+  raw = raw.slice(0, 9);
+  let formatted = raw;
+  if (raw.length > 2 && raw.length <= 5) {
+    formatted = raw.slice(0, 2) + " " + raw.slice(2);
+  } else if (raw.length > 5) {
+    formatted = raw.slice(0, 2) + " " + raw.slice(2, 5) + " " + raw.slice(5);
+  }
+  e.target.value = formatted;
+  const full = raw.length > 0 ? "0" + raw : "";
+  state.phone = full;
+  validatePhone();
+  tryLoadName();
+});
+
+function validatePhone() {
+  const full = state.phone;
+  phoneWrap.classList.remove("error");
+  if (full.length === 0) {
+    phoneHint.className = "field-hint";
+    phoneHint.textContent = "Ghana numbers only. We'll use this to load your MoMo name.";
+    state.phoneValid = false;
+    return;
+  }
+  if (full.length < 10) {
+    phoneHint.className = "field-hint";
+    phoneHint.textContent = "Keep going — " + (10 - full.length) + " more digit" + (10 - full.length === 1 ? "" : "s") + ".";
+    state.phoneValid = false;
+    return;
+  }
+  const firstTwo = full.slice(0, 2);
+  if (firstTwo !== "02" && firstTwo !== "05") {
+    phoneWrap.classList.add("error");
+    phoneHint.className = "field-hint error";
+    phoneHint.innerHTML = '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5M8 11v.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg> Ghana mobile numbers start with 02 or 05.';
+    state.phoneValid = false;
+    return;
+  }
+  phoneHint.className = "field-hint ok";
+  phoneHint.innerHTML = '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Looks good.';
+  state.phoneValid = true;
+}
+
+document.querySelectorAll(".network-card").forEach(card => {
+  card.addEventListener("click", () => selectNetwork(card.dataset.network));
+  card.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      selectNetwork(card.dataset.network);
+    }
+  });
+});
+
+function selectNetwork(net) {
+  state.network = net;
+  document.querySelectorAll(".network-card").forEach(c => {
+    c.classList.toggle("selected", c.dataset.network === net);
+  });
+  tryLoadName();
+}
+
+const nameReveal = document.getElementById("nameReveal");
+
+const nameRevealLabel = document.getElementById("nameRevealLabel");
+
+const nameRevealName = document.getElementById("nameRevealName");
+
+const btnContinue = document.getElementById("btnContinue");
+
+let nameLookupTimer = null;
+
+function tryLoadName() {
+  if (!state.phoneValid || !state.network) {
+    nameReveal.classList.remove("show");
+    state.name = "";
+    updateContinueBtn();
+    return;
+  }
+  nameReveal.classList.add("show", "loading");
+  nameRevealLabel.textContent = "Loading MoMo Name…";
+  nameRevealName.textContent = "Talking to " + networkLabel(state.network) + "…";
+  state.nameLoading = true;
+  updateContinueBtn();
+  clearTimeout(nameLookupTimer);
+  const phoneAtCallTime = state.phone;
+  const networkAtCallTime = state.network;
+  nameLookupTimer = setTimeout(async () => {
+    if (phoneAtCallTime !== state.phone || networkAtCallTime !== state.network) {
+      return;
+    }
+    try {
+      const data = await apiPost("/auth/signup/lookup", {
+        phone: state.phone,
+        network: state.network
+      });
+      if (phoneAtCallTime !== state.phone || networkAtCallTime !== state.network) {
+        return;
+      }
+      state.name = (data.registeredName || "").toString();
+      state.nameLoading = false;
+      nameReveal.classList.remove("loading");
+      nameRevealLabel.textContent = "MoMo Name Verified";
+      nameRevealName.textContent = state.name;
+      updateContinueBtn();
+    } catch (err) {
+      if (phoneAtCallTime !== state.phone || networkAtCallTime !== state.network) {
+        return;
+      }
+      state.name = "";
+      state.nameLoading = false;
+      nameReveal.classList.remove("show", "loading");
+      updateContinueBtn();
+      const title = err.error === "phone_already_registered" ? "Already registered" : err.error === "not_found" ? "Account not found" : "Lookup failed";
+      showModal(title, err.message || "Could not look up the MoMo name. Please try again.", "error");
+    }
+  }, 400);
+}
+
+function networkLabel(n) {
+  return n === "mtn" ? "MTN" : n === "at" ? "AirtelTigo" : "Telecel";
+}
+
+function updateContinueBtn() {
+  const ready = state.phoneValid && state.network && state.name && !state.nameLoading;
+  btnContinue.disabled = !ready;
+}
+
+btnContinue.addEventListener("click", () => {
+  if (btnContinue.disabled) {
+    return;
+  }
+  goToStep(2);
+});
+
+document.getElementById("backBtn").addEventListener("click", () => {
+  document.querySelectorAll("#otpWrap .otp-box").forEach(b => {
+    b.value = "";
+    b.classList.remove("filled", "error", "success");
+  });
+  state.otpCode = "";
+  goToStep(1);
+});
+
+const otpBoxes = Array.from(document.querySelectorAll("#otpWrap .otp-box"));
+
+const btnProceed = document.getElementById("btnProceed");
+
+otpBoxes.forEach((box, idx) => {
+  box.addEventListener("input", e => {
+    let v = e.target.value.replace(/\D/g, "");
+    if (v.length > 1) {
+      v = v.slice(-1);
+    }
+    e.target.value = v;
+    if (v) {
+      box.classList.add("filled");
+      box.classList.remove("error");
+      if (idx < otpBoxes.length - 1) {
+        otpBoxes[idx + 1].focus();
+      } else {
+        box.blur();
+      }
+    } else {
+      box.classList.remove("filled");
+    }
+    updateOtpState();
+  });
+  box.addEventListener("keydown", e => {
+    if (e.key === "Backspace" && !e.target.value && idx > 0) {
+      otpBoxes[idx - 1].focus();
+      otpBoxes[idx - 1].value = "";
+      otpBoxes[idx - 1].classList.remove("filled");
+      updateOtpState();
+      e.preventDefault();
+    }
+    if (e.key === "ArrowLeft" && idx > 0) {
+      otpBoxes[idx - 1].focus();
+      e.preventDefault();
+    }
+    if (e.key === "ArrowRight" && idx < otpBoxes.length - 1) {
+      otpBoxes[idx + 1].focus();
+      e.preventDefault();
+    }
+    if (e.key === "Enter" && state.otpCode.length === 4 && !btnProceed.disabled) {
+      btnProceed.click();
+    }
+  });
+  box.addEventListener("paste", e => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData("text").replace(/\D/g, "").slice(0, 4);
+    if (!pasted) {
+      return;
+    }
+    otpBoxes.forEach((b, i) => {
+      b.value = pasted[i] || "";
+      b.classList.toggle("filled", !!pasted[i]);
+      b.classList.remove("error");
+    });
+    updateOtpState();
+    const lastFilled = Math.min(pasted.length, 4) - 1;
+    if (lastFilled < 3) {
+      otpBoxes[lastFilled + 1].focus();
+    } else {
+      otpBoxes[3].blur();
+    }
+  });
+  box.addEventListener("focus", () => {
+    setTimeout(() => box.select && box.select(), 0);
+  });
+});
+
+function updateOtpState() {
+  state.otpCode = otpBoxes.map(b => b.value).join("");
+  btnProceed.disabled = state.otpCode.length !== 4;
+}
+
+btnProceed.addEventListener("click", async () => {
+  if (btnProceed.disabled) {
+    return;
+  }
+  btnProceed.classList.add("loading");
+  btnProceed.disabled = true;
+  try {
+    await apiPost("/auth/signup/verify", {
+      phone: state.phone,
+      code: state.otpCode
+    });
+    btnProceed.classList.remove("loading");
+    otpBoxes.forEach(b => b.classList.add("success"));
+    setTimeout(() => {
+      goToStep(3);
+    }, 400);
+  } catch (err) {
+    btnProceed.classList.remove("loading");
+    btnProceed.disabled = state.otpCode.length !== 4;
+    otpBoxes.forEach(b => {
+      b.classList.remove("success");
+      b.classList.add("error");
+    });
+    const title = err.error === "invalid_or_expired_code" ? "Code rejected" : err.error === "signup_session_missing" ? "Session expired" : err.error === "lookup_required_first" ? "Restart signup" : "Verification failed";
+    showModal(title, err.message || "Could not verify the code. Please try again.", "error");
+  }
+});
+
+const pinBoxes = Array.from(document.querySelectorAll('#pinWrap .otp-box'));
+const pinConfirmBoxes = Array.from(document.querySelectorAll('#pinConfirmWrap .otp-box'));
+
+const pinWrap = document.getElementById("pinWrap");
+const pinConfirmWrap = document.getElementById("pinConfirmWrap");
+const pinHint = document.getElementById("pinHint");
+const matchHint = document.getElementById("matchHint");
+
+const eulaBox = document.getElementById("eulaBox");
+const termsBox = document.getElementById("termsBox");
+const checkEula = document.getElementById("checkEula");
+const checkTerms = document.getElementById("checkTerms");
+const btnCreate = document.getElementById("btnCreate");
+
+function getPin()        { return pinBoxes.map(b => b.value).join(""); }
+function getPinConfirm() { return pinConfirmBoxes.map(b => b.value).join(""); }
+
+function isPinValid(p) {
+  return /^\d{4}$/.test(p);
+}
+
+function renderPinState() {
+  const p = getPin();
+  pinWrap.classList.remove("valid", "error");
+  pinHint.classList.remove("error", "ok");
+
+  if (p.length === 0) {
+    pinHint.textContent = "You'll use this with your phone number to sign in.";
+  } else if (p.length < 4) {
+    pinHint.textContent = `${4 - p.length} more digit${4 - p.length === 1 ? "" : "s"} to go.`;
+  } else if (!/^\d{4}$/.test(p)) {
+    pinHint.textContent = "Digits only, please.";
+    pinHint.classList.add("error");
+    pinWrap.classList.add("error");
+  } else {
+    pinHint.textContent = "Looks good. Confirm it below.";
+    pinHint.classList.add("ok");
+    pinWrap.classList.add("valid");
+  }
+
+  renderMatchState();
+  updateCreateBtn();
+}
+
+function renderMatchState() {
+  const p = getPin();
+  const c = getPinConfirm();
+  pinConfirmWrap.classList.remove("mismatch", "valid");
+  matchHint.classList.remove("ok", "error");
+
+  if (c.length === 0) {
+    matchHint.textContent = "";
+    return;
+  }
+  if (c.length < 4) {
+    matchHint.textContent = "";
+    return;
+  }
+  if (p === c) {
+    matchHint.innerHTML = '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> PINs match.';
+    matchHint.classList.add("ok");
+    pinConfirmWrap.classList.add("valid");
+  } else {
+    matchHint.innerHTML = '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5M8 11v.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg> PINs don\'t match.';
+    matchHint.classList.add("error");
+    pinConfirmWrap.classList.add("mismatch");
+  }
+}
+
+// Wire up auto-advance / backspace navigation for both pin rows (same pattern as OTP boxes).
+function bindPinRow(boxes, onChange) {
+  boxes.forEach((box, idx) => {
+    box.addEventListener("input", (e) => {
+      // Strip anything non-digit instantly.
+      const raw = e.target.value.replace(/\D/g, "");
+      e.target.value = raw.slice(-1);  // keep last digit if user typed more
+      box.classList.toggle("filled", !!e.target.value);
+      if (e.target.value && idx < boxes.length - 1) {
+        boxes[idx + 1].focus();
+      }
+      onChange();
+    });
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && box.value === "" && idx > 0) {
+        boxes[idx - 1].focus();
+        boxes[idx - 1].value = "";
+        boxes[idx - 1].classList.remove("filled");
+        onChange();
+      }
+      if (e.key === "ArrowLeft" && idx > 0) boxes[idx - 1].focus();
+      if (e.key === "ArrowRight" && idx < boxes.length - 1) boxes[idx + 1].focus();
+    });
+    box.addEventListener("paste", (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData("text").replace(/\D/g, "").slice(0, 4);
+      for (let i = 0; i < text.length && i < boxes.length; i++) {
+        boxes[i].value = text[i];
+        boxes[i].classList.add("filled");
+      }
+      const next = Math.min(text.length, boxes.length - 1);
+      boxes[next].focus();
+      onChange();
+    });
+  });
+}
+
+bindPinRow(pinBoxes, renderPinState);
+bindPinRow(pinConfirmBoxes, () => { renderMatchState(); updateCreateBtn(); });
+
+function bindCheck(label, input) {
+  const sync = () => {
+    label.classList.toggle("checked", input.checked);
+    updateCreateBtn();
+  };
+  input.addEventListener("change", sync);
+  label.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      input.checked = !input.checked;
+      sync();
+    }
+  });
+  label.setAttribute("tabindex", "0");
+  label.setAttribute("role", "checkbox");
+}
+
+bindCheck(checkEula, eulaBox);
+
+bindCheck(checkTerms, termsBox);
+
+function updateCreateBtn() {
+  const p = getPin();
+  const c = getPinConfirm();
+  const pinOk = isPinValid(p);
+  const matches = p.length === 4 && p === c;
+  const checksOk = eulaBox.checked && termsBox.checked;
+  btnCreate.disabled = !(pinOk && matches && checksOk);
+}
+
+btnCreate.addEventListener("click", async () => {
+  if (btnCreate.disabled) {
+    return;
+  }
+  btnCreate.classList.add("loading");
+  btnCreate.disabled = true;
+  try {
+    await apiPost("/auth/signup/complete", {
+      phone: state.phone,
+      pin: getPin()
+    });
+    btnCreate.classList.remove("loading");
+    const firstName = (state.name || "").split(" ")[0];
+    document.getElementById("successName").textContent = firstName ? firstName.charAt(0) + firstName.slice(1).toLowerCase() : "player";
+    goToStep(4);
+  } catch (err) {
+    btnCreate.classList.remove("loading");
+    btnCreate.disabled = false;
+    const title = err.error === "phone_already_registered" ? "Already registered" : err.error === "signup_session_missing" ? "Session expired" : err.error === "otp_required_first" ? "Verify OTP first" : err.error === "lookup_required_first" ? "Restart signup" : err.error === "validation_failed" ? "PIN not allowed" : "Could not create account";
+    showModal(title, err.message || "Could not create your account. Please try again.", "error");
+  }
+});
+
+document.getElementById("loginCta").addEventListener("click", e => {
+  e.preventDefault();
+  window.location.href = "dashboard.html";
+});
+
+document.getElementById("helpLink").addEventListener("click", e => {
+  e.preventDefault();
+  window.location.href = "tel:0592177972";
+});
+
+window.addEventListener("load", () => {
+  setTimeout(() => phoneInput.focus(), 300);
+});
+</script>
+
+<!-- BR-NAV-LOADER START -->
+<style>
+  .br-nav-loader {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #0E0500;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 240ms ease;
+  }
+  .br-nav-loader.show { opacity: 1; pointer-events: auto; }
+  .br-nav-loader-mark {
+    font-family: 'Sora', system-ui, sans-serif;
+    font-weight: 800; font-size: 28px; letter-spacing: 0.02em;
+    color: #F6F1E7; margin-bottom: 22px;
+  }
+  .br-nav-loader-mark em { color: #C8102E; font-style: normal; }
+  .br-nav-loader-spinner {
+    width: 44px; height: 44px;
+    border: 3px solid rgba(246, 241, 231, 0.12);
+    border-top-color: #C8102E;
+    border-radius: 50%;
+    animation: br-nav-spin 800ms linear infinite;
+  }
+  .br-nav-loader-msg {
+    margin-top: 18px;
+    font-family: 'Sora', system-ui, sans-serif;
+    font-size: 13px; color: rgba(246, 241, 231, 0.55);
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  @keyframes br-nav-spin { to { transform: rotate(360deg); } }
+</style>
+<div class="br-nav-loader" id="brNavLoader" aria-hidden="true">
+  <div class="br-nav-loader-mark">Black<em>Red</em></div>
+  <div class="br-nav-loader-spinner"></div>
+  <div class="br-nav-loader-msg" id="brNavLoaderMsg">Loading</div>
+</div>
+<script>
+(function () {
+  var loader = document.getElementById('brNavLoader');
+  var msgEl  = document.getElementById('brNavLoaderMsg');
+  if (!loader) return;
+
+  function show(msg) {
+    if (msg && msgEl) msgEl.textContent = msg;
+    loader.classList.add('show');
+    loader.setAttribute('aria-hidden', 'false');
+  }
+  function hide() {
+    loader.classList.remove('show');
+    loader.setAttribute('aria-hidden', 'true');
+  }
+
+  // Expose so other code can summon the loader (e.g. before window.location)
+  window.BRNavLoader = { show: show, hide: hide };
+
+  // Hide on every fresh page load (in case it was cached as visible)
+  hide();
+  // Hide if user navigates back via bfcache
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) hide();
+  });
+
+  // Intercept internal anchor clicks: any <a href="*.html"> within the app dir
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href');
+    if (!href) return;
+    // Only intercept same-origin navigation to .html files
+    if (a.target === '_blank') return;
+    if (a.hasAttribute('download')) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    if (a.classList.contains('br-no-loader')) return;
+    if (a.getAttribute('aria-disabled') === 'true') return;
+    // Skip if href points outside the app
+    if (href.startsWith('http://') || href.startsWith('https://')) {
+      try {
+        var u = new URL(href);
+        if (u.host !== location.host) return; // external
+      } catch (_) { return; }
+    }
+    if (href.startsWith('#')) return;
+    if (href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return;
+    // It's an internal navigation — show loader and let the browser do its thing
+    show('Loading');
+  }, true);
+
+  // Intercept form submissions too (auth screens etc.)
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    if (!f || f.classList.contains('br-no-loader')) return;
+    show('Loading');
+  }, true);
+})();
+</script>
+<!-- BR-NAV-LOADER END -->
+<!-- BR-PWA-REGISTER START -->
+<script>
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  // Defer registration until after page has settled — prevents the SW
+  // install from competing with the initial page load.
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js', { scope: './' })
+      .then(function (reg) {
+        // Auto-update: if the SW finds a new version, prompt it to take over
+        reg.addEventListener('updatefound', function () {
+          var newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', function () {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New SW ready; activate it on next navigation
+              newWorker.postMessage('SKIP_WAITING');
+            }
+          });
+        });
+      })
+      .catch(function (err) {
+        // SW registration is best-effort. Don't break the app if it fails.
+        console.warn('SW register failed:', err);
+      });
+  });
+
+  // -----------------------------------------------------------
+  // INSTALL PROMPT HANDLER (Android Chrome / Edge)
+  //
+  // The browser fires beforeinstallprompt when the PWA criteria are met
+  // (manifest present, SW registered, served over HTTPS, not already
+  // installed). We capture the event so we can trigger it ourselves when:
+  //
+  //   1. The URL has ?install=1 — user came from marketing site button
+  //   2. (future) An "Install" button on the dashboard is tapped
+  //
+  // iOS does NOT fire this event; iOS install is manual only.
+  // -----------------------------------------------------------
+  var deferredInstallPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    // Prevent Chrome's auto-banner; we'll trigger it manually
+    e.preventDefault();
+    deferredInstallPrompt = e;
+
+    // If marketing site sent them with ?install=1, fire prompt immediately
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('install') === '1') {
+      // Slight delay so the page renders first — feels less abrupt
+      setTimeout(triggerInstallPrompt, 600);
+    }
+  });
+
+  // Hook into a global so other code (e.g. an Install button) can call it
+  window.BRTriggerInstall = triggerInstallPrompt;
+
+  function triggerInstallPrompt() {
+    if (!deferredInstallPrompt) {
+      // Either already installed, or browser doesn't support install
+      // (e.g. iOS Safari, old browsers). Nothing to do.
+      return false;
+    }
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(function (choice) {
+      // choice.outcome is 'accepted' or 'dismissed'
+      // Either way, the event can only fire once — clear it.
+      deferredInstallPrompt = null;
+      // Clean up the URL so a refresh doesn't re-trigger
+      if (window.history && window.history.replaceState) {
+        var url = new URL(window.location.href);
+        url.searchParams.delete('install');
+        window.history.replaceState({}, '', url.toString());
+      }
+    });
+    return true;
+  }
+
+  // Detect successful install (Android only fires this)
+  window.addEventListener('appinstalled', function () {
+    deferredInstallPrompt = null;
+    console.log('[PWA] Installed');
+  });
+})();
+</script>
+<!-- BR-PWA-REGISTER END -->
+</body>
+</html>

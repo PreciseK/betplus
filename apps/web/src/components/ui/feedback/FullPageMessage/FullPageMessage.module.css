@@ -1,0 +1,8 @@
+.page { width: min(100%, var(--form-column-width)); min-height: var(--feedback-page-min-height); margin-inline: auto; padding: var(--section-gap) var(--gutter); display: grid; align-content: center; justify-items: start; gap: var(--feedback-panel-gap); }
+.icon { display: grid; width: var(--control-target-min); height: var(--control-target-min); place-items: center; border: var(--control-border-width) solid currentColor; border-radius: var(--control-radius); color: var(--feedback-info); background: var(--feedback-info-surface); }
+.icon[data-tone="success"] { color: var(--feedback-success); background: var(--feedback-success-surface); }
+.icon[data-tone="warning"] { color: var(--feedback-warning); background: var(--feedback-warning-surface); }
+.icon[data-tone="error"] { color: var(--feedback-error); background: var(--feedback-error-surface); }
+.page h1 { margin: 0; font-size: var(--type-h1-size); line-height: var(--type-h1-leading); }
+.body { max-width: 60ch; color: var(--text-secondary); line-height: var(--type-body-leading); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--control-gap); margin-block-start: var(--field-label-gap); }

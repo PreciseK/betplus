@@ -1,0 +1,9 @@
+.dialog { width: min(calc(100% - (var(--gutter) * 2)), var(--feedback-dialog-width)); padding: var(--feedback-dialog-padding); border: var(--elevation-border); border-radius: var(--balance-card-radius); background: var(--surface-base); color: var(--text-primary); box-shadow: var(--elevation-raised); }
+.dialog::backdrop { background: var(--feedback-dialog-backdrop); }
+.heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--feedback-panel-gap); }
+.heading h2 { margin: 0; font-size: var(--type-h2-size); line-height: var(--type-h2-leading); }
+.close { display: grid; width: var(--control-target-min); height: var(--control-target-min); place-items: center; flex: 0 0 auto; border: 0; border-radius: var(--control-radius); background: transparent; color: var(--text-primary); cursor: pointer; }
+.close:hover { background: var(--surface-subtle); }
+.body { margin-block: var(--feedback-body-spacing); color: var(--text-secondary); line-height: var(--type-body-leading); }
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--control-gap); }
+@media (max-width: 430px) { .actions { display: grid; } }

@@ -1,0 +1,44 @@
+[project]
+name = "engine-heritage"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "PreciseK", email = "okikikunleowo@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.141,<0.142",
+    "pydantic>=2.13.4",
+    "uvicorn[standard]>=0.52.1",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+# Windows-specific: by default `uv sync` builds and reinstalls this project's own wheel as an
+# editable self-install on every sync. On this host that races a filesystem lock on
+# entry_points.txt against real-time antivirus scanning and fails intermittently. Treating the
+# project as unpackaged skips that build+install step entirely; `pythonpath` above makes
+# `src/` importable for tests without needing the package installed into site-packages.
+# Revisit before this engine is actually deployed as a service — REQ-HOST-004 runs it under
+# Uvicorn directly from source, not via a console-script entry point, so this does not block
+# that path.
+[tool.uv]
+package = false
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"

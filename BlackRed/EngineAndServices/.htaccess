@@ -1,0 +1,133 @@
+# =============================================================================
+# BlackRed — root .htaccess (public_html/)
+#
+# Four jobs:
+#   1. Site-wide: HTTPS-only, force www, no directory listings
+#   2. Protect web app internals from web access (src/, vendor/, .env, etc.)
+#   3. PWA files (manifest.json, sw.js) at root -> /public/app/ on disk
+#   4. Route requests:
+#      - bare /              -> /public/app/index.html (the app UI)
+#      - any /*.html         -> /public/app/*.html    (signUp, login, etc.)
+#      - everything else     -> /public/*             (assets, api, sw.js)
+#      Leave /ussd/ and /.well-known/ alone.
+#
+# The /public/.htaccess inside handles front-controller routing
+# (/api/* -> index.php) and security headers. We do NOT duplicate that here.
+# =============================================================================
+
+Options -Indexes
+
+RewriteEngine On
+
+# -----------------------------------------------------------------------------
+# 1a. Force HTTPS on the whole site
+# -----------------------------------------------------------------------------
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-SSL} !on
+RewriteRule ^(.*)$ https://www.blackredgame.com/$1 [R=301,L]
+
+# -----------------------------------------------------------------------------
+# 1b. Force www (apex -> www.blackredgame.com)
+# -----------------------------------------------------------------------------
+RewriteCond %{HTTP_HOST} ^blackredgame\.com$ [NC]
+RewriteRule ^(.*)$ https://www.blackredgame.com/$1 [R=301,L]
+
+# -----------------------------------------------------------------------------
+# 2. Block web app internals from any HTTP access.
+# -----------------------------------------------------------------------------
+RewriteRule ^src(/|$)          - [F,L]
+RewriteRule ^vendor(/|$)       - [F,L]
+RewriteRule ^migrations(/|$)   - [F,L]
+RewriteRule ^logs(/|$)         - [F,L]
+RewriteRule ^tests(/|$)        - [F,L]
+RewriteRule ^config(/|$)       - [F,L]
+RewriteRule ^workers(/|$)      - [F,L]
+RewriteRule ^node_modules(/|$) - [F,L]
+RewriteRule ^blackred(/|$)     - [F,L]
+
+# -----------------------------------------------------------------------------
+# 3. Block sensitive files at root level
+# -----------------------------------------------------------------------------
+<Files ".env">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files ".env.example">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files "composer.json">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files "composer.lock">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files "README.md">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files ".htaccess">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files ".htaccess.bak">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files ".gitignore">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files ".htpasswd">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files "indexOldDontOpen.html">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files "blackredDeploy.zip">
+    Order deny,allow
+    Deny from all
+</Files>
+<Files "logs.zip">
+    Order deny,allow
+    Deny from all
+</Files>
+
+# -----------------------------------------------------------------------------
+# 4a. Default route: bare /  ->  the app UI's index.html
+# -----------------------------------------------------------------------------
+RewriteRule ^$ public/app/index.html [L]
+
+# -----------------------------------------------------------------------------
+# 4b. PWA files — manifest.json and sw.js at root resolve to public/app/.
+#     The browser asks for these at the root because HTML pages reference
+#     them with relative paths (href="manifest.json") and the page URL is /.
+#     Service worker scope is the root, which is what we want.
+# -----------------------------------------------------------------------------
+RewriteRule ^manifest\.json$ public/app/manifest.json [L]
+RewriteRule ^sw\.js$         public/app/sw.js         [L]
+
+# -----------------------------------------------------------------------------
+# 4c. Any /*.html at root  ->  /public/app/*.html
+#     Handles signUp.html, login.html, dashboard.html, etc.
+# -----------------------------------------------------------------------------
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteCond %{REQUEST_URI} !^/ussd/
+RewriteRule ^([^/]+\.html)$ public/app/$1 [L]
+
+# -----------------------------------------------------------------------------
+# 4d. Everything else (except /ussd/, /public/, /.well-known/)  ->  /public/
+#     So:
+#       /api/me            -> public/api/me   (then public/.htaccess routes)
+#       /assets/logo.png   -> public/assets/logo.png
+#       /app/dashboard.html-> public/app/dashboard.html
+#       /favicon-32x32.png -> public/favicon-32x32.png
+# -----------------------------------------------------------------------------
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteCond %{REQUEST_URI} !^/ussd/
+RewriteCond %{REQUEST_URI} !^/\.well-known/
+RewriteRule ^(.+)$ public/$1 [L]

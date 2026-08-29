@@ -1,0 +1,33 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    # Level 6: Larastan's own docs recommend starting most real Laravel apps here rather than
+    # at the framework-agnostic max — Eloquent's dynamic properties and facades generate a
+    # steady stream of false positives above this without additional stub packages. Raised as
+    # the domain layer (Wallet, Ticket, Games — the code that isn't fighting the framework)
+    # grows; tracked per module rather than forced platform-wide on day one.
+    level: 6
+
+    paths:
+        - app
+        - database
+        - routes
+
+    tmpDir: build/phpstan
+
+    # Single-process — parallel worker spawning hangs indefinitely on this Windows host.
+    # See apps/engine-blackred/phpstan.neon.dist for the confirmed symptom. Revisit once the
+    # codebase is large enough that single-process analysis is actually the bottleneck; it
+    # is not, yet.
+    parallel:
+        maximumNumberOfProcesses: 1
+
+    excludePaths:
+        - app/Providers/*  # framework wiring, not domain logic
+
+    # These are the rules no generic level catches, because they are about this domain, not
+    # about PHP. Enforced instead by tools/gates/engine-purity.php (ledger-writer restriction)
+    # and tools/gates/money-naming.php (kobo naming, no float arithmetic on money) — run
+    # alongside PHPStan in CI, not as PHPStan rules, so they apply uniformly across the PHP and
+    # Python workspaces rather than only where a PHPStan extension could reach.

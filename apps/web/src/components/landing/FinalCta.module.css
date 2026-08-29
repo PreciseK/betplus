@@ -1,0 +1,30 @@
+.section {
+  padding: var(--section-gap) var(--gutter);
+  max-width: var(--form-column-width);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.eyebrow {
+  font-size: var(--type-small-size);
+  font-weight: var(--type-body-strong-weight);
+  color: var(--action-primary);
+  margin-bottom: var(--bp-space-2);
+}
+
+.section p {
+  color: var(--text-secondary);
+  margin: var(--bp-space-4) 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--bp-space-4);
+  margin: var(--bp-space-6) 0;
+}
+
+.ageNote {
+  font-size: var(--type-caption-size);
+}

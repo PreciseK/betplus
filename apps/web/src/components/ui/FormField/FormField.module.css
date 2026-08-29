@@ -1,0 +1,43 @@
+.field {
+  display: grid;
+  gap: var(--field-stack-gap);
+  min-width: 0;
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--field-label-gap);
+}
+
+.label {
+  color: var(--text-primary);
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-strong-weight);
+  line-height: var(--type-body-leading);
+}
+
+.required {
+  color: var(--field-error-text);
+  font-size: var(--field-required-size);
+  font-weight: var(--type-body-strong-weight);
+}
+
+.helper,
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--field-message-gap);
+  margin: 0;
+  font-size: var(--type-small-size);
+  line-height: var(--type-body-leading);
+}
+
+.helper {
+  color: var(--field-helper-text);
+}
+
+.error {
+  color: var(--field-error-text);
+  font-weight: var(--type-body-strong-weight);
+}

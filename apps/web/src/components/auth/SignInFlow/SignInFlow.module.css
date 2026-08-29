@@ -1,0 +1,749 @@
+/* ============================================================
+   SIGN IN FLOW — Buzzycash Vibrant Orange Theme
+   ============================================================ */
+
+.shell {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr;
+  position: relative;
+  background: #0A0A0A;
+  color: #F6F1E7;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+@media (min-width: 1024px) {
+  .shell {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+/* ============================================================
+   BRAND PANEL (LEFT / DESKTOP)
+   ============================================================ */
+.brandPanel {
+  position: relative;
+  padding: 28px 24px 36px;
+  background: #070707;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(246, 241, 231, 0.08);
+}
+
+@media (min-width: 768px) {
+  .brandPanel {
+    padding: 36px 40px 48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .brandPanel {
+    padding: 48px 48px;
+    min-height: 100vh;
+    min-height: 100svh;
+    border-bottom: none;
+    border-right: 1px solid rgba(246, 241, 231, 0.08);
+  }
+}
+
+.brandPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 20%, rgba(249, 115, 22, 0.25), transparent 60%),
+    radial-gradient(ellipse 70% 60% at 85% 80%, rgba(234, 88, 12, 0.15), transparent 55%);
+  z-index: 0;
+}
+
+.brandPanelInner {
+  position: relative;
+  z-index: 1;
+}
+
+.brandLogo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+  text-decoration: none;
+}
+
+.brandLogoImg {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(249, 115, 22, 0.4));
+}
+
+.brandLogoText {
+  font-family: var(--font-display, inherit);
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+  color: #F6F1E7;
+}
+
+.brandBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(246, 241, 231, 0.06);
+  border: 1px solid rgba(246, 241, 231, 0.12);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.85);
+  margin-bottom: 20px;
+}
+
+.brandBadge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d71108;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.8);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.brandHeadline {
+  font-family: var(--font-display, inherit);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: #F6F1E7;
+}
+
+.brandHeadline em {
+  font-style: normal;
+  font-weight: 900;
+  color: #d71108;
+}
+
+.brandSub {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(246, 241, 231, 0.7);
+  max-width: 420px;
+  margin: 0 0 28px;
+}
+
+/* Trust markers — desktop only */
+.brandTrust {
+  display: none;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 1024px) {
+  .brandTrust {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(246, 241, 231, 0.08);
+  }
+}
+
+.brandTrustItem .label {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.4);
+  margin-bottom: 6px;
+}
+
+.brandTrustItem .val {
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  font-size: 15px;
+  color: #F6F1E7;
+  letter-spacing: -0.02em;
+}
+
+.brandTrustItem .val .brandAccent {
+  color: #d71108;
+}
+
+/* ============================================================
+   FORM PANEL (RIGHT / INTERACTIVE)
+   ============================================================ */
+.formPanel {
+  background: #0A0A0A;
+  padding: 32px 20px 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .formPanel {
+    padding: 40px 48px 80px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .formPanel {
+    background: linear-gradient(180deg, #130a05 0%, #0A0A0A 100%);
+    padding: 48px 56px;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+}
+
+.formWrap {
+  width: 100%;
+  max-width: 440px;
+  position: relative;
+}
+
+.topLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #d71108;
+  margin-bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topLabel::before {
+  content: '';
+  width: 24px;
+  height: 2px;
+  background: #d71108;
+}
+
+.stepH {
+  font-family: var(--font-display, inherit);
+  font-size: clamp(2rem, 6vw, 2.7rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  margin: 0 0 10px;
+  color: #F6F1E7;
+}
+
+.stepH em {
+  font-style: normal;
+  font-weight: 900;
+  color: #d71108;
+}
+
+.stepSub {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(246, 241, 231, 0.65);
+  margin: 0 0 24px;
+}
+
+/* ============================================================
+   WELCOME BACK BANNER
+   ============================================================ */
+.welcomeBack {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0.02) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  margin-bottom: 20px;
+}
+
+.welcomeBackIcon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #0A0A0A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcomeBackIcon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.welcomeBackText {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(246, 241, 231, 0.85);
+}
+
+.welcomeBackText strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ============================================================
+   FIELDS & PHONE INPUT
+   ============================================================ */
+.field {
+  margin-bottom: 20px;
+}
+
+.fieldLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.fieldLabel {
+  display: block;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.6);
+}
+
+.fieldLabelLink {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #d71108;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition: all 0.2s;
+}
+
+.fieldLabelLink:hover {
+  color: #ff6b61;
+  background: rgba(249, 115, 22, 0.1);
+}
+
+.phoneInput {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid rgba(246, 241, 231, 0.15);
+  border-radius: 14px;
+  background: rgba(246, 241, 231, 0.03);
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.phoneInput:focus-within {
+  border-color: #d71108;
+  background: rgba(249, 115, 22, 0.05);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+}
+
+.phoneInput.inputError {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.phonePrefix {
+  display: flex;
+  align-items: center;
+  padding: 0 14px 0 16px;
+  font-family: var(--font-mono, monospace);
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(246, 241, 231, 0.7);
+  border-right: 1px solid rgba(246, 241, 231, 0.1);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.phoneField {
+  flex: 1;
+  padding: 16px 14px;
+  font-family: var(--font-mono, monospace);
+  font-size: 17px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #F6F1E7;
+  letter-spacing: 0.05em;
+  min-width: 0;
+  width: 100%;
+}
+
+.phoneField::placeholder {
+  color: rgba(246, 241, 231, 0.25);
+}
+
+.fieldHint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: rgba(246, 241, 231, 0.45);
+  min-height: 14px;
+}
+
+.fieldHint.error {
+  color: #ff6b6b;
+}
+
+/* ============================================================
+   REMEMBER ME CHECKBOX
+   ============================================================ */
+.rememberRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 6px 0 24px;
+  flex-wrap: wrap;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  padding: 6px 4px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.check:hover {
+  background: rgba(246, 241, 231, 0.04);
+}
+
+.check input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkBox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: rgba(246, 241, 231, 0.06);
+  border: 1.5px solid rgba(246, 241, 231, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.check.checked .checkBox {
+  background: linear-gradient(135deg, #d71108 0%, #150061 100%);
+  border-color: #150061;
+  box-shadow: 0 2px 8px rgba(21, 0, 97, 0.4);
+}
+
+.checkBox svg {
+  width: 12px;
+  height: 12px;
+  color: #F6F1E7;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s;
+}
+
+.check.checked .checkBox svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkText {
+  font-size: 13px;
+  color: rgba(246, 241, 231, 0.75);
+  font-weight: 500;
+}
+
+.check.checked .checkText {
+  color: #F6F1E7;
+}
+
+/* ============================================================
+   PRIMARY ACTION BUTTON (BRAND ORANGE)
+   ============================================================ */
+.btnPrimary {
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #d71108 0%, #150061 100%);
+  color: #ffffff;
+  font-family: var(--font-sans, inherit);
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 10px 28px -8px rgba(234, 88, 12, 0.55);
+  text-decoration: none;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff7b5c 0%, #d71108 100%);
+  box-shadow: 0 14px 36px -8px rgba(234, 88, 12, 0.7);
+  transform: translateY(-1px);
+}
+
+.btnPrimary:disabled {
+  background: rgba(246, 241, 231, 0.08);
+  color: rgba(246, 241, 231, 0.3);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgba(246, 241, 231, 0.06);
+  border: 1px solid rgba(246, 241, 231, 0.15);
+  color: #F6F1E7;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnSecondary:hover {
+  background: rgba(246, 241, 231, 0.12);
+}
+
+/* ============================================================
+   DIVIDER & SIGN UP CTA
+   ============================================================ */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 28px 0 20px;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(246, 241, 231, 0.1);
+}
+
+.dividerText {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.35);
+}
+
+.signupCta {
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(246, 241, 231, 0.03);
+  border: 1px solid rgba(246, 241, 231, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  transition: all 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.signupCta:hover {
+  background: rgba(249, 115, 22, 0.06);
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.signupCtaText {
+  min-width: 0;
+}
+
+.signupCtaLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.5);
+  margin-bottom: 4px;
+}
+
+.signupCtaMain {
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  font-size: 15px;
+  color: #F6F1E7;
+  letter-spacing: -0.02em;
+}
+
+.signupCtaArrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(246, 241, 231, 0.05);
+  color: #F6F1E7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.signupCta:hover .signupCtaArrow {
+  transform: translateX(3px);
+  background: linear-gradient(135deg, #d71108 0%, #150061 100%);
+  color: #ffffff;
+}
+
+.signupCtaArrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.finePrint {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: rgba(246, 241, 231, 0.35);
+  text-align: center;
+  margin-top: 24px;
+  line-height: 1.5;
+}
+
+.finePrint a {
+  color: rgba(246, 241, 231, 0.6);
+  text-decoration: underline;
+  text-decoration-color: rgba(249, 115, 22, 0.4);
+  text-underline-offset: 3px;
+}
+
+/* ============================================================
+   FORGOT PIN MODAL
+   ============================================================ */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalCard {
+  width: 100%;
+  max-width: 440px;
+  background: #141414;
+  border: 1px solid rgba(246, 241, 231, 0.12);
+  border-radius: 18px;
+  padding: 28px 24px 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.modalClose {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: rgba(246, 241, 231, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modalClose:hover {
+  color: #F6F1E7;
+  background: rgba(246, 241, 231, 0.06);
+}
+
+.modalIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(249, 115, 22, 0.12);
+  color: #d71108;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.modalTitle {
+  font-family: var(--font-display, inherit);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #F6F1E7;
+  margin: 0 0 8px;
+}
+
+.modalTitle em {
+  font-style: normal;
+  font-weight: 900;
+  color: #d71108;
+}
+
+.modalSub {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(246, 241, 231, 0.7);
+  margin: 0 0 20px;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

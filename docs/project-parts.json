@@ -1,0 +1,83 @@
+{
+  "repository_type": "multi-part",
+  "scanned_at": "2026-08-10",
+  "scan_level": "deep",
+  "version_control": false,
+  "project_root": "c:/Users/PRECISE/Desktop/Projects/Betplus",
+  "target_specification": "Betplus_PRD.md",
+  "parts": [
+    {
+      "part_id": "platform-api",
+      "display_name": "Platform API",
+      "project_type_id": "backend",
+      "root_path": "BlackRed/EngineAndServices",
+      "entry_points": ["public/index.php"],
+      "language": "PHP 8.1+",
+      "namespace": "BlackRed\\",
+      "autoload": "psr-4",
+      "architecture_pattern": "layered monolith, hand-rolled micro-framework",
+      "dependencies": ["monolog/monolog ^3.5", "vlucas/phpdotenv ^5.6"],
+      "loc_hotspots": {
+        "src/Wallet/WithdrawalService.php": 644,
+        "src/Wallet/DepositService.php": 594,
+        "src/Wallet/GameEngineService.php": 578,
+        "src/Bootstrap/App.php": 493
+      },
+      "route_count": 16,
+      "controller_count": 10,
+      "middleware_count": 6
+    },
+    {
+      "part_id": "ussd",
+      "display_name": "USSD Channel",
+      "project_type_id": "backend",
+      "root_path": "BlackRed/EngineAndServices/ussd",
+      "entry_points": ["ussd/index.php", "ussd/callbacks/momo.php", "ussd/workers/cleanup.php"],
+      "language": "PHP 8.1+",
+      "namespace": null,
+      "autoload": "none, manual require",
+      "architecture_pattern": "procedural finite state machine",
+      "state_count": 23,
+      "duplicates_part": "platform-api",
+      "duplicated_modules": ["game", "deposit", "withdrawal", "player", "anm", "hubtel", "password", "db", "msisdn"]
+    },
+    {
+      "part_id": "web-app",
+      "display_name": "Web App",
+      "project_type_id": "web",
+      "root_path": "BlackRed/EngineAndServices/public/app",
+      "entry_points": ["public/app/index.html"],
+      "language": "HTML/JS",
+      "build_step": false,
+      "framework": null,
+      "page_count": 10,
+      "pwa": true
+    }
+  ],
+  "integration_points": [
+    { "from": "web-app", "to": "platform-api", "type": "REST/JSON", "auth": "session cookie" },
+    { "from": "telco-gateway", "to": "ussd", "type": "HTTP POST per turn", "auth": "UNVERIFIED - confirm signature validation" },
+    { "from": "platform-api", "to": "ANM", "type": "HTTPS + HMAC", "logged_to": "momoApiCallLog" },
+    { "from": "ussd", "to": "ANM", "type": "HTTPS + HMAC", "note": "second independent client" },
+    { "from": "platform-api", "to": "Hubtel", "type": "HTTPS" },
+    { "from": "ussd", "to": "Hubtel", "type": "HTTPS", "note": "second independent client" },
+    { "from": "ANM", "to": "platform-api", "type": "callback", "path": "/api/callbacks/momo" },
+    { "from": "ANM", "to": "ussd", "type": "callback", "path": "ussd/callbacks/momo.php" },
+    { "from": "platform-api", "to": "ussd", "type": "SHARED DATABASE", "note": "no contract; both write ledgerEntry and dailyRevenueSummary" }
+  ],
+  "findings": [
+    { "id": "B-1", "severity": "structural", "summary": "Game engine is not a pure function - owns money, state and randomness", "location": "src/Wallet/GameEngineService.php" },
+    { "id": "B-2", "severity": "product+compliance", "summary": "Outcomes governed by house daily net revenue via forced_loss, not by a prize table", "location": "src/Wallet/GameEngineService.php:159-185" },
+    { "id": "B-3", "severity": "structural", "summary": "USSD independently re-implements the game engine and ledger writes", "location": "ussd/lib/game.php" },
+    { "id": "B-4", "severity": "blocking", "summary": "Migrations do not build a working database; gameRound, dailyRevenueSummary, eventLog, vw_walletDualBalance have no DDL", "location": "migrations/" },
+    { "id": "B-5", "severity": "security", "summary": "Live secrets committed in .env and ussd/config.php; no root .gitignore", "location": ".env, ussd/config.php" },
+    { "id": "B-6", "severity": "process", "summary": "No version control, no CI, no working test runner for platform-api", "location": "repository root" },
+    { "id": "B-7", "severity": "migration", "summary": "Ghana market compiled into schema and domain - pesewas, GHS, Africa/Accra, GhanaPhone, PLAYER_PAYOUT", "location": "schema-wide" }
+  ],
+  "verify_before_reuse": [
+    "CallbackController::momo verifies ANM_CALLBACK_SHARED_SECRET",
+    "ussd/index.php validates telco gateway signature",
+    "ussd/callbacks/momo.php verifies the shared secret",
+    "deposit and withdrawal processing is idempotent on provider retry"
+  ]
+}

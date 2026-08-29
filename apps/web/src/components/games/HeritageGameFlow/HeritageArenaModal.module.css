@@ -1,0 +1,771 @@
+/* ========================================================
+   HERITAGE INTERACTIVE ARENA MODAL (ROYAL GOLD & OBSIDIAN)
+   ======================================================== */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  background: rgba(7, 9, 20, 0.88);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalBackdropFade 0.25s ease-out;
+}
+
+@keyframes modalBackdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalWindow {
+  position: relative;
+  width: 100%;
+  max-width: 780px;
+  max-height: calc(100dvh - 32px);
+  background: #120e0d;
+  border: 1.5px solid rgba(241, 184, 45, 0.45);
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.95), 0 0 45px rgba(241, 184, 45, 0.15);
+  color: #f5ecd9;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modalWindow.hiddenDuringFlash {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.94);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Modal Header */
+.modalHeader {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(241, 184, 45, 0.2);
+  background: rgba(25, 20, 17, 0.8);
+}
+
+.brandLockup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.royalCrest {
+  font-size: 20px;
+  filter: drop-shadow(0 0 8px rgba(241, 184, 45, 0.8));
+}
+
+.brandTitle {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--hg-brand-gold, #f1b82d);
+  letter-spacing: -0.01em;
+}
+
+.traditionTag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(241, 184, 45, 0.15);
+  border: 1px solid rgba(241, 184, 45, 0.35);
+  color: #ffd88a;
+  text-transform: uppercase;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.soundBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(241, 184, 45, 0.3);
+  color: #ffd88a;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.soundBtn:hover {
+  background: rgba(241, 184, 45, 0.2);
+  border-color: #f1b82d;
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #9ca1b2;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* Modal Body */
+.modalBody {
+  padding: 18px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Progress / Status Header */
+.arenaStatusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.statusLead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statusLead span {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #9ca1b2;
+  letter-spacing: 0.05em;
+}
+
+.statusLead strong {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffd88a;
+}
+
+.matchesBadge {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  background: rgba(20, 166, 106, 0.15);
+  border: 1px solid rgba(20, 166, 106, 0.4);
+  color: #22c55e;
+}
+
+.matchesBadge strong {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.matchesBadge span {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* 2-Column Arena Layout (Board Left / Royal Figure Right) */
+.arenaGrid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 680px) {
+  .arenaGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 3x3 Arena Board */
+.arenaBoard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.arenaTile {
+  aspect-ratio: 1 / 1.05;
+  border-radius: 12px;
+  background: #1c1512;
+  border: 1.5px solid rgba(241, 184, 45, 0.25);
+  position: relative;
+  overflow: hidden;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.arenaTile[data-selected="true"] {
+  border-color: #f1b82d;
+  box-shadow: 0 0 14px rgba(241, 184, 45, 0.35);
+}
+
+.arenaTile[data-revealed="true"] {
+  animation: tileFlip 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tileFlip {
+  0% { transform: scale(0.88) rotateY(90deg); }
+  100% { transform: scale(1) rotateY(0deg); }
+}
+
+.arenaTile[data-result="picked-winning"] {
+  background: linear-gradient(145deg, #183b28 0%, #0d2216 100%);
+  border-color: #22c55e;
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.5);
+}
+
+.arenaTile[data-result="picked-not"] {
+  background: #241917;
+  border-color: rgba(164, 74, 87, 0.5);
+  opacity: 0.75;
+}
+
+.arenaTile[data-result="unpicked-winning"] {
+  background: #1a1612;
+  border-color: rgba(241, 184, 45, 0.4);
+  border-style: dashed;
+}
+
+.arenaTile[data-result="unpicked-not"] {
+  background: #140f0e;
+  border-color: rgba(255, 255, 255, 0.08);
+  opacity: 0.45;
+}
+
+.tilePositionNumber {
+  font-size: 11px;
+  font-weight: 800;
+  color: #9ca1b2;
+}
+
+.tilePickedBadge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(241, 184, 45, 0.25);
+  color: #ffd88a;
+  text-transform: uppercase;
+}
+
+.tileItemName {
+  font-size: 11px;
+  font-weight: 800;
+  color: #f5ecd9;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.tileItemOrigin {
+  font-size: 9px;
+  color: #9ca1b2;
+}
+
+.tileResultTag {
+  font-size: 8.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tagWinning { color: #22c55e; }
+.tagMiss { color: #dda2a7; }
+
+/* Right Column: Interactive Royal Dressing Chamber */
+.royalChamber {
+  padding: 14px;
+  border-radius: 16px;
+  background: #17110f;
+  border: 1px solid rgba(241, 184, 45, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.chamberHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.chamberHeading h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffd88a;
+}
+
+.chamberHeading span {
+  font-size: 11px;
+  color: #9ca1b2;
+}
+
+/* Silhouette Figure with 5 Regalia Slots */
+.figureStage {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  margin: 0 auto;
+  border-radius: 20px;
+  background: radial-gradient(ellipse at center, rgba(241, 184, 45, 0.12) 0%, transparent 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.figureCrown {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  filter: drop-shadow(0 0 10px rgba(241, 184, 45, 0.8));
+}
+
+.figureSilhouette {
+  width: 70px;
+  height: 150px;
+  background: #33231e;
+  border-radius: 35px 35px 12px 12px;
+  opacity: 0.6;
+}
+
+/* 5 Regalia Slot Badges */
+.regaliaSlot {
+  position: absolute;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(25, 20, 17, 0.9);
+  border: 1px dashed rgba(241, 184, 45, 0.4);
+  color: #9ca1b2;
+  transition: all 0.3s;
+}
+
+.regaliaSlot[data-equipped="true"] {
+  background: #14a66a;
+  border: 1px solid #22c55e;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.7);
+  animation: slotEquip 0.4s ease-out;
+}
+
+@keyframes slotEquip {
+  0% { transform: scale(0.6); opacity: 0; }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.slotHead { top: 38px; left: 50%; transform: translateX(-50%); }
+.slotNeck { top: 72px; left: 50%; transform: translateX(-50%); }
+.slotTorso { top: 106px; left: 50%; transform: translateX(-50%); }
+.slotHand { top: 115px; left: 16px; }
+.slotFeet { bottom: 10px; left: 50%; transform: translateX(-50%); }
+
+/* Live Item Spotlight */
+.itemSpotlightCard {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(241, 184, 45, 0.06);
+  border: 1px solid rgba(241, 184, 45, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spotlightNumber {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffd88a;
+}
+
+.spotlightName {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.spotlightContext {
+  font-size: 10px;
+  color: #9ca1b2;
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* ========================================================
+   FULL SCREEN DRAMATIC ZOOM-OUT OVERLAY (YOU WIN / MISSED)
+   ======================================================== */
+.flashOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+  animation: flashOverlayFade 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.flashWin {
+  background: radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.35) 0%, rgba(7, 18, 12, 0.96) 75%);
+}
+
+.flashTried {
+  background: radial-gradient(circle at 50% 50%, rgba(250, 204, 21, 0.32) 0%, rgba(20, 16, 6, 0.96) 75%);
+}
+
+.flashLoss {
+  background: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.3) 0%, rgba(20, 8, 10, 0.96) 75%);
+}
+
+@keyframes flashOverlayFade {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.flashInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 24px;
+  animation: dramaticZoomOut 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes dramaticZoomOut {
+  0% {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+
+.flashEmblem {
+  font-size: clamp(44px, 8vw, 68px);
+  filter: drop-shadow(0 0 25px rgba(250, 204, 21, 0.85));
+}
+
+.flashBannerText {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 950;
+  text-transform: uppercase;
+  font-size: clamp(3.4rem, 11vw, 7.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  text-align: center;
+  user-select: none;
+}
+
+.flashBannerTextWin {
+  background: linear-gradient(135deg, #ffffff 0%, #86efac 30%, #22c55e 70%, #15803d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 35px rgba(34, 197, 94, 0.95)) drop-shadow(0 0 70px rgba(34, 197, 94, 0.6));
+}
+
+.flashBannerTextTried {
+  background: linear-gradient(135deg, #ffffff 0%, #fef08a 30%, #facc15 70%, #ca8a04 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 35px rgba(250, 204, 21, 0.95)) drop-shadow(0 0 70px rgba(250, 204, 21, 0.6));
+}
+
+.flashBannerTextLoss {
+  background: linear-gradient(135deg, #ffffff 0%, #fca5a5 30%, #ef4444 70%, #b91c1c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 35px rgba(239, 68, 68, 0.95)) drop-shadow(0 0 70px rgba(239, 68, 68, 0.6));
+}
+
+.flashSubtitle {
+  margin: 0;
+  font-size: clamp(14px, 2.5vw, 22px);
+  font-weight: 700;
+  color: #f5ecd9;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+/* Confetti Container & Particle Animation */
+.confettiContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.confettiPiece {
+  position: absolute;
+  top: -12px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  box-shadow: 0 0 8px currentColor;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+}
+
+/* Settlement Result Card */
+.settlementPanel {
+  padding: 16px 20px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: panelSlideIn 0.3s ease-out;
+}
+
+@keyframes panelSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panelWin {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(16, 185, 129, 0.12) 100%);
+  border: 1.5px solid rgba(34, 197, 94, 0.6);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(34, 197, 94, 0.25);
+}
+
+.panelWin .settlementBadge {
+  background: rgba(34, 197, 94, 0.22);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.panelTried {
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.18) 0%, rgba(202, 138, 4, 0.12) 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.6);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(250, 204, 21, 0.25);
+}
+
+.panelTried .settlementBadge {
+  background: rgba(250, 204, 21, 0.22);
+  color: #fef08a;
+  border: 1px solid rgba(250, 204, 21, 0.5);
+}
+
+.panelLoss {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, #1c1314 100%);
+  border: 1.5px solid rgba(239, 68, 68, 0.45);
+}
+
+.panelLoss .settlementBadge {
+  background: rgba(239, 68, 68, 0.22);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+}
+
+.settlementHeadingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rpgBadgeLockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.starRatingRow {
+  display: flex;
+  gap: 3px;
+  font-size: 16px;
+}
+
+.starItem {
+  color: #5a4b3c;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.starItem[data-earned="true"] {
+  color: #ffd88a;
+  filter: drop-shadow(0 0 8px rgba(241, 184, 45, 0.8));
+  animation: starPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes starPop {
+  0% { transform: scale(0.5) rotate(-20deg); }
+  60% { transform: scale(1.3) rotate(10deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.flashStarsRow {
+  display: flex;
+  gap: 8px;
+  font-size: clamp(24px, 4vw, 36px);
+  margin-bottom: 4px;
+}
+
+.flashStar {
+  color: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.flashStar[data-earned="true"] {
+  color: #ffd88a;
+  filter: drop-shadow(0 0 16px rgba(241, 184, 45, 0.9));
+  animation: starPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.settlementBadge {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.panelWin .settlementBadge {
+  background: rgba(241, 184, 45, 0.2);
+  color: #ffd88a;
+  border: 1px solid rgba(241, 184, 45, 0.4);
+}
+
+.panelLoss .settlementBadge {
+  background: rgba(164, 74, 87, 0.2);
+  color: #dda2a7;
+  border: 1px solid rgba(164, 74, 87, 0.4);
+}
+
+.settlementRef {
+  font-size: 11px;
+  color: #9ca1b2;
+}
+
+.settlementMain {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.payoutBig {
+  font-size: 28px;
+  font-weight: 950;
+  color: #ffd88a;
+  letter-spacing: -0.02em;
+}
+
+.settlementMetrics {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #9ca1b2;
+}
+
+.settlementMetrics strong {
+  color: #f5ecd9;
+}
+
+.actionRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btnPlayAgain {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffd88a 0%, #f1b82d 60%, #c88918 100%);
+  color: #151008;
+  font-weight: 900;
+  font-size: 14px;
+  border: none;
+  border-bottom: 3.5px solid #8e5e0a;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(241, 184, 45, 0.45);
+  transition: all 0.1s ease;
+}
+
+.btnPlayAgain:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+}
+
+.btnCloseModal {
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #231b17;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 3px solid #140f0c;
+  color: #f5ecd9;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.btnCloseModal:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+}

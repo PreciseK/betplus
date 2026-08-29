@@ -1,0 +1,53 @@
+# Security headers + basic caching for the static export (`next build` → out/, which
+# Next.js copies this file into verbatim since it lives in public/). Apache on cPanel
+# loads .htaccess automatically — mod_headers, mod_deflate and mod_expires are enabled
+# on essentially every cPanel host by default, no admin action needed.
+#
+# This is a pure static site (output: "export") — there is no server to mint a per-request
+# CSP nonce, so script-src/style-src below allow 'unsafe-inline'. That is not optional
+# noise: Next.js's App Router embeds one inline <script> per page for RSC hydration data
+# (self.__next_f.push(...)), and several pages render inline style="--card-accent:..."
+# attributes from component props. Verified against a real `next build` output on
+# 2026-08-28 — grep the built out/ directory for `style="` or an inline `<script>` with no
+# src= if this ever needs re-confirming. The practical effect: this CSP's real protection
+# is default-src/frame-ancestors/base-uri/object-src/form-action, not XSS-script blocking —
+# achieving that fully needs a server or edge runtime that can hand out a fresh nonce per
+# request, which a static export fundamentally cannot do.
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+  # connect-src 'self' only works if the API is served from the SAME origin as this site
+  # (e.g. behind a reverse-proxy path split). If apps/platform is on its own subdomain —
+  # the common case, e.g. api.betplus.com vs. app.betplus.com — add that origin here or
+  # every fetch from the app will be silently blocked by the browser. Check
+  # NEXT_PUBLIC_API_BASE_URL in the build's .env for the real production value.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # Hashed, content-addressed build assets — safe to cache for a year.
+  <FilesMatch "^_next/static/.*">
+    ExpiresDefault "access plus 1 year"
+    Header append Cache-Control "immutable"
+  </FilesMatch>
+  # HTML must always be revalidated — it's what references the hashed asset filenames.
+  <FilesMatch "\.html$">
+    ExpiresDefault "access plus 0 seconds"
+    Header append Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# trailingSlash: true (next.config.ts) means every route is an index.html under its own
+# directory — Apache's MultiViews/DirectorySlash already resolves /games/ to
+# /games/index.html by default, so no rewrite rules are needed for normal navigation.
+# The one gap: a 404 for an unmatched path should still serve the app's real 404 page.
+ErrorDocument 404 /404.html

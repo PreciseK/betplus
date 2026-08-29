@@ -1,0 +1,551 @@
+.rightSidebar {
+  width: 360px;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #141417;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.scrollableContent {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 4px;
+  height: 100%;
+}
+
+.scrollableContent::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollableContent::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+/* ============================================================
+   CARD 1: TOP PROFILE & BALANCE HERO CARD (DARK OBSIDIAN & ORANGE)
+   ============================================================ */
+.heroCard {
+  background: linear-gradient(180deg, #24140c 0%, #160c07 100%);
+  border: 1px solid rgba(234, 88, 12, 0.35);
+  border-radius: 22px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.heroCard::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(234, 88, 12, 0.28) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.heroProfileRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatarRing {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  padding: 2px;
+  background: radial-gradient(circle, #d71108 0%, #150061 100%);
+  box-shadow: 0 0 16px rgba(234, 88, 12, 0.45);
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.profileTextLockup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heroName {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.verifiedAccountTag {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  color: #ff6b61;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Balance Header with Eye Toggle */
+.balanceHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.balanceSectionLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  color: #a1a1aa;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.eyeToggleBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  color: #a1a1aa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.eyeToggleBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+/* 2-Column Balance Tiles */
+.balanceTilesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.balanceTile {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tileLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  color: #888888;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tileValueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.currencyCode {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  color: #71717a;
+}
+
+.tileAmount {
+  font-family: var(--font-mono, monospace);
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+/* Action Buttons: Deposit & Withdraw */
+.heroActionBtnsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.depositActionBtn {
+  background: linear-gradient(135deg, #d71108 0%, #150061 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 10px 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.45);
+  transition: all 0.2s ease;
+}
+
+.depositActionBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(234, 88, 12, 0.6);
+}
+
+.withdrawActionBtn {
+  background: #1c1c21;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 10px 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.withdrawActionBtn:hover {
+  background: #27272e;
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.actionIcon {
+  font-size: 12px;
+}
+
+/* ============================================================
+   CARD 2 & 3: PERSONAL DETAILS & SECURITY
+   ============================================================ */
+.detailsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupHeadingRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.groupDash {
+  color: rgba(255, 255, 255, 0.3);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+}
+
+.groupTitle {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  color: #a1a1aa;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.groupCardContainer {
+  background: #1a1a1f;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 2px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.detailRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.detailRow:last-child {
+  border-bottom: 0;
+}
+
+.detailIconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(234, 88, 12, 0.14);
+  color: #ff6b61;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logoutIconBox {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.detailContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.detailFieldLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #71717a;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detailFieldValue {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.verifiedGreenBadge {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+/* SECURITY ROWS */
+.securityActionRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: transparent;
+  border-inline: 0;
+  border-top: 0;
+  color: inherit;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.securityActionRow:last-child {
+  border-bottom: 0;
+}
+
+.securityActionRow:hover {
+  opacity: 0.85;
+}
+
+.securityTextLockup {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.securityTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.securitySub {
+  font-size: 10px;
+  color: #71717a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logoutTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ef4444;
+}
+
+.logoutSub {
+  font-size: 10px;
+  color: #71717a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chevronIcon {
+  font-size: 18px;
+  color: #71717a;
+  padding-right: 4px;
+}
+
+/* PIN FORM */
+.pinForm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pinInput {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(21, 0, 97, 0.4);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #ffffff;
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  outline: none;
+}
+
+.pinSubmitBtn {
+  background: linear-gradient(135deg, #d71108 0%, #150061 100%);
+  color: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.pinSubmitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   CARD 4: 24/7 SUPPORT CONTAINER
+   ============================================================ */
+.supportCardContainer {
+  background: #1a1a1f;
+  border: 1px solid rgba(234, 88, 12, 0.25);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Quick Channels */
+.quickChannelsRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.channelChip {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 4px;
+  text-align: center;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.channelChip:hover {
+  background: rgba(234, 88, 12, 0.18);
+  border-color: rgba(21, 0, 97, 0.4);
+  color: #ff6b61;
+}
+
+/* ============================================================
+   SIGNED-OUT EMPTY STATE (replaces hero/personal-details/account cards)
+   ============================================================ */
+.emptyStateCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 32px 20px;
+  background: #1a1a1f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+}
+
+.emptyStateIcon {
+  font-size: 28px;
+}
+
+.emptyStateTitle {
+  font-size: 15px;
+  font-weight: 800;
+  color: #f6f1e7;
+}
+
+.emptyStateDesc {
+  font-size: 12.5px;
+  color: #a1a1aa;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.emptyStateActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.loadFailedNote {
+  font-size: 11px;
+  color: #fca5a5;
+  margin: 0;
+}
+
+@media (max-width: 1200px) {
+  .rightSidebar {
+    display: none;
+  }
+}

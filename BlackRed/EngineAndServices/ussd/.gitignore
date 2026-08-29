@@ -1,0 +1,17 @@
+# Local config — contains credentials
+config.php
+
+# Logs
+logs/*.log
+logs/*.gz
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Temp / smoke artifacts
+/tmp/
+*.sqlite

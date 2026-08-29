@@ -1,0 +1,54 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+**/config.php
+!**/config.example.php
+*.pem
+*.key
+*.p12
+infra/secrets/*.dec.*
+
+# Dependencies
+vendor/
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Build output
+out/
+dist/
+build/
+output/
+.next/
+.expo/
+*.tsbuildinfo
+
+# Runtime
+logs/
+*.log
+error_log
+storage/framework/
+storage/logs/
+
+# Archives and OS junk
+*.zip
+.DS_Store
+__MACOSX/
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+!.vscode/extensions.json
+
+# Tooling scratch
+.playwright-cli/
+output/playwright/
+coverage/
+.phpunit.result.cache
+
+# Local dev databases
+*.sqlite
+*.sqlite3

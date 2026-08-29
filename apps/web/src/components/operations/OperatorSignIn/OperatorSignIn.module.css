@@ -1,0 +1,59 @@
+.flow {
+  width: min(100%, var(--ops-auth-form-width));
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--ops-workspace-gap);
+}
+
+.intro {
+  display: grid;
+  gap: var(--ops-tight-gap);
+}
+
+.intro p,
+.supporting {
+  max-width: 62ch;
+  color: var(--text-secondary);
+}
+
+.context {
+  color: var(--action-primary) !important;
+  font-size: var(--type-small-size);
+  font-weight: var(--type-body-strong-weight);
+}
+
+.form {
+  min-width: 0;
+  display: grid;
+  gap: var(--ops-group-gap);
+}
+
+.form > button {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--ops-tight-gap);
+}
+
+.prototypeNote {
+  padding-block-start: var(--ops-group-gap);
+  border-block-start: var(--ops-panel-border);
+  color: var(--text-secondary);
+  font-size: var(--type-caption-size);
+}
+
+@media (max-width: 480px) {
+  .actions {
+    display: grid;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}

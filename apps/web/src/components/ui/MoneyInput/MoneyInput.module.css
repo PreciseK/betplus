@@ -1,0 +1,64 @@
+.control {
+  display: flex;
+  min-width: 0;
+}
+
+.currency {
+  display: inline-flex;
+  min-width: var(--control-target-min);
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding-inline: var(--field-prefix-padding-inline);
+  border: var(--control-border-width) solid var(--field-control-border);
+  border-inline-end: 0;
+  border-start-start-radius: var(--control-radius);
+  border-end-start-radius: var(--control-radius);
+  background: var(--field-prefix-background);
+  color: var(--text-primary);
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-strong-weight);
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-target-min);
+  padding-inline: var(--field-control-padding-inline);
+  border: var(--control-border-width) solid var(--field-control-border);
+  border-start-end-radius: var(--control-radius);
+  border-end-end-radius: var(--control-radius);
+  background: var(--field-control-background);
+  color: var(--field-control-text);
+  font-family: var(--font-body);
+  font-size: var(--type-body-size);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--type-body-leading);
+  transition:
+    background-color var(--motion-fast) var(--motion-ease-out),
+    border-color var(--motion-fast) var(--motion-ease-out);
+}
+
+.control:hover .input:not(:disabled),
+.control:hover .currency {
+  border-color: var(--field-control-border-hover);
+}
+
+.input:focus-visible {
+  border-color: var(--field-control-border-focus);
+}
+
+.control:focus-within .currency {
+  border-color: var(--field-control-border-focus);
+}
+
+.control[data-invalid="true"] .input,
+.control[data-invalid="true"] .currency {
+  border-color: var(--field-control-border-error);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+  background: var(--field-control-background-disabled);
+  opacity: var(--control-disabled-opacity);
+}

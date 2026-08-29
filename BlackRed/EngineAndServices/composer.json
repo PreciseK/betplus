@@ -1,0 +1,40 @@
+{
+    "name": "blackred/raffle-platform",
+    "description": "BlackRed Raffle - Production PHP backend",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.1",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-mbstring": "*",
+        "ext-curl": "*",
+        "vlucas/phpdotenv": "^5.6",
+        "monolog/monolog": "^3.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "BlackRed\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BlackRed\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "preferred-install": "dist"
+    },
+    "scripts": {
+        "test": "php tests/run.php",
+        "post-install-cmd": [
+            "@php -r \"if (!file_exists('.env')) { copy('.env.example', '.env'); echo \\\".env created from .env.example - please configure it\\n\\\"; }\""
+        ]
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

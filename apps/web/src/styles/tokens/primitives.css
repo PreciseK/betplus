@@ -1,0 +1,102 @@
+/*
+ * Primitive tokens — raw values only, no meaning attached.
+ * Never reference these directly from a component; go through semantic.css.
+ * Source: design.md §4.1, §5.2, §6.1, §7, §9.
+ */
+
+:root {
+  /* Color primitives */
+  --bp-coral-500: #d71108;
+  --bp-orange-500: #150061;
+  --bp-amber-400: #ffd066;
+  --bp-coral-700: #c40f06;
+  --bp-coral-800: #a30c05;
+  --bp-outcome-start: #d71108;
+  --bp-outcome-end: #150061;
+
+  --bp-ink-950: #11100e;
+  --bp-ink-900: #1b1916;
+  --bp-ink-800: #2a2622;
+  --bp-ink-700: #49423b;
+  --bp-stone-700: #675f57;
+  --bp-stone-300: #d8d0c7;
+  --bp-stone-150: #eae4dd;
+  --bp-stone-100: #f2eee8;
+  --bp-canvas: #faf8f4;
+  --bp-white: #ffffff;
+
+  --bp-green-700: #0f7b4d;
+  --bp-blue-700: #2457a7;
+  --bp-amber-800: #8a4b08;
+  --bp-red-800: #b42318;
+
+  /* BlackRed game identity */
+  --bp-blackred-300: #FF0000;
+  --bp-blackred-500: #FF0000;
+  --bp-blackred-600: #FF0000;
+  --bp-blackred-700: #FF0000;
+  --bp-blackred-800: #cc0000;
+  --bp-blackred-950: #0e0b0c;
+  --bp-blackred-900: #171213;
+  --bp-blackred-850: #21191b;
+  --bp-blackred-750: #3a292d;
+
+  /* Heritage game identity */
+  --bp-heritage-950: #100d0c;
+  --bp-heritage-900: #191411;
+  --bp-heritage-850: #241b17;
+  --bp-heritage-800: #33231e;
+  --bp-heritage-700: #51362e;
+  --bp-heritage-600: #783745;
+  --bp-heritage-500: #a44a57;
+  --bp-heritage-300: #dda2a7;
+  --bp-heritage-clay-500: #b76645;
+  --bp-heritage-parchment: #f0e5d4;
+  --bp-heritage-midnight: #070914;
+  --bp-heritage-navy-900: #0c0f1e;
+  --bp-heritage-navy-800: #141827;
+  --bp-heritage-navy-700: #22283b;
+  --bp-heritage-navy-500: #596078;
+  --bp-heritage-gold: #f1b82d;
+  --bp-heritage-gold-deep: #c88918;
+  --bp-heritage-emerald: #14a66a;
+  --bp-heritage-emerald-deep: #08734c;
+  --bp-heritage-coral: #ff4665;
+  --bp-heritage-cream: #f5ecd9;
+
+  /* Dark-theme feedback tints — design.md §4.2 specifies "lighter tested green/blue/red"
+     without exact values; these are provisional pending design sign-off. */
+  --bp-green-400: #34d399;
+  --bp-blue-400: #6fa8e8;
+  --bp-red-400: #f2726b;
+
+  --bp-brand-gradient: linear-gradient(105deg, var(--bp-coral-500) 0%, var(--bp-orange-500) 100%);
+
+  /* Spacing — 4px base */
+  --bp-space-1: 4px;
+  --bp-space-2: 8px;
+  --bp-space-3: 12px;
+  --bp-space-4: 16px;
+  --bp-space-6: 24px;
+  --bp-space-8: 32px;
+  --bp-space-12: 48px;
+  --bp-space-16: 64px;
+
+  /* Shape */
+  --bp-radius-control: 10px;
+  --bp-radius-card: 16px;
+  --bp-radius-feature: 24px;
+  --bp-radius-pill: 999px;
+
+  /* Motion durations */
+  --bp-duration-instant: 90ms;
+  --bp-duration-fast: 160ms;
+  --bp-duration-base: 250ms;
+  --bp-duration-reveal: 550ms;
+  --bp-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --bp-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+
+  /* Target sizes */
+  --bp-target-min-web: 44px;
+  --bp-target-min-native: 48px;
+}

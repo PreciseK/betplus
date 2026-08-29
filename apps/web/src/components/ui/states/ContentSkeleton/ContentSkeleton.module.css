@@ -1,0 +1,7 @@
+.skeleton { display: grid; gap: var(--state-gap); width: 100%; }
+.title, .line, .short { display: block; height: var(--state-skeleton-line-height); border-radius: var(--state-skeleton-radius); background: linear-gradient(90deg, var(--state-skeleton-base), var(--state-skeleton-highlight), var(--state-skeleton-base)); background-size: 200% 100%; animation: skeleton-shift var(--motion-reveal) linear infinite; }
+.title { width: var(--state-skeleton-title-width); }
+.line { width: var(--state-skeleton-body-width); }
+.short { width: var(--state-skeleton-short-width); }
+@keyframes skeleton-shift { to { background-position-x: -200%; } }
+@media (prefers-reduced-motion: reduce) { .title, .line, .short { animation: none; } }

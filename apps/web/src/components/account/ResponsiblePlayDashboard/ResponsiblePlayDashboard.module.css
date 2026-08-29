@@ -1,0 +1,316 @@
+.dashboard {
+  width: 100%;
+  display: grid;
+  gap: 24px;
+}
+
+.dashboard h2,
+.dashboard h3,
+.dashboard p {
+  margin: 0;
+}
+
+.activeStatus,
+.withdrawalAccess {
+  padding: 22px 24px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  background: #141417;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+}
+
+.activeStatus > svg,
+.withdrawalAccess > svg {
+  color: #10b981;
+}
+
+.activeStatus > div,
+.withdrawalAccess > div {
+  display: grid;
+  gap: 4px;
+}
+
+.activeStatus span,
+.withdrawalAccess p,
+.sectionHeading p,
+.protectionSection > div:first-child p,
+.limitEditor > div:first-child p {
+  color: #948b9f;
+}
+
+.positionSection,
+.limitsSection,
+.protectionSection {
+  display: grid;
+  gap: 18px;
+  background: #141417;
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--rg-group-gap);
+}
+
+.sectionHeading > div {
+  display: grid;
+  gap: var(--field-label-gap);
+}
+
+.sectionHeading h2,
+.protectionSection h2,
+.withdrawalAccess h2 {
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-leading);
+}
+
+.sectionHeading p,
+.protectionSection p,
+.withdrawalAccess p {
+  font-size: var(--type-small-size);
+}
+
+.positionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-block: var(--rg-divider);
+}
+
+.position {
+  min-width: 0;
+  padding: var(--rg-section-padding);
+  display: grid;
+  gap: var(--field-label-gap);
+}
+
+.position + .position {
+  border-inline-start: var(--rg-divider);
+}
+
+.position > span,
+.position > small,
+.limitValue > span,
+.limitValue > small,
+.limitRow > div:first-child span,
+.ruleNote {
+  color: var(--text-secondary);
+  font-size: var(--type-caption-size);
+}
+
+.limitList {
+  border-block-start: var(--rg-divider);
+}
+
+.limitRow {
+  min-height: calc(var(--control-target-min) + var(--bp-space-8));
+  padding-block: var(--rg-control-gap);
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--rg-group-gap);
+  border-block-end: var(--rg-divider);
+}
+
+.limitRow > div:first-child,
+.limitValue {
+  display: grid;
+  gap: var(--field-label-gap);
+}
+
+.limitValue strong,
+.limitValue small {
+  font-variant-numeric: tabular-nums;
+}
+
+.limitValue small {
+  max-width: 34ch;
+}
+
+.limitEditor {
+  padding: var(--rg-section-padding);
+  display: grid;
+  gap: var(--rg-group-gap);
+  border-inline-start: calc(var(--control-border-width) * 3) solid var(--action-primary);
+  background: var(--rg-editor-background);
+}
+
+.limitEditor > div:first-child {
+  display: grid;
+  gap: var(--field-label-gap);
+}
+
+.limitEditor h3 {
+  font-size: var(--type-body-size);
+}
+
+.changeTiming {
+  display: flex;
+  align-items: center;
+  gap: var(--control-gap);
+  color: var(--text-secondary);
+  font-size: var(--type-small-size);
+}
+
+.editorActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--control-gap);
+}
+
+.protectionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--rg-section-gap);
+}
+
+.protectionSection {
+  align-content: start;
+  padding-block-start: var(--rg-section-padding);
+  border-block-start: var(--rg-divider);
+}
+
+.protectionSection > div:first-child {
+  display: grid;
+  gap: var(--field-label-gap);
+}
+
+.durationOptions {
+  display: grid;
+  gap: var(--control-gap);
+}
+
+.durationOptions button {
+  min-height: var(--control-target-min);
+  padding: var(--rg-control-gap) var(--rg-group-gap);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rg-group-gap);
+  border: var(--rg-panel-border);
+  border-radius: var(--rg-control-radius);
+  background: var(--rg-panel-background);
+  color: var(--text-primary);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--motion-ease-out), border-color var(--motion-fast) var(--motion-ease-out);
+}
+
+.durationOptions button:hover:not(:disabled) {
+  background: var(--rg-subtle-background);
+}
+
+.durationOptions button[aria-pressed="true"] {
+  border-color: var(--rg-option-selected-border);
+  background: var(--rg-subtle-background);
+}
+
+.durationOptions button:disabled {
+  cursor: not-allowed;
+  opacity: var(--control-disabled-opacity);
+}
+
+.durationOptions span {
+  color: var(--text-secondary);
+  font-size: var(--type-caption-size);
+}
+
+.withdrawalAccess {
+  border-block-end: 0;
+}
+
+.confirmationCopy {
+  display: grid;
+  gap: var(--rg-group-gap);
+}
+
+@media (max-width: 860px) {
+  .sectionHeading {
+    align-items: flex-start;
+  }
+
+  .protectionGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .activeStatus,
+  .withdrawalAccess {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .activeStatus > a,
+  .withdrawalAccess > a {
+    grid-column: 1 / -1;
+  }
+
+  .positionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .position + .position {
+    border-inline-start: 0;
+    border-block-start: var(--rg-divider);
+  }
+
+  .limitRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .limitValue {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .limitRow > button {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+
+  .sectionHeading {
+    display: grid;
+  }
+
+  .ruleNote {
+    max-width: none;
+  }
+
+  .durationOptions button {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.deactivationSection {
+  display: grid;
+  gap: 16px;
+  background: rgba(239, 68, 68, 0.04);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 24px;
+  padding: 24px;
+  color: #ffffff;
+}
+
+.deactivationSection h2 {
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-leading);
+  color: #fca5a5;
+  margin-bottom: 6px;
+}
+
+.deactivationSection p {
+  font-size: var(--type-small-size);
+  color: #948b9f;
+  line-height: 1.5;
+}

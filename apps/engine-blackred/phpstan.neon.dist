@@ -1,0 +1,17 @@
+parameters:
+    # Level 8 (of 9): strict null and type checks, no mixed leakage, method existence verified.
+    # This engine is a handful of pure functions with a narrow, fully-typed contract — level 8
+    # is realistic here, not aspirational, and catches the class of bug that matters most in a
+    # function whose entire job is "same input, same output, forever" (REQ-GEC-001).
+    level: 8
+    paths:
+        - src
+    tmpDir: build/phpstan
+    # Single-process. On at least one Windows host in this project's history, PHPStan's
+    # default parallel/progress-bar path hung indefinitely (confirmed: multiple runs stalled
+    # at 0% until Composer's 300s script timeout killed them; `--maximumNumberOfProcesses: 1`
+    # alone did not fix it — only `--debug`, which additionally disables the progress bar, ran
+    # cleanly). The `stan` composer script therefore runs with `--debug`. If you hit the same
+    # symptom, that flag is the confirmed workaround; this config alone is not sufficient.
+    parallel:
+        maximumNumberOfProcesses: 1

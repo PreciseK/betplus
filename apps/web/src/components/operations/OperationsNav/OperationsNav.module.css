@@ -1,0 +1,46 @@
+.desktop { min-width: 0; overflow-y: auto; scrollbar-width: thin; }
+.groups { display: grid; gap: 4px; }
+.group { border-block-end: 0; }
+.group summary {
+  min-height: var(--control-target-min);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ops-tight-gap);
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ops-navigation-text);
+  cursor: pointer;
+  font-size: var(--type-small-size);
+  font-weight: var(--type-body-strong-weight);
+  list-style: none;
+}
+.group summary::-webkit-details-marker { display: none; }
+.group summary:hover { color: var(--ops-navigation-text-current); background: var(--ops-navigation-current); }
+.group summary svg { transition: transform var(--motion-fast) var(--motion-ease-out); }
+.group[open] summary svg { transform: rotate(90deg); }
+.groupBody { padding-block-end: 6px; }
+.groupBody ul { display: grid; gap: 2px; padding: 0 0 0 8px; list-style: none; }
+.link {
+  min-height: 40px;
+  display: grid;
+  grid-template-columns: var(--icon-size-navigation) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ops-tight-gap);
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ops-navigation-text);
+  font-size: var(--type-small-size);
+  font-weight: var(--type-body-strong-weight);
+  transition: color var(--motion-fast) var(--motion-ease-out), background-color var(--motion-fast) var(--motion-ease-out);
+}
+.link:hover { color: var(--ops-navigation-text-current); background: var(--ops-navigation-current); }
+.link[aria-current="page"] { color: var(--ops-navigation-text-current); background: var(--ops-navigation-current); box-shadow: inset 3px 0 0 var(--action-primary); }
+.mobileDisclosure { border-block-end: var(--ops-panel-border); background: var(--ops-navigation-background); }
+.mobileDisclosure > summary { min-height: var(--control-target-min); display: flex; align-items: center; padding-inline: var(--gutter); cursor: pointer; font-weight: var(--type-body-strong-weight); }
+.mobileDisclosure > nav { max-height: calc(100svh - var(--ops-header-height)); overflow-y: auto; padding: var(--ops-group-gap) var(--gutter) var(--ops-nav-padding); }
+.mobileDisclosure .group { --ops-sidebar-border: var(--ops-panel-border); }
+
+@media (prefers-reduced-motion: reduce) {
+  .link, .group summary svg { transition: none; }
+}

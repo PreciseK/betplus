@@ -1,0 +1,761 @@
+/* ============================================================
+   REGISTRATION FLOW — Replica of EngineAndServices signUp.html
+   with Betplus Vibrant Orange Theme & Nigerian Telco Providers
+   ============================================================ */
+
+.shell {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr;
+  position: relative;
+  background: #0A0A0A;
+  color: #F6F1E7;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+@media (min-width: 1024px) {
+  .shell {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+/* ============================================================
+   BRAND PANEL (LEFT / DESKTOP)
+   ============================================================ */
+.brandPanel {
+  position: relative;
+  padding: 28px 24px 36px;
+  background: #070707;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(246, 241, 231, 0.08);
+}
+
+@media (min-width: 768px) {
+  .brandPanel {
+    padding: 36px 40px 48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .brandPanel {
+    padding: 48px 48px;
+    min-height: 100vh;
+    min-height: 100svh;
+    border-bottom: none;
+    border-right: 1px solid rgba(246, 241, 231, 0.08);
+  }
+}
+
+.brandPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 20%, rgba(249, 115, 22, 0.25), transparent 60%),
+    radial-gradient(ellipse 70% 60% at 85% 80%, rgba(234, 88, 12, 0.15), transparent 55%);
+  z-index: 0;
+}
+
+.brandPanelInner {
+  position: relative;
+  z-index: 1;
+}
+
+.brandLogo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+  text-decoration: none;
+}
+
+.brandLogoImg {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 14px rgba(249, 115, 22, 0.4));
+}
+
+.brandBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(246, 241, 231, 0.06);
+  border: 1px solid rgba(246, 241, 231, 0.12);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.85);
+  margin-bottom: 20px;
+}
+
+.brandBadge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d71108;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.8);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.brandHeadline {
+  font-family: var(--font-display, inherit);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: #F6F1E7;
+}
+
+.brandHeadline em {
+  font-style: normal;
+  font-weight: 900;
+  color: #d71108;
+}
+
+.brandSub {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(246, 241, 231, 0.7);
+  max-width: 420px;
+  margin: 0 0 28px;
+}
+
+/* Trust markers — desktop only */
+.brandTrust {
+  display: none;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 1024px) {
+  .brandTrust {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(246, 241, 231, 0.08);
+  }
+}
+
+.brandTrustItem .label {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.4);
+  margin-bottom: 6px;
+}
+
+.brandTrustItem .val {
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  font-size: 15px;
+  color: #F6F1E7;
+  letter-spacing: -0.02em;
+}
+
+.brandTrustItem .val .brandAccent {
+  color: #d71108;
+}
+
+/* ============================================================
+   FORM PANEL (RIGHT / INTERACTIVE)
+   ============================================================ */
+.formPanel {
+  background: #0A0A0A;
+  padding: 32px 20px 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .formPanel {
+    padding: 40px 48px 80px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .formPanel {
+    background: linear-gradient(180deg, #130a05 0%, #0A0A0A 100%);
+    padding: 48px 56px;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+}
+
+.formWrap {
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+}
+
+/* Progress indicator */
+.progressWrap {
+  margin-bottom: 24px;
+}
+
+.progressLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.5);
+  margin-bottom: 12px;
+}
+
+.progressLabel .count {
+  color: #d71108;
+}
+
+.progressBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressStep {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(246, 241, 231, 0.1);
+  overflow: hidden;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.progressStep.active {
+  background: #150061;
+}
+
+.progressStep.done {
+  background: #150061;
+  opacity: 0.6;
+}
+
+/* Step Header */
+.stepH {
+  font-family: var(--font-display, inherit);
+  font-size: clamp(2rem, 5.5vw, 2.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  margin: 0 0 10px;
+  color: #F6F1E7;
+}
+
+.stepH em {
+  font-style: normal;
+  font-weight: 900;
+  color: #d71108;
+}
+
+.stepSub {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(246, 241, 231, 0.65);
+  margin: 0 0 24px;
+}
+
+.supporting {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(246, 241, 231, 0.65);
+  margin: 16px 0;
+}
+
+/* Phone input with +234 prefix */
+.field {
+  margin-bottom: 20px;
+}
+
+.fieldLabel {
+  display: block;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.6);
+  margin-bottom: 10px;
+}
+
+.phoneInput {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid rgba(246, 241, 231, 0.15);
+  border-radius: 14px;
+  background: rgba(246, 241, 231, 0.03);
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.phoneInput:focus-within {
+  border-color: #150061;
+  background: rgba(234, 88, 12, 0.05);
+  box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.18);
+}
+
+.phoneInput.inputError {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.phonePrefix {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-family: var(--font-mono, monospace);
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(246, 241, 231, 0.7);
+  border-right: 1px solid rgba(246, 241, 231, 0.1);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.phoneField {
+  flex: 1;
+  padding: 16px 14px;
+  font-family: var(--font-mono, monospace);
+  font-size: 17px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #F6F1E7;
+  letter-spacing: 0.05em;
+  min-width: 0;
+  width: 100%;
+}
+
+.phoneField::placeholder {
+  color: rgba(246, 241, 231, 0.25);
+  letter-spacing: 0.05em;
+}
+
+.fieldHint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: rgba(246, 241, 231, 0.45);
+  min-height: 14px;
+}
+
+.fieldHint.error {
+  color: #ff6b6b;
+}
+
+/* Network picker — 4 Nigerian providers */
+.networkSection {
+  margin-bottom: 22px;
+}
+
+.networkLabel {
+  display: block;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.55);
+  margin-bottom: 10px;
+}
+
+.networkGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .networkGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
+
+.networkCard {
+  position: relative;
+  padding: 12px 6px 10px;
+  border: 1px solid rgba(246, 241, 231, 0.12);
+  border-radius: 14px;
+  background: rgba(246, 241, 231, 0.03);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  user-select: none;
+}
+
+.networkCard:hover {
+  border-color: rgba(246, 241, 231, 0.25);
+  background: rgba(246, 241, 231, 0.06);
+}
+
+.networkCard.selected {
+  border-color: #150061;
+  background: rgba(234, 88, 12, 0.12);
+  box-shadow: 0 0 0 3px rgba(21, 0, 97, 0.2);
+}
+
+.networkCard.selected::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #150061;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 6l2 2 4-4' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-size: 10px;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.5);
+}
+
+.networkLogo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: block;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.networkName {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.85);
+  line-height: 1;
+}
+
+.networkCard.selected .networkName {
+  color: #F6F1E7;
+}
+
+/* Back button */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.55);
+  background: rgba(246, 241, 231, 0.04);
+  border: 1px solid rgba(246, 241, 231, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.backBtn:hover {
+  color: #F6F1E7;
+  background: rgba(246, 241, 231, 0.1);
+}
+
+.backBtn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================================
+   OPAY WALLET NAME REVEAL CARD
+   ============================================================ */
+.identityCard {
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0.02) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.identityIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #0A0A0A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.identityIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.identityInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.identityLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #22c55e;
+  margin-bottom: 4px;
+}
+
+.identityName {
+  font-family: var(--font-display, inherit);
+  font-weight: 800;
+  font-size: 20px;
+  color: #F6F1E7;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.identityNote {
+  display: block;
+  font-size: 11px;
+  color: rgba(246, 241, 231, 0.5);
+  margin-top: 4px;
+}
+
+/* Actions row */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.actions > * {
+  flex: 1;
+}
+
+/* Checkbox (Terms & EULA) */
+.checks {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(246, 241, 231, 0.03);
+  border: 1px solid rgba(246, 241, 231, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.check:hover {
+  background: rgba(246, 241, 231, 0.05);
+  border-color: rgba(246, 241, 231, 0.18);
+}
+
+.check.checked {
+  background: rgba(21, 0, 97, 0.08);
+  border-color: rgba(21, 0, 97, 0.4);
+}
+
+.check input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkBox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: rgba(246, 241, 231, 0.06);
+  border: 1.5px solid rgba(246, 241, 231, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.2s;
+}
+
+.check.checked .checkBox {
+  background: linear-gradient(135deg, #d71108 0%, #150061 100%);
+  border-color: #150061;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35);
+}
+
+.checkBox svg {
+  width: 12px;
+  height: 12px;
+  color: #F6F1E7;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s;
+}
+
+.check.checked .checkBox svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkText {
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(246, 241, 231, 0.75);
+  flex: 1;
+}
+
+.checkText a {
+  color: #F6F1E7;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(234, 88, 12, 0.5);
+}
+
+.checkText a:hover {
+  color: #150061;
+}
+
+.checkText strong {
+  font-weight: 700;
+  color: #F6F1E7;
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Success wrap */
+.successWrap {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.successCircle {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  border-radius: 999px;
+  background: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 32px -6px rgba(34, 197, 94, 0.5);
+}
+
+.successCircle svg {
+  width: 40px;
+  height: 40px;
+  color: #0A0A0A;
+}
+
+.footerLink {
+  text-align: center;
+  margin-top: 28px;
+  font-size: 13px;
+  color: rgba(246, 241, 231, 0.5);
+}
+
+.footerLink a {
+  color: #F6F1E7;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(21, 0, 97, 0.4);
+  padding-bottom: 1px;
+}
+
+.footerLink a:hover {
+  color: #150061;
+  border-bottom-color: #150061;
+}
+
+.terms {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: rgba(246, 241, 231, 0.35);
+  text-align: center;
+  margin-top: 20px;
+  line-height: 1.5;
+}
+
+.terms a {
+  color: rgba(246, 241, 231, 0.6);
+  text-decoration: underline;
+  text-decoration-color: rgba(21, 0, 97, 0.4);
+  text-underline-offset: 3px;
+}
+
+.resend {
+  margin-top: 14px;
+  background: none;
+  border: none;
+  color: #d71108;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.resend:hover {
+  color: #ff6b61;
+  background: rgba(249, 115, 22, 0.1);
+}
+
+.resend:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.privacy {
+  margin: 16px 0 0;
+  font-size: 12px;
+  color: rgba(246, 241, 231, 0.45);
+  line-height: 1.4;
+}

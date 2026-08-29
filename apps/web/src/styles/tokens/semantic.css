@@ -1,0 +1,547 @@
+/*
+ * Semantic tokens — the only layer components should reference.
+ * Light values are the default; dark values apply under prefers-color-scheme.
+ * Source: design.md §4.2, §5.2, §6.1, §7.2, §9.
+ */
+
+:root {
+  color-scheme: light;
+
+  --surface-canvas: var(--bp-canvas);
+  --surface-base: var(--bp-white);
+  --surface-subtle: var(--bp-stone-100);
+  --text-primary: var(--bp-ink-950);
+  --text-secondary: var(--bp-stone-700);
+  --border-default: var(--bp-stone-300);
+  --action-primary: var(--bp-orange-500);
+  --action-primary-text: var(--bp-white);
+  --focus-ring: var(--bp-orange-500);
+  --feedback-success: var(--bp-green-700);
+  --feedback-info: var(--bp-blue-700);
+  --feedback-warning: var(--bp-amber-800);
+  --feedback-error: var(--bp-red-800);
+
+  /* Shared control roles — components reference these, never primitives. */
+  --control-target-min: var(--bp-target-min-web);
+  --control-radius: var(--bp-radius-control);
+  --control-gap: var(--bp-space-2);
+  --control-padding-inline: var(--bp-space-6);
+  --control-padding-inline-compact: var(--bp-space-4);
+  --control-border-width: 1px;
+  --control-disabled-opacity: 0.56;
+  --control-pressed-scale: 0.98;
+  --icon-size-control: 20px;
+  --icon-size-inline: 20px;
+  --icon-size-navigation: 24px;
+  --icon-size-empty: 32px;
+  --icon-stroke-width: 2px;
+
+  /* Brand placeholder roles — replace when the approved vector master ships. */
+  --brand-placeholder-size: 32px;
+  --brand-placeholder-size-large: 36px;
+  --brand-placeholder-border: var(--control-border-width) solid currentColor;
+  --brand-placeholder-radius: var(--control-radius);
+  --brand-placeholder-text-size: var(--type-caption-size);
+  --brand-wordmark-size: var(--type-h3-size);
+  --brand-wordmark-gap: var(--control-gap);
+
+  /* Button roles */
+  --button-primary-hover: color-mix(in srgb, var(--bp-orange-500) 88%, var(--bp-ink-950));
+  --button-secondary-hover: var(--surface-subtle);
+  --button-quiet-hover-text: var(--action-primary);
+  --button-dark-surface: var(--bp-ink-950);
+  --button-dark-hover: var(--bp-ink-800);
+  --button-dark-text: var(--bp-canvas);
+  --button-success-surface: var(--bp-green-700);
+  --button-success-text: var(--bp-white);
+  --button-error-surface: var(--bp-red-800);
+  --button-error-text: var(--bp-white);
+
+  /* Form control roles */
+  --field-stack-gap: var(--bp-space-2);
+  --field-label-gap: var(--bp-space-1);
+  --field-message-gap: var(--bp-space-2);
+  --field-control-padding-inline: var(--bp-space-4);
+  --field-control-background: var(--surface-base);
+  --field-control-background-disabled: var(--surface-subtle);
+  --field-control-text: var(--text-primary);
+  --field-placeholder-text: var(--text-secondary);
+  --field-control-border: var(--border-default);
+  --field-control-border-hover: var(--text-secondary);
+  --field-control-border-focus: var(--focus-ring);
+  --field-control-border-error: var(--feedback-error);
+  --field-helper-text: var(--text-secondary);
+  --field-error-text: var(--feedback-error);
+  --field-prefix-background: var(--surface-subtle);
+  --field-prefix-padding-inline: var(--bp-space-3);
+  --field-checkbox-size: var(--icon-size-inline);
+  --field-required-size: var(--type-caption-size);
+  --otp-character-spacing: var(--bp-space-3);
+
+  /* Money and transaction roles */
+  --money-positive-text: var(--feedback-success);
+  --money-negative-text: var(--text-primary);
+  --money-neutral-text: var(--text-primary);
+  --balance-card-padding: var(--bp-space-6);
+  --balance-card-gap: var(--bp-space-4);
+  --balance-card-radius: var(--bp-radius-card);
+  --balance-card-background: var(--surface-base);
+  --balance-card-border: var(--elevation-border);
+  --balance-card-muted-background: var(--surface-subtle);
+  --transaction-row-padding-block: var(--bp-space-4);
+  --transaction-row-gap: var(--bp-space-3);
+  --transaction-row-border: var(--elevation-border);
+
+  /* Feedback roles */
+  --feedback-panel-padding: var(--bp-space-4);
+  --feedback-panel-gap: var(--bp-space-3);
+  --feedback-panel-radius: var(--control-radius);
+  --feedback-info-surface: color-mix(in srgb, var(--feedback-info) 10%, var(--surface-base));
+  --feedback-success-surface: color-mix(in srgb, var(--feedback-success) 10%, var(--surface-base));
+  --feedback-warning-surface: color-mix(in srgb, var(--feedback-warning) 12%, var(--surface-base));
+  --feedback-error-surface: color-mix(in srgb, var(--feedback-error) 10%, var(--surface-base));
+  --feedback-dialog-width: var(--form-column-width);
+  --feedback-dialog-padding: var(--bp-space-6);
+  --feedback-dialog-backdrop: rgb(17 16 14 / 0.72);
+  --feedback-toast-width: 400px;
+  --feedback-toast-offset: var(--bp-space-4);
+  --feedback-toast-shadow: var(--elevation-raised);
+  --feedback-body-spacing: var(--bp-space-6);
+  --feedback-page-min-height: 60svh;
+  --feedback-toast-layer: 80;
+  --feedback-close-optical-offset: -6px;
+
+  /* Empty and loading roles */
+  --state-content-width: var(--form-column-width);
+  --state-padding: var(--bp-space-8);
+  --state-gap: var(--bp-space-3);
+  --state-icon-surface: var(--surface-subtle);
+  --state-icon-border: var(--elevation-border);
+  --state-skeleton-base: var(--surface-subtle);
+  --state-skeleton-highlight: var(--surface-base);
+  --state-skeleton-radius: var(--control-radius);
+  --state-skeleton-line-height: var(--bp-space-4);
+  --state-skeleton-title-width: 56%;
+  --state-skeleton-body-width: 82%;
+  --state-skeleton-short-width: 38%;
+
+  /* Authentication flow roles */
+  --auth-shell-width: 1120px;
+  --auth-form-width: var(--form-column-width);
+  --auth-shell-padding-block: var(--bp-space-6);
+  --auth-flow-padding-block: var(--bp-space-12);
+  --auth-step-gap: var(--bp-space-8);
+  --auth-form-gap: var(--bp-space-6);
+  --auth-copy-gap: var(--bp-space-3);
+  --auth-summary-gap: var(--bp-space-2);
+  --auth-aside-background: var(--surface-subtle);
+  --auth-aside-padding: var(--bp-space-8);
+
+  /* Authenticated player shell roles */
+  --shell-max-width: 1440px;
+  --shell-sidebar-width: 248px;
+  --shell-header-height: 72px;
+  --shell-mobile-nav-height: 72px;
+  --shell-content-padding-block: var(--bp-space-8);
+  --shell-content-gap: var(--bp-space-6);
+  --shell-nav-gap: var(--bp-space-1);
+  --shell-nav-padding: var(--bp-space-4);
+  --shell-nav-item-padding-inline: var(--bp-space-3);
+  --shell-nav-item-background-current: var(--surface-subtle);
+  --shell-nav-item-text: var(--text-secondary);
+  --shell-nav-item-text-current: var(--text-primary);
+  --shell-header-background: var(--surface-canvas);
+  --shell-navigation-background: var(--surface-base);
+  --shell-divider: var(--elevation-border);
+  --shell-mobile-layer: 50;
+  --shell-page-copy-width: 680px;
+  --shell-page-title-gap: var(--bp-space-2);
+  --shell-page-section-gap: var(--bp-space-8);
+  --shell-safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Wallet and money-flow roles */
+  --wallet-balance-grid-gap: var(--bp-space-4);
+  --wallet-action-gap: var(--bp-space-3);
+  --wallet-panel-padding: var(--bp-space-6);
+  --wallet-panel-gap: var(--bp-space-6);
+  --wallet-panel-radius: var(--bp-radius-card);
+  --wallet-panel-border: var(--elevation-border);
+  --wallet-panel-background: var(--surface-base);
+  --wallet-copy-width: 64ch;
+  --wallet-summary-row-gap: var(--bp-space-2);
+  --wallet-summary-row-padding: var(--bp-space-3);
+  --wallet-summary-divider: var(--elevation-border);
+  --wallet-history-header-gap: var(--bp-space-3);
+  --wallet-history-max-width: 840px;
+  --wallet-status-history-gap: var(--bp-space-4);
+  --wallet-status-marker-size: var(--bp-space-3);
+  --wallet-status-marker-background: var(--feedback-info);
+  --wallet-prototype-surface: var(--feedback-warning-surface);
+
+  /* Responsible-play account workspace */
+  --rg-content-width: 1040px;
+  --rg-section-padding: var(--bp-space-6);
+  --rg-section-gap: var(--bp-space-6);
+  --rg-group-gap: var(--bp-space-4);
+  --rg-control-gap: var(--bp-space-3);
+  --rg-panel-radius: var(--bp-radius-card);
+  --rg-control-radius: var(--control-radius);
+  --rg-panel-border: var(--elevation-border);
+  --rg-divider: var(--elevation-border);
+  --rg-panel-background: var(--surface-base);
+  --rg-subtle-background: var(--surface-subtle);
+  --rg-editor-background: var(--surface-subtle);
+  --rg-status-marker: var(--feedback-info);
+  --rg-option-selected-border: var(--text-primary);
+  --rg-net-positive: var(--money-positive-text);
+  --rg-net-negative: var(--money-negative-text);
+
+  /* Back-office and operations workspace */
+  --ops-canvas-max-width: 1440px;
+  --ops-navigation-width: 248px;
+  --ops-header-height: 68px;
+  --ops-ui-canvas: var(--bp-stone-100);
+  --ops-ui-surface: var(--bp-white);
+  --ops-ui-subtle: var(--bp-canvas);
+  --ops-ui-text: var(--bp-ink-950);
+  --ops-ui-text-muted: var(--bp-stone-700);
+  --ops-ui-border-color: var(--bp-stone-150);
+  --ops-ui-border: var(--control-border-width) solid var(--bp-stone-150);
+  --ops-ui-accent: var(--bp-coral-700);
+  --ops-ui-accent-text: var(--bp-white);
+  --ops-sidebar-background: var(--bp-ink-950);
+  --ops-sidebar-surface: var(--bp-ink-900);
+  --ops-sidebar-text: var(--bp-canvas);
+  --ops-sidebar-text-muted: var(--bp-stone-300);
+  --ops-sidebar-border: var(--control-border-width) solid var(--bp-ink-700);
+  --ops-navigation-background: var(--surface-base);
+  --ops-navigation-current: var(--surface-subtle);
+  --ops-navigation-text: var(--text-secondary);
+  --ops-navigation-text-current: var(--text-primary);
+  --ops-workspace-background: var(--surface-canvas);
+  --ops-panel-background: var(--surface-base);
+  --ops-panel-subtle: var(--surface-subtle);
+  --ops-panel-border: var(--elevation-border);
+  --ops-panel-radius: var(--bp-radius-card);
+  --ops-control-radius: var(--bp-radius-control);
+  --ops-table-radius: 0px;
+  --ops-panel-padding: var(--bp-space-6);
+  --ops-compact-padding: var(--bp-space-3);
+  --ops-workspace-gap: var(--bp-space-8);
+  --ops-section-gap: var(--bp-space-12);
+  --ops-page-end-gap: var(--bp-space-16);
+  --ops-group-gap: var(--bp-space-4);
+  --ops-tight-gap: var(--bp-space-2);
+  --ops-micro-gap: var(--bp-space-1);
+  --ops-nav-gap: var(--bp-space-1);
+  --ops-nav-padding: var(--bp-space-4);
+  --ops-row-height: 52px;
+  --ops-status-marker-size: var(--bp-space-2);
+  --ops-status-radius: var(--bp-radius-pill);
+  --ops-session-surface: var(--surface-subtle);
+  --ops-session-border: var(--elevation-border);
+  --ops-stale-surface: var(--feedback-warning-surface);
+  --ops-exception-marker: var(--feedback-warning);
+  --ops-critical-marker: var(--feedback-error);
+  --ops-ok-marker: var(--feedback-success);
+  --ops-info-marker: var(--feedback-info);
+  --ops-auth-width: 1120px;
+  --ops-auth-form-width: 560px;
+  --ops-auth-aside-width: 400px;
+  --ops-auth-label-width: 88px;
+  --ops-table-issue-min-width: 280px;
+  --ops-aside-min-width: 280px;
+  --ops-briefing-label-min-width: 160px;
+  --ops-mobile-data-label-width: 96px;
+  --ops-mobile-navigation-layer: 55;
+
+  /* BlackRed game workspace roles */
+  --game-workspace-max-width: 880px;
+  --game-workspace-gap: var(--bp-space-8);
+  --game-section-gap: var(--bp-space-6);
+  --game-choice-gap: var(--bp-space-3);
+  --game-choice-padding: var(--bp-space-4);
+  --game-choice-border: var(--elevation-border);
+  --game-choice-border-selected: var(--control-border-width) solid var(--text-primary);
+  --game-choice-radius: var(--control-radius);
+  --game-choice-background: var(--surface-base);
+  --game-choice-background-selected: var(--surface-subtle);
+  --game-black-surface: var(--bp-ink-950);
+  --game-black-text: var(--bp-white);
+  --game-red-surface: #FF0000;
+  --game-red-text: var(--bp-white);
+  --game-swatch-size: var(--bp-space-8);
+  --game-swatch-border: var(--control-border-width) solid currentColor;
+  --game-sequence-gap: var(--bp-space-2);
+  --game-sequence-cell-size: 56px;
+  --game-sequence-pattern: repeating-linear-gradient(135deg, transparent 0 5px, currentColor 5px 7px, transparent 7px 12px);
+  --game-review-divider: var(--elevation-border);
+  --game-result-padding: var(--bp-space-6);
+  --game-result-radius: var(--bp-radius-card);
+  --game-result-background: var(--surface-base);
+  --game-step-text: var(--action-primary);
+  --game-catalogue-gap: var(--bp-space-6);
+  --game-catalogue-media-size: 72px;
+  --game-reveal-distance: var(--bp-space-2);
+
+  /* BlackRed immersive arena roles */
+  --arena-canvas: var(--bp-ink-950);
+  --arena-header-surface: var(--bp-ink-900);
+  --arena-panel-surface: var(--bp-ink-900);
+  --arena-panel-surface-raised: var(--bp-ink-800);
+  --arena-border: var(--bp-ink-700);
+  --arena-border-strong: var(--bp-stone-700);
+  --arena-text: var(--bp-canvas);
+  --arena-text-muted: var(--bp-stone-300);
+  --arena-red: #FF0000;
+  --arena-red-strong: #FF0000;
+  --arena-warm: var(--bp-amber-400);
+  --arena-success: var(--bp-green-400);
+  --arena-info: var(--bp-blue-400);
+  --arena-error: var(--bp-red-400);
+  --arena-header-height: 72px;
+  --arena-footer-height: 44px;
+  --arena-content-max-width: 1180px;
+  --arena-content-padding: var(--bp-space-6);
+  --arena-stage-gap: var(--bp-space-2);
+  --arena-stage-min-height: 236px;
+  --arena-stage-padding-block: var(--bp-space-3);
+  --arena-panel-padding: var(--bp-space-4);
+  --arena-section-padding-block: var(--bp-space-12);
+  --arena-panel-gap: var(--bp-space-3);
+  --arena-card-width: 128px;
+  --arena-card-height: 154px;
+  --arena-card-radius: var(--bp-radius-card);
+  --arena-card-border: 1px solid var(--arena-border-strong);
+  --arena-card-background: repeating-linear-gradient(135deg, var(--arena-panel-surface-raised) 0 7px, var(--arena-panel-surface) 7px 14px);
+  --arena-card-glow: 0 0 42px color-mix(in srgb, var(--arena-red) 24%, transparent);
+  --arena-choice-min-height: 88px;
+  --arena-choice-radius: var(--bp-radius-feature);
+  --arena-choice-shadow: 0 0 28px color-mix(in srgb, var(--arena-red) 28%, transparent);
+  --arena-control-radius: var(--bp-radius-pill);
+  --arena-rail-width: 150px;
+  --arena-mark-size: 42px;
+  --arena-round-size: 42px;
+  --arena-choice-symbol-size: 34px;
+  --arena-prediction-size: 32px;
+  --arena-confirm-width: 260px;
+  --arena-confirm-padding: var(--bp-space-4);
+  --arena-confirm-gap: var(--bp-space-3);
+  --arena-confirm-layer: 2;
+  --arena-confirm-surface: var(--bp-white);
+  --arena-confirm-text: var(--bp-ink-950);
+  --arena-confirm-border: var(--bp-ink-950);
+  --arena-confirm-action-text: var(--bp-white);
+  --arena-confirm-radius: var(--bp-radius-feature);
+  --arena-confirm-action-radius: var(--bp-radius-card);
+  --arena-confirm-tail-size: var(--bp-space-8);
+  --arena-play-button-width: 210px;
+  --arena-play-button-height: var(--bp-space-16);
+  --arena-play-button-radius: var(--bp-radius-card);
+  --arena-backdrop: radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--arena-red) 8%, transparent), transparent 32%);
+  --arena-pulse-duration: 3200ms;
+  --arena-mobile-header-height: 116px;
+  --arena-mobile-stage-min-height: 340px;
+
+  /* BlackRed single-screen game roles — scoped by the game surface theme. */
+  --br-font: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --br-action: #FF0000;
+  --br-action-hover: #e60000;
+  --br-action-text: var(--bp-white);
+  --br-outcome: linear-gradient(110deg, #FF0000, #e60000);
+  --br-outcome-start: #FF0000;
+  --br-outcome-end: #e60000;
+  --br-red-card: #FF0000;
+  --br-red-card-deep: #e60000;
+  --br-black-card: var(--bp-blackred-950);
+  --br-radius-control: var(--bp-radius-control);
+  --br-radius-card: var(--bp-radius-card);
+  --br-radius-sheet: var(--bp-radius-feature);
+  --br-radius-action: var(--bp-radius-control);
+  --br-radius-data: 0px;
+  --br-space-tight: var(--bp-space-2);
+  --br-space-group: var(--bp-space-4);
+  --br-space-section: var(--bp-space-8);
+  --br-space-major: var(--bp-space-12);
+  --br-card-flip-duration: 520ms;
+  --br-card-settle-duration: 260ms;
+  --br-card-stagger: 520ms;
+  --br-reveal-ease: cubic-bezier(0.2, 0.86, 0.3, 1.12);
+  --br-topbar-height: 60px;
+  --br-session-height: 68px;
+  --br-rail-width: 420px;
+  --br-content-width: 1440px;
+  --br-mobile-gutter: var(--bp-space-4);
+  --br-dark-canvas: var(--bp-blackred-950);
+  --br-dark-surface: var(--bp-blackred-900);
+  --br-dark-raised: var(--bp-blackred-850);
+  --br-dark-text: var(--bp-canvas);
+  --br-dark-muted: var(--bp-stone-300);
+  --br-dark-rule: var(--bp-blackred-750);
+  --br-dark-focus: #FF0000;
+  --br-dark-tier-accent: #FF0000;
+  --br-dark-error: #FF0000;
+  --br-light-canvas: var(--bp-stone-100);
+  --br-light-surface: var(--bp-white);
+  --br-light-raised: var(--bp-canvas);
+  --br-light-text: var(--bp-ink-950);
+  --br-light-muted: var(--bp-stone-700);
+  --br-light-rule: var(--bp-stone-300);
+  --br-light-focus: #FF0000;
+  --br-light-tier-accent: #FF0000;
+  --br-light-error: #FF0000;
+  --br-card-text: var(--bp-white);
+  --br-card-back-line: var(--bp-ink-700);
+
+  /* Heritage immersive game roles */
+  --hg-action: var(--bp-amber-400);
+  --hg-action-text: var(--bp-ink-950);
+  --hg-action-hover: #ffc94f;
+  --hg-accent: var(--bp-heritage-500);
+  --hg-accent-strong: var(--bp-heritage-600);
+  --hg-clay: var(--bp-heritage-clay-500);
+  --hg-outcome: var(--bp-outcome-start);
+  --hg-dark-canvas: var(--bp-heritage-950);
+  --hg-dark-surface: var(--bp-heritage-900);
+  --hg-dark-raised: var(--bp-heritage-850);
+  --hg-dark-board: var(--bp-heritage-800);
+  --hg-dark-rule: var(--bp-heritage-700);
+  --hg-dark-text: var(--bp-canvas);
+  --hg-dark-muted: var(--bp-stone-300);
+  --hg-light-canvas: var(--bp-stone-100);
+  --hg-light-surface: var(--bp-white);
+  --hg-light-raised: var(--bp-canvas);
+  --hg-light-board: var(--bp-heritage-parchment);
+  --hg-light-rule: var(--bp-stone-300);
+  --hg-light-text: var(--bp-ink-950);
+  --hg-light-muted: var(--bp-stone-700);
+  --hg-radius-tile: 8px;
+  --hg-radius-panel: var(--bp-radius-card);
+  --hg-radius-sheet: var(--bp-radius-feature);
+  --hg-topbar-height: 64px;
+  --hg-session-height: 68px;
+  --hg-rail-width: 360px;
+  --hg-content-width: 1440px;
+  --hg-reveal-duration: 620ms;
+  --hg-reveal-ease: cubic-bezier(0.2, 0.86, 0.3, 1.08);
+  --hg-brand-canvas: var(--bp-heritage-midnight);
+  --hg-brand-surface: var(--bp-heritage-navy-900);
+  --hg-brand-raised: var(--bp-heritage-navy-800);
+  --hg-brand-rule: var(--bp-heritage-navy-700);
+  --hg-brand-muted: var(--bp-heritage-navy-500);
+  --hg-brand-text: var(--bp-heritage-cream);
+  --hg-brand-gold: var(--bp-heritage-gold);
+  --hg-brand-gold-deep: var(--bp-heritage-gold-deep);
+  --hg-brand-match: var(--bp-heritage-emerald);
+  --hg-brand-match-deep: var(--bp-heritage-emerald-deep);
+  --hg-brand-different: var(--bp-heritage-coral);
+
+  /* Withdrawal and payout roles */
+  --payout-workspace-max-width: 840px;
+  --payout-workspace-gap: var(--bp-space-8);
+  --payout-option-gap: var(--bp-space-3);
+  --payout-option-padding: var(--bp-space-4);
+  --payout-option-border: var(--elevation-border);
+  --payout-option-border-selected: var(--control-border-width) solid var(--text-primary);
+  --payout-option-radius: var(--control-radius);
+  --payout-option-background: var(--surface-base);
+  --payout-option-background-selected: var(--surface-subtle);
+  --payout-progress-height: var(--bp-space-3);
+  --payout-progress-track: var(--surface-subtle);
+  --payout-progress-fill: var(--action-primary);
+  --payout-status-gap: var(--bp-space-2);
+  --payout-receipt-gap: var(--bp-space-8);
+  --payout-review-surface: var(--feedback-warning-surface);
+
+  /* Typography roles — mobile-first; desktop overrides at 768px. */
+  --font-display: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Sora", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --type-display-size: clamp(2rem, 7vw, 3.5rem);
+  --type-display-weight: 750;
+  --type-display-leading: 1.05;
+  --type-h1-size: 32px;
+  --type-h1-weight: 700;
+  --type-h1-leading: 1.15;
+  --type-h2-size: 26px;
+  --type-h2-weight: 700;
+  --type-h2-leading: 1.2;
+  --type-h3-size: 21px;
+  --type-h3-weight: 650;
+  --type-h3-leading: 1.25;
+  --type-body-size: 16px;
+  --type-body-weight: 400;
+  --type-body-leading: 1.5;
+  --type-body-strong-weight: 650;
+  --type-small-size: 14px;
+  --type-caption-size: 12px;
+  --type-caption-weight: 550;
+  --type-money-hero-size: 30px;
+  --type-money-hero-weight: 700;
+
+  /* Layout */
+  --gutter: var(--bp-space-4);
+  --section-gap: var(--bp-space-8);
+  --content-max-width: 1120px;
+  --form-column-width: 640px;
+
+  /* Elevation */
+  --elevation-border: 1px solid var(--border-default);
+  --elevation-raised: 0 8px 24px -12px rgb(17 16 14 / 0.24);
+
+  /* Motion (reassigned wholesale under reduced-motion below) */
+  --motion-instant: var(--bp-duration-instant);
+  --motion-fast: var(--bp-duration-fast);
+  --motion-base: var(--bp-duration-base);
+  --motion-reveal: var(--bp-duration-reveal);
+  --motion-ease-out: var(--bp-ease-out);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --type-h1-size: 40px;
+    --type-h2-size: 32px;
+    --type-h3-size: 24px;
+    --type-money-hero-size: 36px;
+    --gutter: var(--bp-space-8);
+    --section-gap: var(--bp-space-12);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --surface-canvas: var(--bp-ink-950);
+    --surface-base: var(--bp-ink-900);
+    --surface-subtle: var(--bp-ink-800);
+    --text-primary: var(--bp-canvas);
+    --text-secondary: var(--bp-stone-300);
+    --border-default: var(--bp-ink-700);
+    --action-primary: var(--bp-blue-400);
+    --action-primary-text: var(--bp-ink-950);
+    --focus-ring: var(--bp-blue-400);
+    --feedback-success: var(--bp-green-400);
+    --feedback-info: var(--bp-blue-400);
+    --feedback-warning: var(--bp-amber-400);
+    --feedback-error: var(--bp-red-400);
+    --button-primary-hover: var(--bp-blue-400);
+    --button-quiet-hover-text: var(--bp-blue-400);
+    --button-dark-surface: var(--bp-canvas);
+    --button-dark-hover: var(--bp-white);
+    --button-dark-text: var(--bp-ink-950);
+    --button-success-surface: var(--bp-green-400);
+    --button-success-text: var(--bp-ink-950);
+    --button-error-surface: var(--bp-red-400);
+    --button-error-text: var(--bp-ink-950);
+    --elevation-raised: 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-instant: 1ms;
+    --motion-fast: 1ms;
+    --motion-base: 1ms;
+    --motion-reveal: 1ms;
+  }
+}

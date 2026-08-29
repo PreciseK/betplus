@@ -1,0 +1,35 @@
+# Betplus secret-scanning config — REQ-SEC-005.
+#
+# Extends gitleaks' default ruleset (generic API keys, AWS, private key blocks, JWTs, etc.)
+# rather than replacing it. The rules below cover credential shapes specific to this project
+# that the default set has no reason to know about.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "opay-rsa-private-key"
+description = "OPay payout RSA private key. Must live only in the secret store (REQ-PAY-012, REQ-SEC-005) — never in source control, in either format."
+regex = '''-----BEGIN (RSA )?PRIVATE KEY-----'''
+tags = ["key", "opay", "critical"]
+
+[[rules]]
+id = "opay-merchant-credential"
+description = "OPay merchant secret or client key, from the .env surface documented in .env.example."
+regex = '''(?i)(OPAY_(MERCHANT_SECRET|CLIENT_SECRET|CLIENT_KEY|PUBLIC_KEY_ID))\s*=\s*['"]?[A-Za-z0-9+/=_-]{16,}['"]?'''
+tags = ["opay", "secret"]
+
+[[rules]]
+id = "identity-vendor-credential"
+description = "NIN/BVN identity vendor API key (REQ-ID-022) — the vendor is confirmed in C-04; whichever it is, its key never lands in source."
+regex = '''(?i)(IDENTITY_VENDOR|NIN_VENDOR|BVN_VENDOR)_(API_KEY|SECRET)\s*=\s*['"]?[A-Za-z0-9+/=_-]{16,}['"]?'''
+tags = ["identity", "secret"]
+
+[allowlist]
+description = "Paths that legitimately contain the string patterns above without being secrets."
+paths = [
+  '''\.env\.example$''',
+  '''docs/live-production-findings\.md$''',
+  '''docs/reconstructed-ddl\.sql$''',
+  '''BlackRed/EngineAndServices/ussd/config\.example\.php$''',
+]

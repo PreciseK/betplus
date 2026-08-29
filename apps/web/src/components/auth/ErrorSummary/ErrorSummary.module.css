@@ -1,0 +1,4 @@
+.summary { display: flex; align-items: flex-start; gap: var(--feedback-panel-gap); padding: var(--feedback-panel-padding); border: var(--control-border-width) solid var(--feedback-error); border-radius: var(--feedback-panel-radius); background: var(--feedback-error-surface); color: var(--feedback-error); }
+.summary h2 { margin: 0; color: var(--text-primary); font-size: var(--type-body-size); line-height: var(--type-body-leading); }
+.summary ul { margin: var(--auth-summary-gap) 0 0; padding-inline-start: var(--feedback-body-spacing); color: var(--text-primary); font-size: var(--type-small-size); }
+.summary a { text-decoration: underline; text-underline-offset: var(--field-label-gap); }

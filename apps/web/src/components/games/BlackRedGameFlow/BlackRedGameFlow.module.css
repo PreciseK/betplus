@@ -1,0 +1,2066 @@
+/* BlackRed Game Flow - Single-Viewport Zero-Scroll Design System */
+
+.viewportContainer,
+.systemState {
+  --br-canvas: var(--br-dark-canvas, #0a0606);
+  --br-surface: var(--br-dark-surface, #140808);
+  --br-raised: var(--br-dark-raised, #1f0c0c);
+  --br-text: var(--br-dark-text, #F6F1E7);
+  --br-muted: var(--br-dark-muted, rgba(246, 241, 231, 0.6));
+  --br-rule: var(--br-dark-rule, rgba(246, 241, 231, 0.1));
+  --br-focus: var(--br-dark-focus, #FF0000);
+  --br-tier-accent: var(--br-dark-tier-accent, #FF0000);
+  --br-error: var(--br-dark-error, #ef4444);
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--br-canvas);
+  color: var(--br-text);
+  font-family: var(--br-font, 'Sora', system-ui, sans-serif);
+  font-variant-numeric: tabular-nums;
+}
+
+.viewportContainer[data-theme="light"] {
+  --br-canvas: #f8f6f2;
+  --br-surface: #ffffff;
+  --br-raised: #f1ede5;
+  --br-text: #1a0f0f;
+  --br-muted: #6b5c5c;
+  --br-rule: rgba(0, 0, 0, 0.1);
+  --br-focus: #FF0000;
+  --br-tier-accent: #FF0000;
+  --br-error: #dc2626;
+}
+
+.viewportContainer *,
+.viewportContainer *::before,
+.viewportContainer *::after {
+  box-sizing: border-box;
+}
+
+.viewportContainer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.viewportContainer button,
+.viewportContainer input {
+  font: inherit;
+  outline: none;
+}
+
+.viewportContainer button:focus-visible,
+.viewportContainer input:focus-visible {
+  outline: 2px solid var(--br-focus);
+  outline-offset: 2px;
+}
+
+/* ========================================================
+   1. COMPACT TOPBAR (Height ~48px)
+   ======================================================== */
+.compactTopbar {
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--br-rule);
+  background: var(--br-surface);
+  z-index: 10;
+}
+
+.topbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.backBtn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #f87171;
+}
+
+.topbarDivider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brandLogo {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(255, 0, 0, 0.6));
+}
+
+.brandTitle {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--br-text);
+}
+
+.instantBadge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 0, 0, 0.12);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  font-size: 11px;
+  font-weight: 700;
+  color: #FF0000;
+}
+
+@media (max-width: 1100px) {
+  .compactTopbar {
+    padding: 6px 12px;
+    gap: 8px;
+  }
+  
+  .backBtn {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .brandTitle {
+    font-size: 13px;
+  }
+
+  .instantBadge {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .instantBadge { display: none; }
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compactBalanceChip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chipLabel {
+  color: var(--br-muted);
+  font-size: 11px;
+}
+
+.chipGold {
+  color: #E0B84B;
+}
+
+.topupBtn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: #FF0000;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.4);
+  transition: all 0.18s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.topupBtn:hover {
+  background: #e60000;
+  transform: translateY(-1px);
+}
+
+.withdrawTopBtn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: rgba(224, 184, 75, 0.15);
+  border: 1px solid rgba(224, 184, 75, 0.4);
+  color: #E0B84B;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.withdrawTopBtn:hover {
+  background: rgba(224, 184, 75, 0.25);
+  transform: translateY(-1px);
+}
+
+.themeBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  color: var(--br-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.ageBadge {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--br-muted);
+  padding: 2px 6px;
+  border: 1px solid var(--br-rule);
+  border-radius: 6px;
+}
+
+/* ========================================================
+   2. MAIN WORKSPACE (Single Viewport 100vh Zero-Scroll)
+   ======================================================== */
+.viewportWorkspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 290px;
+  gap: 12px;
+  padding: 10px 16px;
+  overflow: hidden;
+}
+
+@media (max-width: 960px) {
+  .viewportWorkspace {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}
+
+/* Left Main Gaming Form */
+.mainGamingSurface {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* Common Step Section Headers */
+.stepHeaderRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepBadge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 0, 0, 0.15);
+  border: 1px solid rgba(255, 0, 0, 0.35);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #FF0000;
+  flex-shrink: 0;
+}
+
+.stepTitle {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}
+
+.stepTitle em {
+  font-style: normal;
+  color: #FF0000;
+}
+
+.stepSubtitle {
+  font-size: 11px;
+  color: var(--br-muted);
+  margin-left: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ========================================================
+   STEP 1: CARDS COUNT / MULTIPLIER TILES
+   ======================================================== */
+.stepSectionCompact {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--br-surface);
+  border: 1px solid var(--br-rule);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.countTilesGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.countTile {
+  padding: 6px 4px;
+  border-radius: 10px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.18s;
+  color: var(--br-text);
+}
+
+.countTile:hover {
+  border-color: rgba(255, 0, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.countTileActive {
+  background: linear-gradient(145deg, #FF1A1A 0%, #FF0000 60%, #B30000 100%);
+  color: #fff;
+  border-color: #FF0000;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.countTileNumber {
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.countTileMultiplier {
+  font-size: 12px;
+  font-weight: 800;
+  color: #FF0000;
+}
+
+.countTileActive .countTileMultiplier {
+  color: #fff;
+}
+
+.countTileSubtitle {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--br-muted);
+}
+
+.countTileActive .countTileSubtitle {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ========================================================
+   MIDDLE ROW: STEP 2 (CARDS 75%) + LIVE WINNERS (25%)
+   ======================================================== */
+.step2AndWinnersRow {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 10px;
+  overflow: hidden;
+}
+
+@media (max-width: 800px) {
+  .step2AndWinnersRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stepSectionCards {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--br-surface);
+  border: 1px solid var(--br-rule);
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.cardsRowWrapper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardsRow {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.cardItem {
+  height: 100%;
+  max-height: 180px;
+  flex: 1;
+  max-width: 125px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Vertical Rectangle Playing Card Look */
+.formerPredictionCard {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1.52;
+  min-height: 120px;
+  max-height: 175px;
+  border-radius: 12px;
+  position: relative;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.formerPredictionCard:hover {
+  transform: translateY(-3px) scale(1.02);
+}
+
+.formerPredictionCard[data-colour="R"] {
+  background: linear-gradient(145deg, #FF1A1A 0%, #FF0000 60%, #B30000 100%);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(255, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.formerPredictionCard[data-colour="B"] {
+  background: linear-gradient(145deg, #262626 0%, #141414 60%, #060606 100%);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(246, 241, 231, 0.2);
+}
+
+.formerPredictionCard[data-colour="empty"] {
+  background: var(--br-raised);
+  border: 1px dashed var(--br-rule);
+  color: var(--br-muted);
+}
+
+.cardSlotBadge {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.8;
+}
+
+.cardCenterBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin: auto 0;
+}
+
+.cardSuitIcon {
+  font-size: 30px;
+  line-height: 1;
+  font-style: normal;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+.cardColorLabel {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.cardTapPrompt {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--br-muted);
+}
+
+.emptyCardsHero {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--br-raised);
+  border: 1px dashed var(--br-rule);
+  text-align: center;
+  gap: 4px;
+}
+
+.emptyHeroIcon {
+  font-size: 18px;
+  font-weight: 900;
+  color: #FF0000;
+  letter-spacing: 0.05em;
+}
+
+.emptyCardsHero p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--br-muted);
+}
+
+/* Live Winners Beside Section (25% Column) */
+.liveWinnersBesideSection {
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: var(--br-surface);
+  border: 1px solid var(--br-rule);
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.liveWinnersHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.liveWinnersTitle {
+  font-size: 12px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.liveFeedTag {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  padding: 1px 5px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.livePulseDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: pulseDot 1.4s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+.liveWinnersList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.liveWinItemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border-radius: 7px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  animation: slideInWin 0.3s ease-out;
+  gap: 4px;
+}
+
+@keyframes slideInWin {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.liveWinUserBlock {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.liveWinAvatar {
+  font-size: 11px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.liveWinUser {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--br-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.liveWinTier {
+  display: block;
+  font-size: 8.5px;
+  font-weight: 700;
+  color: var(--br-muted);
+  white-space: nowrap;
+}
+
+.liveWinPayoutBlock {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.liveWinAmount {
+  font-size: 10.5px;
+  font-weight: 900;
+  color: #22c55e;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.liveWinTime {
+  font-size: 8px;
+  color: var(--br-muted);
+  white-space: nowrap;
+}
+
+.fieldError {
+  color: var(--br-error);
+  font-size: 11px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ========================================================
+   BOTTOM CONTROL SPLIT (Stake Box + Step 3 Launch Box)
+   ======================================================== */
+.bottomControlSplit {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 680px) {
+  .bottomControlSplit {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stakeBoxSection,
+.step3LaunchSection {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--br-surface);
+  border: 1px solid var(--br-rule);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.splitBoxHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.splitBoxTitle {
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.splitBoxTitle em {
+  font-style: normal;
+  color: #FF0000;
+}
+
+.stakeRangeHint {
+  font-size: 10px;
+  color: var(--br-muted);
+}
+
+.stakeChipsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.stakeChip {
+  padding: 5px 2px;
+  border-radius: 6px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  color: var(--br-text);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.stakeChip:hover {
+  border-color: rgba(255, 0, 0, 0.4);
+}
+
+.stakeChipActive {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: #FF0000;
+  color: #FF0000;
+}
+
+.stakeInputWrapper {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  gap: 6px;
+}
+
+.nairaPrefix {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--br-muted);
+}
+
+.stakeCustomInput {
+  background: transparent;
+  border: none;
+  color: var(--br-text);
+  font-size: 14px;
+  font-weight: 800;
+  width: 100%;
+}
+
+.inlineRecoveryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-size: 11px;
+  color: var(--br-error);
+}
+
+.inlineRecoveryRow button {
+  background: #FF0000;
+  color: #fff;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Step 3 Recap & Launch */
+.recapPillRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.recapPill {
+  width: 20px;
+  height: 26px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.pillRed {
+  background: linear-gradient(145deg, #FF1A1A 0%, #FF0000 60%, #B30000 100%);
+}
+
+.pillBlack {
+  background: linear-gradient(145deg, #262626 0%, #141414 60%, #060606 100%);
+}
+
+.pillEmpty {
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  color: var(--br-muted);
+}
+
+.noPillText {
+  font-size: 10px;
+  color: var(--br-muted);
+}
+
+.breakdownMetricsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+}
+
+.breakdownItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.breakdownItem span {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--br-muted);
+  text-transform: uppercase;
+}
+
+.breakdownItem strong {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.goldWinAmount {
+  color: #E0B84B !important;
+}
+
+.bigLaunchCta {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: #FF0000;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 0, 0, 0.6);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bigLaunchCta:hover:not(:disabled) {
+  background: #e60000;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 0, 0, 0.8);
+}
+
+.bigLaunchCta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ========================================================
+   3. COMPACT RIGHT SIDEBAR (Account & Recent Activity)
+   ======================================================== */
+.compactAccountRail {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--br-surface);
+  border: 1px solid var(--br-rule);
+  border-radius: 16px;
+  overflow-y: auto;
+}
+
+.railHeader h3 {
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.railBalancesCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.railTotalBalanceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.16) 0%, rgba(224, 184, 75, 0.12) 100%);
+  border: 1px solid rgba(255, 0, 0, 0.35);
+}
+
+.totalBalanceLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--br-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.totalBalanceAmount {
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.railBalanceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+}
+
+.railBalanceRow span {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--br-muted);
+  display: block;
+}
+
+.railBalanceRow strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.railTopupMini {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #FF0000;
+  color: #fff;
+  border: none;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.railWithdrawMini {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(224, 184, 75, 0.15);
+  border: 1px solid rgba(224, 184, 75, 0.4);
+  color: #E0B84B;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.railWithdrawMini:hover {
+  background: rgba(224, 184, 75, 0.3);
+}
+
+.withdrawAvailableNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  font-size: 12px;
+}
+
+.withdrawAvailableNotice span {
+  color: var(--br-muted);
+}
+
+.withdrawQuickChipsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.withdrawQuickChip {
+  padding: 6px 2px;
+  border-radius: 6px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  color: var(--br-text);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.withdrawQuickChip:hover {
+  border-color: rgba(224, 184, 75, 0.5);
+  color: #E0B84B;
+}
+
+.destinationHint {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  padding: 4px 0;
+  color: var(--br-muted);
+}
+
+.destinationHint strong {
+  color: var(--br-text);
+}
+
+/* Turnover Progress Card */
+.railTurnoverCard {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.turnoverLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+}
+
+.turnoverLabels span {
+  color: var(--br-muted);
+}
+
+.turnoverLabels strong {
+  font-weight: 700;
+}
+
+.turnoverTrack {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--br-rule);
+  overflow: hidden;
+}
+
+.turnoverFill {
+  height: 100%;
+  background: #FF0000;
+  border-radius: 2px;
+}
+
+/* Recent Rounds History */
+.railRecentRounds {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.railRecentRounds h4 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--br-muted);
+  margin: 0;
+}
+
+.roundsListScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.roundItemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--br-raised);
+  font-size: 11px;
+}
+
+.roundRefText {
+  color: var(--br-muted);
+  font-weight: 600;
+}
+
+.wonTag {
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 10px;
+}
+
+.lostTag {
+  color: var(--br-muted);
+  font-size: 10px;
+}
+
+.wonAmount {
+  color: #22c55e;
+  font-weight: 800;
+}
+
+.lostAmount {
+  color: var(--br-muted);
+  font-weight: 700;
+}
+
+/* ========================================================
+   4. ULTRA COMPACT LEGAL FOOTER (Height ~28px)
+   ======================================================== */
+.compactLegalBar {
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--br-muted);
+  border-top: 1px solid var(--br-rule);
+  background: var(--br-surface);
+}
+
+.compactLegalBar a:hover {
+  color: var(--br-text);
+  text-decoration: underline;
+}
+
+/* Modals & Dialogs */
+/* Modal Sheets (Deposit & Withdraw) */
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: backdropFade 0.2s ease-out;
+}
+
+@keyframes backdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.depositSheet,
+.realitySheet {
+  width: 100%;
+  max-width: 440px;
+  padding: 24px;
+  border-radius: 20px;
+  background: #140808;
+  border: 1px solid rgba(255, 0, 0, 0.28);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), 0 0 30px rgba(255, 0, 0, 0.12);
+  color: var(--br-text);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: sheetPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sheetPop {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.sheetHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.modalEyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--br-muted);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.modalHeadingTitle {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--br-text);
+}
+
+.modalCloseBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  color: var(--br-muted);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.modalCloseBtn:hover {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: #FF0000;
+  color: #fff;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modalInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modalInputLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--br-text);
+}
+
+.modalInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--br-raised);
+  border: 1.5px solid var(--br-rule);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modalInputWrapper:focus-within {
+  border-color: #FF0000;
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.2);
+}
+
+.modalCurrencyPrefix {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--br-muted);
+}
+
+.modalInputField {
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: inherit;
+}
+
+.modalInputField::placeholder {
+  color: rgba(246, 241, 231, 0.3);
+}
+
+.modalInstructions {
+  font-size: 12px;
+  color: var(--br-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.depositDone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.doneCheckIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.15);
+  border: 2px solid #22c55e;
+  color: #22c55e;
+  font-size: 22px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doneMessage {
+  font-size: 13px;
+  color: var(--br-text);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.primaryAction {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background: #FF0000;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 0, 0, 0.5);
+  transition: all 0.18s;
+  text-align: center;
+}
+
+.primaryAction:hover:not(:disabled) {
+  background: #e60000;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 0, 0, 0.7);
+}
+
+.primaryAction:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.secondaryAction {
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--br-raised);
+  color: var(--br-text);
+  border: 1px solid var(--br-rule);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.secondaryAction:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+/* Reality Check & Session Summary Modal */
+.realitySheet {
+  width: 100%;
+  max-width: 460px;
+  padding: 24px;
+  border-radius: 20px;
+  background: #140808;
+  border: 1px solid rgba(255, 0, 0, 0.32);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(255, 0, 0, 0.15);
+  color: var(--br-text);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: sheetPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.realityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.realityBadgeWrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.realityShieldIcon {
+  font-size: 14px;
+}
+
+.realityBadge {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #FF0000;
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.25);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.realityLiveTimer {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--br-muted);
+}
+
+.realityTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.realityTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--br-text);
+  outline: none;
+}
+
+.realitySubtitle {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--br-muted);
+  line-height: 1.45;
+}
+
+.realitySubtitle strong {
+  color: var(--br-text);
+}
+
+.realityMetricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.realityMetricCard {
+  padding: 10px 8px;
+  border-radius: 10px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.realityMetricLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--br-muted);
+}
+
+.realityMetricValue {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--br-text);
+}
+
+.realityNetPositive {
+  font-size: 13px;
+  font-weight: 900;
+  color: #22c55e;
+}
+
+.realityNetNegative {
+  font-size: 13px;
+  font-weight: 900;
+  color: #ef4444;
+}
+
+.realityActionsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.realityActionsRow .secondaryAction {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.realityHelpLink {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--br-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.realityHelpLink:hover {
+  color: #FF0000;
+  text-decoration: underline;
+}
+
+/* ========================================================
+   5. SYSTEM STATE / LOADING & ERROR SCREENS
+   ======================================================== */
+.systemState {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #000000 !important;
+  color: #F6F1E7 !important;
+  overflow: hidden;
+}
+
+.systemStateCard {
+  width: 100%;
+  max-width: 440px;
+  padding: 36px 28px;
+  border-radius: 20px;
+  background: #080808;
+  border: 1px solid #222222;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: systemFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes systemFadeIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.systemStateLoaderWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 6px;
+}
+
+.systemStateNeonSpinner {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 0, 0, 0.15);
+  border-top-color: #FF0000;
+  border-right-color: #FF0000;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.4), inset 0 0 15px rgba(255, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: spinNeon 1.2s infinite linear;
+  position: relative;
+}
+
+@keyframes spinNeon {
+  to { transform: rotate(360deg); }
+}
+
+.spinnerCoreCards {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  animation: counterSpin 1.2s infinite linear;
+}
+
+@keyframes counterSpin {
+  to { transform: rotate(-360deg); }
+}
+
+.spinnerCardSuitRed {
+  font-size: 20px;
+  color: #FF0000;
+  filter: drop-shadow(0 0 8px #FF0000);
+}
+
+.spinnerCardSuitBlack {
+  font-size: 20px;
+  color: #f6f1e7;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+.loadingShimmerTrack {
+  width: 180px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--br-raised);
+  overflow: hidden;
+  position: relative;
+}
+
+.loadingShimmerBar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  background: linear-gradient(90deg, transparent 0%, #FF0000 50%, transparent 100%);
+  border-radius: 999px;
+  animation: shimmerMove 1.4s infinite ease-in-out;
+}
+
+@keyframes shimmerMove {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+.systemErrorIconWrapper {
+  font-size: 40px;
+  margin-bottom: 4px;
+}
+
+.systemStateTitle {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+  color: var(--br-text);
+}
+
+.systemStateMessage {
+  font-size: 13px;
+  color: var(--br-muted);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 360px;
+}
+
+.systemStateRecoveryBox {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--br-rule);
+}
+
+.systemAvailability {
+  font-size: 11px;
+  color: var(--br-muted);
+  margin: 0;
+}
+
+.systemActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.systemActionBtnPrimary {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: #FF0000;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  transition: all 0.18s;
+  box-shadow: 0 4px 14px rgba(255, 0, 0, 0.5);
+}
+
+.systemActionBtnPrimary:hover {
+  background: #e60000;
+  transform: translateY(-1px);
+}
+
+.systemActionBtn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--br-raised);
+  border: 1px solid var(--br-rule);
+  color: var(--br-text);
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  transition: all 0.18s;
+}
+
+.systemActionBtn:hover {
+  border-color: rgba(255, 0, 0, 0.4);
+  color: #fff;
+}
+
+/* ========================================================
+   RESPONSIVE COMPOSITIONS
+   Below desktop, the game becomes a normal document-flow
+   workspace. Nothing is scaled or clipped to mimic desktop.
+   ======================================================== */
+@media (max-width: 960px) {
+  .viewportContainer {
+    height: auto;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .viewportWorkspace {
+    flex: none;
+    display: block;
+    min-height: auto;
+    padding: 16px;
+    overflow: visible;
+  }
+
+  .mainGamingSurface {
+    height: auto;
+    min-height: auto;
+    gap: 16px;
+    overflow: visible;
+  }
+
+  .step2AndWinnersRow {
+    min-height: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    overflow: visible;
+  }
+
+  .stepSectionCards {
+    height: auto;
+    min-height: 320px;
+  }
+
+  .cardsRowWrapper,
+  .cardsRow {
+    height: auto;
+    min-height: 220px;
+  }
+
+  .cardItem {
+    height: auto;
+    min-height: 180px;
+  }
+
+  .formerPredictionCard {
+    height: auto;
+    min-height: 180px;
+  }
+
+  .emptyCardsHero {
+    min-height: 220px;
+  }
+
+  .liveWinnersBesideSection {
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .liveWinnersList {
+    max-height: 180px;
+  }
+
+  .compactAccountRail {
+    height: auto;
+    min-height: auto;
+    margin-top: 16px;
+    overflow: visible;
+  }
+
+  .railRecentRounds,
+  .roundsListScroll {
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .compactLegalBar {
+    height: auto;
+    min-height: 52px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    flex-wrap: wrap;
+    gap: 6px 18px;
+  }
+}
+
+@media (max-width: 680px) {
+  .viewportWorkspace {
+    padding: 14px;
+  }
+
+  .compactTopbar {
+    position: sticky;
+    top: 0;
+    height: auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .topbarLeft {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .topbarDivider,
+  .brandTitle,
+  .withdrawTopBtn {
+    display: none;
+  }
+
+  .backBtn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .backBtn span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .brandLogo {
+    height: 30px;
+  }
+
+  .topbarRight {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px 44px 40px;
+    gap: 6px;
+  }
+
+  .compactBalanceChip {
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 8px;
+    display: grid;
+    align-content: center;
+    gap: 0;
+  }
+
+  .compactBalanceChip strong {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chipLabel {
+    font-size: 9px;
+  }
+
+  .viewportContainer .topupBtn {
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .topupBtn::after {
+    content: "+";
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .themeBtn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .ageBadge {
+    min-width: 40px;
+    min-height: 44px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+  }
+
+  .stepSectionCompact,
+  .stepSectionCards,
+  .stakeBoxSection,
+  .step3LaunchSection,
+  .compactAccountRail {
+    border-radius: 12px;
+  }
+
+  .stepHeaderRow {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .stepSubtitle {
+    grid-column: 1 / -1;
+    margin-left: 0;
+    white-space: normal;
+  }
+
+  .countTilesGrid {
+    gap: 6px;
+  }
+
+  .countTile {
+    min-height: 78px;
+    padding: 10px 2px;
+  }
+
+  .cardsRow {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .cardItem {
+    min-width: 0;
+    min-height: 156px;
+  }
+
+  .formerPredictionCard {
+    min-height: 156px;
+    padding: 8px;
+  }
+
+  .stakeChipsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .stakeChip {
+    min-height: 44px;
+    font-size: 12px;
+  }
+
+  .stakeInputWrapper {
+    min-height: 48px;
+  }
+
+  .bigLaunchCta {
+    min-height: 52px;
+  }
+
+  .compactLegalBar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .viewportWorkspace {
+    padding-inline: 12px;
+  }
+
+  .topbarRight {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px 44px;
+  }
+
+  .ageBadge {
+    display: none;
+  }
+
+  .countTileSubtitle {
+    font-size: 8px;
+  }
+
+  .cardSuitIcon {
+    font-size: 25px;
+  }
+
+  .breakdownMetricsRow {
+    padding: 8px;
+  }
+}

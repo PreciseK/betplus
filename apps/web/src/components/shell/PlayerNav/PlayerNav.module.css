@@ -1,0 +1,136 @@
+.desktop ul,
+.mobile ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+/* DESKTOP VERTICAL ICON RAIL */
+.desktop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.desktop ul {
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.desktop li {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.desktop .link {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a1a1aa;
+  background: #1e1e24;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.desktop .link span {
+  position: absolute;
+  left: 60px;
+  background: #18181c;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-8px);
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+}
+
+.desktop .link:hover {
+  background: #27272e;
+  color: #ffffff;
+  transform: scale(1.06);
+}
+
+.desktop .link:hover span {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.desktop .activeLink {
+  background: linear-gradient(135deg, #d71108 0%, #150061 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.45);
+}
+
+/* MOBILE BOTTOM FLOATING DOCK */
+.mobile {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: rgba(20, 20, 23, 0.88);
+  backdrop-filter: blur(16px);
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+  width: calc(100% - 32px);
+  max-width: 440px;
+}
+
+.mobile ul {
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.mobile .link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #a1a1aa;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.mobile .link:hover,
+.mobile .activeLink {
+  color: #d71108;
+}
+
+.mobile .activeLink {
+  background: rgba(234, 88, 12, 0.15);
+}
+
+@media (min-width: 961px) {
+  .mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .desktop {
+    display: none;
+  }
+}

@@ -1,0 +1,61 @@
+.field {
+  display: grid;
+  gap: var(--field-stack-gap);
+}
+
+.control {
+  display: flex;
+  min-height: var(--control-target-min);
+  align-items: flex-start;
+  gap: var(--control-gap);
+  cursor: pointer;
+}
+
+.input {
+  width: var(--field-checkbox-size);
+  height: var(--field-checkbox-size);
+  margin: 0;
+  margin-block-start: var(--field-label-gap);
+  flex: 0 0 auto;
+  accent-color: var(--action-primary);
+  cursor: inherit;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+  opacity: var(--control-disabled-opacity);
+}
+
+.control:has(.input:disabled) {
+  cursor: not-allowed;
+  opacity: var(--control-disabled-opacity);
+}
+
+.copy {
+  display: grid;
+  gap: var(--field-label-gap);
+}
+
+.label {
+  color: var(--text-primary);
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-strong-weight);
+  line-height: var(--type-body-leading);
+}
+
+.description {
+  color: var(--field-helper-text);
+  font-size: var(--type-small-size);
+  line-height: var(--type-body-leading);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--field-message-gap);
+  margin: 0;
+  color: var(--field-error-text);
+  font-size: var(--type-small-size);
+  font-weight: var(--type-body-strong-weight);
+  line-height: var(--type-body-leading);
+}

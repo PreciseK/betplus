@@ -1,0 +1,270 @@
+.communityHub {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 290px;
+  box-sizing: border-box;
+}
+
+.hubCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #1f1713 0%, #140e0b 100%);
+  border: 1.5px solid rgba(241, 184, 45, 0.28);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid rgba(241, 184, 45, 0.15);
+  padding-bottom: 5px;
+}
+
+.cardIcon {
+  font-size: 14px;
+}
+
+.cardHeader h3 {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffd88a;
+  margin: 0;
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.liveDot {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  border: 1px solid #22c55e;
+  text-transform: uppercase;
+  animation: pulseLive 2s infinite;
+}
+
+@keyframes pulseLive {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.trophyBadge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(241, 184, 45, 0.15);
+  color: #ffd88a;
+  border: 1px solid rgba(241, 184, 45, 0.4);
+}
+
+/* Activity List */
+.activityList,
+.winnersList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.activityItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 11px;
+}
+
+.activityMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.playerTag {
+  color: #cbd5e1;
+  font-weight: 700;
+  font-size: 10px;
+}
+
+.timeTag {
+  color: #64748b;
+  font-size: 9px;
+}
+
+.activityDetail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actionText {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.amountTag {
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffd88a;
+}
+
+.amountTag[data-badge="win"] {
+  color: #4ade80;
+}
+
+/* Winners Area */
+.winnerItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.rankBadge {
+  font-size: 14px;
+}
+
+.winnerInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.winnerName {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.winnerTribe {
+  font-size: 9px;
+  color: #94a3b8;
+}
+
+.winnerPrize {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.winnerPrize strong {
+  font-size: 11px;
+  color: #ffd88a;
+  font-weight: 800;
+}
+
+.winnerPrize span {
+  font-size: 9px;
+  color: #4ade80;
+  font-weight: 700;
+}
+
+/* Attire Lore Deck */
+.attireLoreDeck {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.loreTribeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.loreTribeHeader strong {
+  font-size: 12px;
+  color: #ffd88a;
+  font-weight: 800;
+}
+
+.loreTribeHeader span {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.loreDescription {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.35;
+  color: #cbd5e1;
+}
+
+.slotTabRow {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.slotTabBtn {
+  flex: 1;
+  min-height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.slotTabBtn[data-active="true"] {
+  background: rgba(241, 184, 45, 0.25);
+  border-color: #f1b82d;
+  box-shadow: 0 0 8px rgba(241, 184, 45, 0.4);
+  transform: scale(1.05);
+}
+
+.activePieceDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-left: 2px solid #f1b82d;
+}
+
+.pieceTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pieceTitleRow strong {
+  font-size: 11px;
+  color: #f8fafc;
+}
+
+.localNameBadge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(241, 184, 45, 0.15);
+  color: #ffd88a;
+  font-weight: 700;
+}
+
+.pieceSignificance {
+  margin: 0;
+  font-size: 9.5px;
+  color: #94a3b8;
+  line-height: 1.3;
+}

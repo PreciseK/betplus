@@ -1,0 +1,355 @@
+.container {
+  display: grid;
+  gap: var(--bp-space-6);
+  width: 100%;
+}
+
+/* Toolbar & View Switcher */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block-end: 16px;
+  border-block-end: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gamesCount {
+  color: #948b9f;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.viewToggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: 999px;
+  background: #1f182e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 2px;
+}
+
+.toggleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #948b9f;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggleButton:hover:not([aria-pressed="true"]) {
+  color: #ffffff;
+  background: #2a223d;
+}
+
+.toggleButton[aria-pressed="true"] {
+  background: #d71108;
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(255, 107, 74, 0.4);
+}
+
+/* Grid Layout */
+.gridCatalogue {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.gridCard {
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #141417;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.gridCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 107, 74, 0.4);
+}
+
+.gridMedia {
+  position: relative;
+  height: 180px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--card-accent) 22%, #111) 0%, #0c0b0b 100%);
+  border-block-end: 1px solid color-mix(in srgb, var(--card-accent) 30%, var(--border-default));
+  padding: var(--bp-space-4);
+  overflow: hidden;
+}
+
+.gridMedia::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--card-accent) 28%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.gridLogo {
+  max-width: 140px;
+  max-height: 130px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.6));
+  transition: transform var(--motion-base) var(--motion-ease-out);
+}
+
+.gridCard:hover .gridLogo {
+  transform: scale(1.06);
+}
+
+.heritageEmblem {
+  width: 90px;
+  height: 90px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px 50% 16px 50%;
+  background: linear-gradient(135deg, #f59e0b, #78350f);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.4);
+}
+
+.badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: var(--bp-radius-pill);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gridBody {
+  padding: var(--bp-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--bp-space-2);
+  flex: 1;
+}
+
+.gameCategory {
+  margin: 0;
+  color: var(--card-accent);
+  font-size: var(--type-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.gameTitle {
+  margin: 0;
+  font-size: var(--type-h2-size);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.gameDescription {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-small-size);
+  line-height: 1.45;
+  margin-block-end: var(--bp-space-3);
+}
+
+.statsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--bp-space-3) var(--bp-space-4);
+  background: var(--surface-subtle);
+  border-radius: var(--control-radius);
+  border: 1px solid var(--border-default);
+  margin-top: auto;
+  gap: var(--bp-space-3);
+}
+
+.statItem {
+  display: grid;
+  gap: 2px;
+}
+
+.statItem span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.statItem strong {
+  color: var(--text-primary);
+  font-size: var(--type-small-size);
+  font-weight: 700;
+}
+
+.gridFooter {
+  padding: 0 var(--bp-space-6) var(--bp-space-6);
+}
+
+.playButton {
+  width: 100%;
+}
+
+.btnGroupRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--bp-space-2);
+}
+
+.secondaryActionBtn {
+  width: 100%;
+  background: var(--surface-subtle) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-default) !important;
+}
+
+.secondaryActionBtn:hover {
+  background: var(--surface-highlight) !important;
+  border-color: var(--card-accent) !important;
+}
+
+/* List Layout */
+.listCatalogue {
+  display: grid;
+  gap: var(--bp-space-4);
+}
+
+.listCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--bp-space-6);
+  padding: var(--bp-space-5);
+  border-radius: var(--bp-radius-card);
+  border: 1px solid var(--border-default);
+  background: var(--surface-base);
+  box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.08);
+  transition: transform var(--motion-fast) var(--motion-ease-out),
+    box-shadow var(--motion-fast) var(--motion-ease-out),
+    border-color var(--motion-fast) var(--motion-ease-out);
+}
+
+.listCard:hover {
+  transform: translateX(4px);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.16);
+  border-color: var(--card-accent);
+}
+
+.listMedia {
+  width: 90px;
+  height: 90px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--control-radius);
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--card-accent) 24%, #111) 0%, #0d0c0c 100%);
+  border: 1px solid color-mix(in srgb, var(--card-accent) 32%, var(--border-default));
+  padding: var(--bp-space-2);
+  flex-shrink: 0;
+}
+
+.listLogo {
+  max-width: 76px;
+  max-height: 76px;
+  object-fit: contain;
+}
+
+.heritageEmblemSmall {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px 40% 12px 40%;
+  background: linear-gradient(135deg, #f59e0b, #78350f);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.listBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bp-space-2);
+  min-width: 0;
+}
+
+.listHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--bp-space-3);
+}
+
+.listHeader .badge {
+  position: static;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+
+.listBody .gameCategory {
+  margin: 0;
+}
+
+.listBody .gameTitle {
+  margin: 0;
+  font-size: var(--type-h3-size);
+}
+
+.listBody .gameDescription {
+  margin: 0;
+}
+
+.listBody .statsRow {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  justify-content: flex-start;
+  gap: var(--bp-space-6);
+}
+
+.listBody .statItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.listAction {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .listCard {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--bp-space-4);
+  }
+
+  .listAction {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .listAction .playButton {
+    width: 100%;
+  }
+}

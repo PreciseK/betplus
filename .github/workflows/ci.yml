@@ -1,0 +1,147 @@
+name: CI
+
+# Story 1.5. Every workspace's static checks and test suite, run on every pull request and on
+# pushes to main. This is the gate — nothing here is advisory.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PHP_VERSION: "8.4"
+  NODE_VERSION: "20.9"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # REQ-SEC-005. A well-maintained, entropy-and-pattern-based scanner is the right tool
+      # here — this is explicitly not reinvented as a project script.
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  platform:
+    name: Platform (Laravel)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_mysql, openssl, mbstring, curl, intl, zip
+          coverage: pcov
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: apps/platform/vendor
+          key: composer-platform-${{ hashFiles('apps/platform/composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist
+        working-directory: apps/platform
+      - name: PHPStan
+        # The `stan` script runs with --debug (see phpstan.neon.dist — a confirmed workaround
+        # for a Windows-specific hang some contributors hit locally). --error-format=github
+        # composes with it rather than replacing it; both together are harmless.
+        run: composer stan -- --error-format=github
+        working-directory: apps/platform
+      - name: Pest (with coverage)
+        run: php artisan test --coverage --min=85
+        working-directory: apps/platform
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+
+  blackred-engine:
+    name: BlackRed engine (pure PHP, no framework)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: pcov
+      - run: composer install --no-interaction --prefer-dist
+        working-directory: apps/engine-blackred
+      - run: composer stan
+        working-directory: apps/engine-blackred
+      - run: composer test
+        working-directory: apps/engine-blackred
+
+  ussd:
+    name: USSD adapter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: curl
+      - run: composer install --no-interaction --prefer-dist
+        working-directory: apps/ussd
+      - run: composer stan
+        working-directory: apps/ussd
+      - run: composer test
+        working-directory: apps/ussd
+
+  heritage-engine:
+    name: Heritage engine (FastAPI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+        working-directory: apps/engine-heritage
+      - run: uv sync --all-extras
+        working-directory: apps/engine-heritage
+      - run: uv run ruff check src tests
+        working-directory: apps/engine-heritage
+      - run: uv run pytest --cov=src --cov-fail-under=85
+        working-directory: apps/engine-heritage
+
+  web:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir apps/web exec tsc --noEmit
+      - run: pnpm --dir apps/web run lint
+      - run: pnpm --dir apps/web run build
+
+  gates:
+    name: Betplus gates (randomness, engine purity, money naming, USSD length, schema drift)
+    runs-on: ubuntu-latest
+    needs: [platform]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_sqlite
+      - run: composer install --no-interaction --prefer-dist
+        working-directory: apps/platform
+      # These are the rules that a linter cannot express because they are about this domain,
+      # not about PHP or Python in general — see each script's own docblock for the rationale.
+      - run: php tools/gates/prohibited-randomness.php
+      - run: php tools/gates/engine-purity.php
+      - run: php tools/gates/money-naming.php
+      - run: php tools/gates/ussd-screen-length.php
+      # No DB_NAME is set here deliberately: on a PR build there is no long-lived staging
+      # database to compare against, so this step verifies migrations apply cleanly and exits
+      # 0. The live comparison runs on a schedule against staging once Story 1.4 provisions it.
+      - run: php tools/gates/schema-drift.php
