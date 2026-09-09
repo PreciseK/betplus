@@ -49,17 +49,19 @@ interface PlatformClientInterface
     /** @return array<string, mixed> */
     public function revealHeritageTicket(string $token, string $reference): array;
 
+    /** @return array<string, mixed> */
+    public function cagedDescriptor(string $token): array;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function purchaseCagedTicket(string $token, int $targetBirds, int $stakeKobo, string $idempotencyKey): array;
+
+    /** @return array<string, mixed> */
+    public function revealCagedTicket(string $token, string $reference): array;
+
     /** REQ-USSD-005/REQ-NOT-008 — a dropped session must never cost the player their result. */
     public function notifyTicketSms(string $token, string $reference): void;
-
-    /** @return array<string, mixed> */
-    public function fundingQuote(string $token, int $amountKobo): array;
-
-    /** @return array<string, mixed> */
-    public function createDeposit(string $token, string $quoteId): array;
-
-    /** @return array<string, mixed> */
-    public function submitDepositOtp(string $token, int $depositId, string $otp): array;
 
     /** @return array<string, mixed> */
     public function responsiblePlayStatus(string $token): array;
