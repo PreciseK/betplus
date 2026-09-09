@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\BlackRedController;
+use App\Http\Controllers\Api\V1\CagedController;
 use App\Http\Controllers\Api\V1\HeritageController;
 use App\Http\Controllers\Api\V1\IdentityVerificationController;
 use App\Http\Controllers\Api\V1\PayoutController;
@@ -47,6 +48,12 @@ Route::prefix('v1')->group(function () {
         Route::get('/heritage/catalogue', [HeritageController::class, 'catalogue']);
         Route::post('/heritage/tickets', [HeritageController::class, 'purchase'])->middleware('idempotent');
         Route::get('/heritage/tickets/{reference}/reveal', [HeritageController::class, 'reveal']);
+
+        // A third ticket game, same resolve-once shape as BlackRed/Heritage — its own
+        // routes since the purchase shape (target_birds) differs from both.
+        Route::get('/games/caged', [CagedController::class, 'show']);
+        Route::post('/caged/tickets', [CagedController::class, 'purchase'])->middleware('idempotent');
+        Route::get('/caged/tickets/{reference}/reveal', [CagedController::class, 'reveal']);
 
         // Story 8.5 (REQ-USSD-005/REQ-NOT-008) — game-agnostic, USSD-triggered.
         Route::post('/tickets/{reference}/notify-sms', [TicketNotificationController::class, 'notifySms']);
