@@ -30,6 +30,9 @@ final class MenuEngine
 {
     private const RESUME_WINDOW_SECONDS = 10 * 60;
 
+    /** targetBirds => display multiplier, from docs/caged-ussd-complete-flows.md's Escape Count table. */
+    private const CAGED_ODDS = [1 => 1.25, 2 => 1.90, 3 => 3.80, 4 => 7.50, 5 => 18.00];
+
     public function __construct(
         private readonly PlatformClientInterface $platform,
         private readonly SessionStore $sessions,
@@ -99,8 +102,9 @@ final class MenuEngine
             'heritage_pick' => $this->screenHeritagePick($session, $input),
             'heritage_stake' => $this->screenHeritageStake($session, $input),
             'heritage_confirm' => $this->screenHeritageConfirm($session, $input),
-            'fund_amount' => $this->screenFundAmount($session, $input),
-            'fund_otp' => $this->screenFundOtp($session, $input),
+            'caged_pick' => $this->screenCagedPick($session, $input),
+            'caged_stake' => $this->screenCagedStake($session, $input),
+            'caged_confirm' => $this->screenCagedConfirm($session, $input),
             'rg_menu' => $this->screenRgMenu($session, $input),
             'rg_break_menu' => $this->screenRgBreakMenu($session, $input),
             default => Screen::end('Session error. Please dial again.'),
@@ -194,9 +198,9 @@ final class MenuEngine
             return Screen::continue("Heritage\nPick 5 of 9 positions (1-9), one at a time.\nEnter position 1 of 5:");
         }
         if ($input === '3') {
-            $session->screen = 'fund_amount';
+            $session->screen = 'caged_pick';
 
-            return Screen::continue('Fund account\nEnter amount in Naira (e.g. 1000):');
+            return $this->screenCagedPick($session, '');
         }
         if ($input === '4') {
             $session->screen = 'rg_menu';
@@ -210,10 +214,10 @@ final class MenuEngine
             $wallet = $this->platform->wallet((string) $session->accessToken);
             $bal = number_format((int) ($wallet['play_balance_kobo'] ?? 0) / 100, 0);
 
-            return Screen::continue("Betplus\nBal: NGN $bal\n1. Play BlackRed\n2. Play Heritage\n3. Fund account\n4. Responsible play\n0. Exit");
+            return Screen::continue("Betplus\nBal: NGN $bal\n1. Play BlackRed\n2. Play Heritage\n3. Play Caged\n4. Responsible play\n0. Exit");
         }
 
-        return $this->errorPrefixed($session, 'main_menu', '1. BlackRed 2. Heritage 3. Fund 4. RG tools 0. Exit');
+        return $this->errorPrefixed($session, 'main_menu', '1. BlackRed 2. Heritage 3. Caged 4. RG tools 0. Exit');
     }
 
     // ── BlackRed ─────────────────────────────────────────────────────────────
@@ -293,7 +297,7 @@ final class MenuEngine
         $purchase = $this->platform->purchaseBlackRedTicket((string) $session->accessToken, $picks, (int) $session->data['brStakeKobo'], $idempotencyKey);
 
         if (!isset($purchase['reference'])) {
-            return Screen::end('Could not place that ticket. Please try again.');
+            return Screen::end('Could not place that ticket. Fund your wallet via the Betplus/OPay app and try again.');
         }
 
         $reveal = $this->platform->revealBlackRedTicket((string) $session->accessToken, (string) $purchase['reference']);
@@ -370,7 +374,7 @@ final class MenuEngine
         $purchase = $this->platform->purchaseHeritageTicket((string) $session->accessToken, $picks, (int) $session->data['hgStakeKobo'], $idempotencyKey);
 
         if (!isset($purchase['reference'])) {
-            return Screen::end('Could not place that ticket. Please try again.');
+            return Screen::end('Could not place that ticket. Fund your wallet via the Betplus/OPay app and try again.');
         }
 
         $reveal = $this->platform->revealHeritageTicket((string) $session->accessToken, (string) $purchase['reference']);
@@ -395,52 +399,84 @@ final class MenuEngine
         return Screen::end("Result: {$summary}\nRef: {$purchase['reference']}");
     }
 
-    // ── Funding ──────────────────────────────────────────────────────────────
+    // ── Caged (Option B — Escape Count) ─────────────────────────────────────
 
-    private function screenFundAmount(Session $session, string $input): Screen
+    private function screenCagedPick(Session $session, string $input): Screen
     {
-        $amountKobo = $this->nairaToKobo($input);
-        if ($amountKobo === null) {
-            return $this->errorPrefixed($session, 'fund_amount', 'Enter amount in Naira (e.g. 1000):');
+        if ($input === '0') {
+            $session->screen = 'main_menu';
+
+            return $this->screenMainMenu($session, '');
+        }
+        if ($input === '') {
+            return Screen::continue("Caged: Birds Escaping\n1. 1 Bird  (1.25x)\n2. 2 Birds (1.90x)\n3. 3 Birds (3.80x)\n4. 4 Birds (7.50x)\n5. 5 Birds (18.0x)\n0. Back");
+        }
+        if (!in_array($input, ['1', '2', '3', '4', '5'], true)) {
+            return $this->errorPrefixed($session, 'caged_pick', 'Pick 1-5 birds, or 0 to go back.');
         }
 
-        $quote = $this->platform->fundingQuote((string) $session->accessToken, $amountKobo);
-        if (!isset($quote['quote_id'])) {
-            return Screen::end('Funding is not available right now. Please try again shortly.');
-        }
+        $session->data['cagedTarget'] = (int) $input;
+        $session->screen = 'caged_stake';
 
-        $deposit = $this->platform->createDeposit((string) $session->accessToken, (string) $quote['quote_id']);
-        $status = $deposit['status'] ?? 'error';
-
-        // REQ-USSD-013 — routed to verification rather than failing opaquely.
-        if ($status === 'bvn_required') {
-            return Screen::end('Please complete Tier 1 verification on the Betplus app or website, then fund again.');
-        }
-        if ($status !== 'otp_required') {
-            return Screen::end('Could not start that deposit. Please try again shortly.');
-        }
-
-        $session->data['depositId'] = (int) $deposit['collection_id'];
-        $session->screen = 'fund_otp';
-
-        return Screen::continue('Enter the OTP OPay sent you:');
+        return Screen::continue('Enter stake in Naira (e.g. 200):');
     }
 
-    private function screenFundOtp(Session $session, string $input): Screen
+    private function screenCagedStake(Session $session, string $input): Screen
     {
-        if ($input === '') {
-            return $this->errorPrefixed($session, 'fund_otp', 'Enter the OTP OPay sent you:');
+        $stakeKobo = $this->nairaToKobo($input);
+        if ($stakeKobo === null) {
+            return $this->errorPrefixed($session, 'caged_stake', 'Enter stake in Naira (e.g. 200):');
         }
 
-        $result = $this->platform->submitDepositOtp((string) $session->accessToken, (int) $session->data['depositId'], $input);
-        $status = $result['status'] ?? 'error';
+        $session->data['cgStakeKobo'] = $stakeKobo;
+        $session->screen = 'caged_confirm';
 
-        if ($status === 'paid') {
-            return Screen::end('Funded! Your Play Balance has been updated.');
+        return Screen::continue($this->cagedConfirmText($session));
+    }
+
+    private function screenCagedConfirm(Session $session, string $input): Screen
+    {
+        if ($input === '2') {
+            $session->screen = 'main_menu';
+
+            return $this->screenMainMenu($session, '');
+        }
+        if ($input !== '1') {
+            return $this->errorPrefixed($session, 'caged_confirm', $this->cagedConfirmText($session));
         }
 
-        // REQ-USSD-011 — never left holding an open session waiting on a provider.
-        return Screen::end("We'll SMS you when it lands.");
+        $target = (int) $session->data['cagedTarget'];
+        $idempotencyKey = 'ussd-cg-' . $session->sessionId;
+        $purchase = $this->platform->purchaseCagedTicket((string) $session->accessToken, $target, (int) $session->data['cgStakeKobo'], $idempotencyKey);
+
+        if (!isset($purchase['reference'])) {
+            return Screen::end('Could not place that ticket. Fund your wallet via the Betplus/OPay app and try again.');
+        }
+
+        $reveal = $this->platform->revealCagedTicket((string) $session->accessToken, (string) $purchase['reference']);
+        $won = (bool) ($reveal['won'] ?? false);
+        $escaped = (int) ($reveal['escaped_birds'] ?? 0);
+        $net = number_format((int) ($reveal['net_credit_kobo'] ?? 0) / 100, 0);
+        $naira = number_format(((int) $session->data['cgStakeKobo']) / 100, 0);
+
+        $this->platform->notifyTicketSms((string) $session->accessToken, (string) $purchase['reference']);
+
+        if ($won) {
+            return Screen::end("CAGED WIN!\n$escaped birds escaped the cage!\nYour Target: $target Birds\nWon: NGN $net\nRef: {$purchase['reference']}");
+        }
+
+        return Screen::end("CAGED LOSS!\nCage dropped at $escaped bird(s)!\nYour Target: $target Birds\nLost: NGN $naira\nRef: {$purchase['reference']}");
+    }
+
+    private function cagedConfirmText(Session $session): string
+    {
+        $target = (int) $session->data['cagedTarget'];
+        $odds = self::CAGED_ODDS[$target];
+        $stakeKobo = (int) $session->data['cgStakeKobo'];
+        $naira = number_format($stakeKobo / 100, 0);
+        $win = number_format(($stakeKobo * $odds) / 100, 0);
+
+        return "Confirm Caged Bet:\nTarget: $target Birds\nOdds: " . number_format($odds, 2) . "x\nStake: NGN $naira\nWin: NGN $win\n1. Confirm & Play\n2. Cancel";
     }
 
     // ── Responsible gambling (REQ-USSD-020: within 2 screens of main menu) ─────

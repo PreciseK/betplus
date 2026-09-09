@@ -100,6 +100,18 @@ final class MenuEngineTest extends TestCase
         $this->assertStringStartsWith('Invalid input.', $screen->text);
     }
 
+    // ── Main menu (post-Caged renumber) ──────────────────────────────────────
+
+    public function test_the_main_menu_lists_caged_as_option_three_with_no_fund_account_item(): void
+    {
+        $screen = $this->signInAndReturnScreen('sess-1', '+2348031234567');
+
+        $this->assertStringContainsString('3. Play Caged', $screen->render());
+        $this->assertStringContainsString('4. Responsible play', $screen->render());
+        $this->assertStringNotContainsStringIgnoringCase('fund account', $screen->render());
+        $this->assertFits($screen);
+    }
+
     // ── BlackRed (REQ-HG-005-principle: identical odds via the same platform API) ─
 
     public function test_a_full_blackred_purchase_flow_calls_the_same_v1_endpoint_web_uses(): void
@@ -179,35 +191,104 @@ final class MenuEngineTest extends TestCase
         $this->assertStringStartsWith('Invalid input.', $screen->text);
     }
 
-    // ── Funding (REQ-USSD-010..013) ──────────────────────────────────────────
+    // ── Caged (Option B — Escape Count) ──────────────────────────────────────
 
-    public function test_funding_without_tier_1_is_routed_to_verification_not_a_bare_failure(): void
+    public function test_a_full_caged_win_flow_calls_the_same_v1_endpoint_web_uses(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '3'); // -> fund_amount
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '3'); // -> caged_pick
+        $this->assertFits($screen);
 
-        $this->platform->programResponse('fundingQuote', ['quote_id' => '100000']);
-        $this->platform->programResponse('createDeposit', ['status' => 'bvn_required']);
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '2'); // target 2 birds
+        $this->assertFits($screen);
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '200'); // stake
+        $this->assertStringContainsString('Target: 2 Birds', $screen->render());
+        $this->assertStringContainsString('Stake: NGN 200', $screen->render());
+        $this->assertFits($screen);
 
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '1000');
+        $this->platform->programResponse('purchaseCagedTicket', ['reference' => 'tkt-cg-1']);
+        $this->platform->programResponse('revealCagedTicket', ['won' => true, 'escaped_birds' => 3, 'net_credit_kobo' => 38_000]);
 
-        $this->assertFalse($screen->continues);
-        $this->assertStringContainsString('Tier 1 verification', $screen->render());
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $this->assertFalse($result->continues);
+        $this->assertStringContainsString('CAGED WIN!', $result->render());
+        $this->assertStringContainsString('3 birds escaped', $result->render());
+        $this->assertFits($result);
+
+        $purchaseCall = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseCagedTicket'))[0];
+        $this->assertSame(2, $purchaseCall['args'][1]); // target_birds
+        $this->assertSame(20_000, $purchaseCall['args'][2]); // stake_kobo
     }
 
-    public function test_a_deposit_that_does_not_resolve_promptly_closes_the_session_gracefully(): void
+    public function test_a_caged_loss_shows_the_escaped_count_and_lost_stake(): void
     {
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '3');
-        $this->platform->programResponse('fundingQuote', ['quote_id' => '100000']);
-        $this->platform->programResponse('createDeposit', ['status' => 'otp_required', 'collection_id' => 42]);
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1000');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '5'); // target 5 birds
+        $this->engine->handleTurn('sess-1', '+2348031234567', '100'); // stake
 
-        $this->platform->programResponse('submitDepositOtp', ['status' => 'processing']);
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '123456');
+        $this->platform->programResponse('purchaseCagedTicket', ['reference' => 'tkt-cg-2']);
+        $this->platform->programResponse('revealCagedTicket', ['won' => false, 'escaped_birds' => 1, 'net_credit_kobo' => 0]);
 
-        $this->assertFalse($screen->continues);
-        $this->assertStringContainsString('SMS you when it lands', $screen->render());
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $this->assertFalse($result->continues);
+        $this->assertStringContainsString('CAGED LOSS!', $result->render());
+        $this->assertStringContainsString('Cage dropped at 1 bird(s)!', $result->render());
+        $this->assertStringContainsString('Lost: NGN 100', $result->render());
+        $this->assertFits($result);
+    }
+
+    public function test_caged_pick_rejects_an_out_of_range_target(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '3');
+
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '9');
+
+        $this->assertStringStartsWith('Invalid input.', $screen->text);
+    }
+
+    public function test_zero_at_caged_pick_returns_to_the_main_menu(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '3');
+
+        $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '0');
+
+        $this->assertStringContainsString('Play Caged', $screen->render());
+    }
+
+    public function test_cancelling_at_caged_confirm_returns_to_the_main_menu_without_purchasing(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '3');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '200');
+
+        $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '2');
+
+        $this->assertStringContainsString('Play Caged', $screen->render());
+        $this->assertCount(0, array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseCagedTicket'));
+    }
+
+    public function test_a_failed_caged_purchase_points_the_player_at_the_opay_app_with_no_otp_screen(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '3');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '200');
+
+        $this->platform->programResponse('purchaseCagedTicket', []); // no 'reference' => purchase failed
+
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $this->assertFalse($result->continues);
+        $this->assertStringContainsString('Fund your wallet via the Betplus/OPay app', $result->render());
+        $this->assertCount(0, array_filter($this->platform->calls, fn ($c) => $c['method'] === 'fundingQuote'));
     }
 
     // ── Responsible gambling (REQ-USSD-020: within 2 screens of main menu) ──────
@@ -290,5 +371,13 @@ final class MenuEngineTest extends TestCase
         $this->platform->programResponse('identify', ['status' => 'signed_in', 'access_token' => 'tok-1', 'registered_name' => 'Ada']);
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
         $this->engine->handleTurn($sessionId, $msisdn, '');
+    }
+
+    private function signInAndReturnScreen(string $sessionId, string $msisdn): \Betplus\Ussd\Screen
+    {
+        $this->platform->programResponse('identify', ['status' => 'signed_in', 'access_token' => 'tok-1', 'registered_name' => 'Ada']);
+        $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
+
+        return $this->engine->handleTurn($sessionId, $msisdn, '');
     }
 }
