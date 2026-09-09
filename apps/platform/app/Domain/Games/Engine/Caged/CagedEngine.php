@@ -26,6 +26,8 @@ final class CagedEngine
             throw new InvalidArgumentException('targetBirds must be between 1 and 5.');
         }
 
+        $this->validateTiers($tiers);
+
         $tier = $this->tierFor($tiers, $targetBirds);
 
         $seed = hex2bin($seedHex);
@@ -110,5 +112,26 @@ final class CagedEngine
             'gameCode' => 'CAGED',
             'engineVersion' => self::VERSION,
         ];
+    }
+
+    /** @param list<CagedTier> $tiers */
+    private function validateTiers(array $tiers): void
+    {
+        $foundTargets = [];
+        foreach ($tiers as $tier) {
+            $foundTargets[$tier->targetBirds] = true;
+        }
+
+        // Check all required targets 1-5 are present
+        for ($target = 1; $target <= 5; $target++) {
+            if (!isset($foundTargets[$target])) {
+                throw new InvalidArgumentException("Tiers must include all targets 1-5; missing target $target.");
+            }
+        }
+
+        // Check exactly 5 entries (no duplicates or extras)
+        if (count($tiers) !== 5) {
+            throw new InvalidArgumentException('Tiers must contain exactly 5 entries, got ' . count($tiers) . '.');
+        }
     }
 }

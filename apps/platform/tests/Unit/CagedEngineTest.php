@@ -126,4 +126,64 @@ final class CagedEngineTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $engine->resolve(bin2hex(random_bytes(32)), 6, 100_000, $this->tiers());
     }
+
+    public function test_rejects_tiers_with_fewer_than_five_entries(): void
+    {
+        $engine = new CagedEngine();
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('missing target 5');
+        $incompleteTiers = [
+            new CagedTier(1, 7180, 10_000, 125),
+            new CagedTier(2, 4620, 10_000, 190),
+            new CagedTier(3, 2310, 10_000, 380),
+            new CagedTier(4, 1140, 10_000, 750),
+            // Missing target 5
+        ];
+        $engine->resolve(bin2hex(random_bytes(32)), 1, 100_000, $incompleteTiers);
+    }
+
+    public function test_rejects_tiers_with_duplicate_targets(): void
+    {
+        $engine = new CagedEngine();
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('exactly 5 entries');
+        $tiersWithDuplicate = [
+            new CagedTier(1, 7180, 10_000, 125),
+            new CagedTier(2, 4620, 10_000, 190),
+            new CagedTier(3, 2310, 10_000, 380),
+            new CagedTier(4, 1140, 10_000, 750),
+            new CagedTier(5, 480, 10_000, 1800),
+            new CagedTier(1, 7180, 10_000, 125), // Duplicate
+        ];
+        $engine->resolve(bin2hex(random_bytes(32)), 1, 100_000, $tiersWithDuplicate);
+    }
+
+    public function test_rejects_tiers_missing_a_target_in_the_middle(): void
+    {
+        $engine = new CagedEngine();
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('missing target 3');
+        $tiersWithGap = [
+            new CagedTier(1, 7180, 10_000, 125),
+            new CagedTier(2, 4620, 10_000, 190),
+            // Missing target 3
+            new CagedTier(4, 1140, 10_000, 750),
+            new CagedTier(5, 480, 10_000, 1800),
+        ];
+        $engine->resolve(bin2hex(random_bytes(32)), 4, 100_000, $tiersWithGap);
+    }
+
+    public function test_rejects_tiers_missing_target_one(): void
+    {
+        $engine = new CagedEngine();
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('missing target 1');
+        $tiersWithoutFirst = [
+            new CagedTier(2, 4620, 10_000, 190),
+            new CagedTier(3, 2310, 10_000, 380),
+            new CagedTier(4, 1140, 10_000, 750),
+            new CagedTier(5, 480, 10_000, 1800),
+        ];
+        $engine->resolve(bin2hex(random_bytes(32)), 2, 100_000, $tiersWithoutFirst);
+    }
 }
