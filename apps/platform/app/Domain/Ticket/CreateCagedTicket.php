@@ -97,7 +97,16 @@ final class CreateCagedTicket
                 (int) $tier->multiplierHundredths,
             ))
             ->all();
-        $engineResult = $this->engine->resolve($seed->seedHex, $targetBirds, $stakeKobo, $engineTiers);
+        // The publication gate keeps a malformed tier set from ever reaching a live
+        // prize table, so CagedEngine::validateTiers() throwing here is not expected
+        // in practice — but if it ever did, an uncaught InvalidArgumentException would
+        // surface as a 500 instead of the same clean "unavailable" response the missing-
+        // tier check just above gives, so it is treated identically.
+        try {
+            $engineResult = $this->engine->resolve($seed->seedHex, $targetBirds, $stakeKobo, $engineTiers);
+        } catch (\InvalidArgumentException $e) {
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Caged has no published prize table for this state.');
+        }
 
         $withholding = $engineResult->won ? $this->tax->withhold($engineResult->grossPrizeKobo, $player) : null;
 

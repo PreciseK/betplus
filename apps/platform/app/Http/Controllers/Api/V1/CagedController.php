@@ -8,10 +8,13 @@ use App\Domain\Games\PrizeTable\PrizeTableResolver;
 use App\Domain\Ticket\CreateCagedTicket;
 use App\Domain\Ticket\RevealTicket;
 use App\Domain\Ticket\TicketEligibilityException;
+use App\Domain\Wallet\TurnoverService;
 use App\Domain\Wallet\WalletService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\PurchaseCagedTicketRequest;
 use App\Models\GameRegistry;
+use App\Models\LedgerAccount;
+use App\Models\LedgerEntry;
 use App\Models\Player;
 use App\Models\Ticket;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +29,7 @@ class CagedController extends Controller
         private readonly CreateCagedTicket $createTicket,
         private readonly RevealTicket $revealTicket,
         private readonly PrizeTableResolver $prizeTableResolver,
+        private readonly TurnoverService $turnover,
     ) {
     }
 
@@ -42,15 +46,26 @@ class CagedController extends Controller
             return response()->json(['message' => 'Caged is not currently available.'], 503);
         }
 
+        $turnover = $this->turnover->positionFor($player);
+        $dailyLimitKobo = (int) config('game.default_daily_limit_kobo');
+        $stakedTodayKobo = $this->stakedTodayFor($player);
+
         return response()->json([
             'game_name' => 'Caged',
             'description' => 'Predict how many birds escape before the cage slams shut.',
             'play_balance_kobo' => $wallet->playBalanceKobo,
             'winnings_balance_kobo' => $wallet->winningsBalanceKobo,
+            'turnover_staked_kobo' => $turnover['stakedKobo'],
+            'turnover_required_kobo' => $turnover['requiredKobo'],
+            'daily_limit_kobo' => $dailyLimitKobo,
+            'daily_limit_remaining_kobo' => max(0, $dailyLimitKobo - $stakedTodayKobo),
             'min_stake_kobo' => $game->minStakeKobo,
             'max_stake_kobo' => $game->maxStakeKobo,
             'currency' => 'NGN',
             'state_name' => self::STATE_NAMES[$stateCode] ?? $stateCode,
+            'tax_rate_basis_points' => (int) config('tax.withholding.resident_rate_basis_points'),
+            'tax_basis_label' => (string) config('tax.withholding.basis_label'),
+            'ruleset_version' => (string) config('jurisdiction.ruleset_version'),
             'prize_table_version' => $prizeTable->version,
             'engine_version' => $game->engineVersion,
             'tiers' => $prizeTable->tiers->map(fn ($tier) => [
@@ -147,6 +162,20 @@ class CagedController extends Controller
             'probability_numerator' => 0,
             'probability_denominator' => 1,
         ];
+    }
+
+    /** Real platform default (config), not a player-set RG limit — Epic 5 territory. */
+    private function stakedTodayFor(Player $player): int
+    {
+        $account = LedgerAccount::where('type', 'PLAYER_PLAY')->where('scope', (string) $player->id)->first();
+        if ($account === null) {
+            return 0;
+        }
+
+        return (int) LedgerEntry::where('accountId', $account->id)
+            ->where('direction', 'debit')->where('referenceType', 'ticket')
+            ->where('createdAt', '>=', now()->startOfDay())
+            ->sum('amountKobo');
     }
 
     private function player(): Player

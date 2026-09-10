@@ -6,6 +6,8 @@ namespace Tests\Feature;
 
 use App\Domain\Wallet\WalletService;
 use App\Models\Player;
+use App\Models\PrizeTable;
+use App\Models\PrizeTableTier;
 use App\Models\SignupSession;
 use App\Models\Ticket;
 use Database\Seeders\CagedGameSeeder;
@@ -60,6 +62,17 @@ final class CagedTicketTest extends TestCase
             'play_balance_kobo' => 500_000,
             'currency' => 'NGN',
             'prize_table_version' => 'CG-NG-2026.1',
+        ]);
+        // Mirrors BlackRedController::show() field-for-field (turnover, daily limit,
+        // and tax/ruleset fields) — a subset assertJson() match wouldn't fail if these
+        // ever went missing again, so assert the full structure explicitly.
+        $response->assertJsonStructure([
+            'game_name', 'description', 'play_balance_kobo', 'winnings_balance_kobo',
+            'turnover_staked_kobo', 'turnover_required_kobo',
+            'daily_limit_kobo', 'daily_limit_remaining_kobo',
+            'min_stake_kobo', 'max_stake_kobo', 'currency', 'state_name',
+            'tax_rate_basis_points', 'tax_basis_label', 'ruleset_version',
+            'prize_table_version', 'engine_version', 'tiers',
         ]);
         $this->assertCount(5, $response->json('tiers'));
     }
@@ -194,6 +207,31 @@ final class CagedTicketTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    /**
+     * The publication gate is supposed to prevent this — a malformed tier set
+     * reaching CreateCagedTicket requires the seeded, already-published prize table
+     * to be corrupted afterwards. We simulate that directly (bypassing the gate) to
+     * confirm CagedEngine::validateTiers()'s InvalidArgumentException surfaces as a
+     * clean 422 GAME_UNAVAILABLE rather than an uncaught 500.
+     */
+    public function test_a_malformed_published_prize_table_fails_purchase_cleanly_instead_of_500ing(): void
+    {
+        [, $token] = $this->signedInPlayer();
+
+        $table = PrizeTable::where('gameCode', 'CAGED')->where('version', 'CG-NG-2026.1')->firstOrFail();
+        // Remove a tier other than the one being purchased so the earlier
+        // "no tier for this target" check still passes and the malformed set
+        // reaches the engine's validateTiers().
+        PrizeTableTier::where('prizeTableId', $table->id)->where('positions', 3)->delete();
+
+        $response = $this->withToken($token)->postJson('/v1/caged/tickets', [
+            'target_birds' => 1, 'stake_kobo' => 100_000, 'idempotency_key' => 'caged-malformed-tiers',
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertSame('GAME_UNAVAILABLE', $response->json('code'));
     }
 
     public function test_every_ticket_leaves_the_ledger_in_balance(): void
