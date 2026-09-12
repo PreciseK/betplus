@@ -84,24 +84,24 @@ final class FakePlatformClient implements PlatformClientInterface
         return $this->respond(__FUNCTION__, [$token, $reference]);
     }
 
+    public function cagedDescriptor(string $token): array
+    {
+        return $this->respond(__FUNCTION__, [$token]);
+    }
+
+    public function purchaseCagedTicket(string $token, int $targetBirds, int $stakeKobo, string $idempotencyKey): array
+    {
+        return $this->respond(__FUNCTION__, [$token, $targetBirds, $stakeKobo, $idempotencyKey]);
+    }
+
+    public function revealCagedTicket(string $token, string $reference): array
+    {
+        return $this->respond(__FUNCTION__, [$token, $reference]);
+    }
+
     public function notifyTicketSms(string $token, string $reference): void
     {
         $this->calls[] = ['method' => __FUNCTION__, 'args' => [$token, $reference]];
-    }
-
-    public function fundingQuote(string $token, int $amountKobo): array
-    {
-        return $this->respond(__FUNCTION__, [$token, $amountKobo]);
-    }
-
-    public function createDeposit(string $token, string $quoteId): array
-    {
-        return $this->respond(__FUNCTION__, [$token, $quoteId]);
-    }
-
-    public function submitDepositOtp(string $token, int $depositId, string $otp): array
-    {
-        return $this->respond(__FUNCTION__, [$token, $depositId, $otp]);
     }
 
     public function responsiblePlayStatus(string $token): array

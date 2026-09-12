@@ -110,27 +110,31 @@ final class PlatformClient implements PlatformClientInterface
         return $this->getAuthed("/v1/heritage/tickets/$reference/reveal", $token);
     }
 
+    /** @return array<string, mixed> */
+    public function cagedDescriptor(string $token): array
+    {
+        return $this->getAuthed('/v1/games/caged', $token);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function purchaseCagedTicket(string $token, int $targetBirds, int $stakeKobo, string $idempotencyKey): array
+    {
+        return $this->postAuthed('/v1/caged/tickets', $token, [
+            'target_birds' => $targetBirds, 'stake_kobo' => $stakeKobo, 'idempotency_key' => $idempotencyKey,
+        ]);
+    }
+
+    /** @return array<string, mixed> */
+    public function revealCagedTicket(string $token, string $reference): array
+    {
+        return $this->getAuthed("/v1/caged/tickets/$reference/reveal", $token);
+    }
+
     public function notifyTicketSms(string $token, string $reference): void
     {
         $this->postAuthed("/v1/tickets/$reference/notify-sms", $token, []);
-    }
-
-    /** @return array<string, mixed> */
-    public function fundingQuote(string $token, int $amountKobo): array
-    {
-        return $this->postAuthed('/v1/wallet/deposits/quote', $token, ['amount_kobo' => $amountKobo]);
-    }
-
-    /** @return array<string, mixed> */
-    public function createDeposit(string $token, string $quoteId): array
-    {
-        return $this->postAuthed('/v1/wallet/deposits', $token, ['quote_id' => $quoteId]);
-    }
-
-    /** @return array<string, mixed> */
-    public function submitDepositOtp(string $token, int $depositId, string $otp): array
-    {
-        return $this->postAuthed("/v1/wallet/deposits/$depositId/otp", $token, ['otp' => $otp]);
     }
 
     /** @return array<string, mixed> */

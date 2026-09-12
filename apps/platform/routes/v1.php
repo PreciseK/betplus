@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\BirdEscapeController;
 use App\Http\Controllers\Api\V1\BlackRedController;
+use App\Http\Controllers\Api\V1\CagedController;
 use App\Http\Controllers\Api\V1\HeritageController;
 use App\Http\Controllers\Api\V1\IdentityVerificationController;
 use App\Http\Controllers\Api\V1\PayoutController;
@@ -48,6 +49,12 @@ Route::prefix('v1')->group(function () {
         Route::get('/heritage/catalogue', [HeritageController::class, 'catalogue']);
         Route::post('/heritage/tickets', [HeritageController::class, 'purchase'])->middleware('idempotent');
         Route::get('/heritage/tickets/{reference}/reveal', [HeritageController::class, 'reveal']);
+
+        // A third ticket game, same resolve-once shape as BlackRed/Heritage — its own
+        // routes since the purchase shape (target_birds) differs from both.
+        Route::get('/games/caged', [CagedController::class, 'show']);
+        Route::post('/caged/tickets', [CagedController::class, 'purchase'])->middleware('idempotent');
+        Route::get('/caged/tickets/{reference}/reveal', [CagedController::class, 'reveal']);
 
         // Live multiplayer crash game — one shared round, not a per-play ticket, so
         // its routes shape differs from the resolve-once ticket pattern above.

@@ -21,5 +21,6 @@ class DatabaseSeeder extends Seeder
         $this->call(BlackRedGameSeeder::class);
         $this->call(HeritageGameSeeder::class);
         $this->call(BirdEscapeGameSeeder::class);
+        $this->call(CagedGameSeeder::class);
     }
 }
