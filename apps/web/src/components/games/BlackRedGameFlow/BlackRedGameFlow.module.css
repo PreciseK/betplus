@@ -2064,3 +2064,76 @@
     padding: 8px;
   }
 }
+
+/* Payment Method Selection */
+.paymentMethodSelector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.paymentMethodTab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--br-text);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.paymentMethodTab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.paymentMethodTabActive {
+  background: rgba(255, 0, 0, 0.12);
+  border-color: #FF0000;
+  box-shadow: 0 0 14px rgba(255, 0, 0, 0.25);
+}
+
+.paymentMethodTabActiveOpay {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: #10b981;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.25);
+}
+
+.paymentMethodTabTitle {
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.paymentMethodTabSub {
+  font-size: 11px;
+  color: var(--br-muted);
+  margin-top: 2px;
+}
+
+.paymentMethodTabSubOpay {
+  font-size: 11px;
+  color: #34d399;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.bigLaunchCtaOpay {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+  color: #03251a !important;
+  font-weight: 800 !important;
+  border: 1px solid #34d399 !important;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35) !important;
+}
+
+.bigLaunchCtaOpay:hover:not(:disabled) {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%) !important;
+  box-shadow: 0 6px 26px rgba(16, 185, 129, 0.5) !important;
+}

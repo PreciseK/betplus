@@ -259,6 +259,85 @@
 }
 
 /* ============================================================
+   DEMO ACCOUNT CARD
+   ============================================================ */
+.demoAccountCard {
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.14) 0%, rgba(234, 88, 12, 0.05) 100%);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.demoAccountHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.demoBadge {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: #f97316;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.demoBalance {
+  font-family: var(--font-display, inherit);
+  font-size: 14px;
+  font-weight: 800;
+  color: #22c55e;
+}
+
+.demoAccountDesc {
+  font-size: 12.5px;
+  color: rgba(246, 241, 231, 0.75);
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.demoAccountDesc strong {
+  color: #F6F1E7;
+  font-family: var(--font-mono, monospace);
+}
+
+.demoSignBtn {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f97316;
+  color: #0A0A0A;
+  border: none;
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease-in-out;
+}
+
+.demoSignBtn:hover:not(:disabled) {
+  background: #ea580c;
+  transform: translateY(-1px);
+}
+
+.demoSignBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.demoSignBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
    WELCOME BACK BANNER
    ============================================================ */
 .welcomeBack {

@@ -14,6 +14,7 @@ import {
   type BlackRedSettlement,
 } from "@/mocks/blackred";
 import { BlackRedArenaModal } from "./BlackRedArenaModal";
+import { OpayDirectCheckoutModal } from "@/components/wallet/OpayDirectCheckoutModal";
 import { blackRedPlayErrorMessage } from "../blackRedErrors";
 import styles from "./BlackRedGameFlow.module.css";
 
@@ -60,6 +61,8 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
 
   // Pop-up Screen (Steps 4 and 5 Arena)
   const [arenaModalOpen, setArenaModalOpen] = useState(false);
+  const [paymentOption, setPaymentOption] = useState<"wallet" | "opay">("wallet");
+  const [opayCheckoutOpen, setOpayCheckoutOpen] = useState(false);
 
   // Deposit Sheet & Limits
   const [depositOpen, setDepositOpen] = useState(false);
@@ -146,26 +149,8 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
     setSelectionError(undefined);
   };
 
-  const handleStartArena = async (event: FormEvent) => {
-    event.preventDefault();
-    let invalid = false;
-    if (!positionCount || chosenPrediction.length !== positionCount) {
-      setSelectionError("Choose Red or Black for every card position.");
-      invalid = true;
-    }
-    if (!stakeReady) {
-      setStakeError(`Enter a stake from ${formatKobo(descriptor.minStakeKobo)} to ${formatKobo(descriptor.maxStakeKobo)}.`);
-      invalid = true;
-    }
-    if (insufficientBalance) {
-      setStakeError("Your stake is higher than your Play Balance.");
-      invalid = true;
-    }
-    if (invalid || !stakeKobo || isSubmittingTicket) return;
-
-    // Real ticket, real stake, real outcome — the certified engine decides this,
-    // not the browser. The Arena modal only opens once we have a settled result;
-    // it never generates or guesses an outcome itself.
+  const executePlaceTicket = async () => {
+    if (!stakeKobo || isSubmittingTicket) return;
     setIsSubmittingTicket(true);
     try {
       const purchase = await gateway.purchaseTicket({
@@ -190,6 +175,31 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
     } finally {
       setIsSubmittingTicket(false);
     }
+  };
+
+  const handleStartArena = async (event: FormEvent) => {
+    event.preventDefault();
+    let invalid = false;
+    if (!positionCount || chosenPrediction.length !== positionCount) {
+      setSelectionError("Choose Red or Black for every card position.");
+      invalid = true;
+    }
+    if (!stakeReady) {
+      setStakeError(`Enter a stake from ${formatKobo(descriptor.minStakeKobo)} to ${formatKobo(descriptor.maxStakeKobo)}.`);
+      invalid = true;
+    }
+    if (paymentOption === "wallet" && insufficientBalance) {
+      setStakeError("Your stake is higher than your Play Balance.");
+      invalid = true;
+    }
+    if (invalid || !stakeKobo || isSubmittingTicket) return;
+
+    if (paymentOption === "opay") {
+      setOpayCheckoutOpen(true);
+      return;
+    }
+
+    await executePlaceTicket();
   };
 
   const handleWinSettlement = (netCreditKobo: number) => {
@@ -578,17 +588,39 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
                 </div>
               </div>
 
+              {/* Payment Method Selector (Wallet vs OPay Direct) */}
+              <div className={styles.paymentMethodSelector}>
+                <button
+                  type="button"
+                  className={`${styles.paymentMethodTab} ${paymentOption === "wallet" ? styles.paymentMethodTabActive : ""}`}
+                  onClick={() => setPaymentOption("wallet")}
+                >
+                  <span className={styles.paymentMethodTabTitle}>👛 Wallet Balance</span>
+                  <span className={styles.paymentMethodTabSub}>{formatKobo(playBalanceKobo)} available</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.paymentMethodTab} ${paymentOption === "opay" ? styles.paymentMethodTabActiveOpay : ""}`}
+                  onClick={() => setPaymentOption("opay")}
+                >
+                  <span className={styles.paymentMethodTabTitle}>⚡ OPay Direct</span>
+                  <span className={styles.paymentMethodTabSubOpay}>Direct Debit & Auto-Payout</span>
+                </button>
+              </div>
+
               {/* Large Glowing CTA Button */}
               <button
                 ref={playButtonRef}
-                className={styles.bigLaunchCta}
+                className={`${styles.bigLaunchCta} ${paymentOption === "opay" ? styles.bigLaunchCtaOpay : ""}`}
                 type="submit"
-                disabled={!ready || insufficientBalance || isSubmittingTicket}
+                disabled={!ready || (paymentOption === "wallet" && insufficientBalance) || isSubmittingTicket}
               >
                 {isSubmittingTicket
                   ? "Placing ticket…"
                   : ready
-                    ? `Start Round ▶ · ${formatKobo(stakeKobo ?? 0)}`
+                    ? paymentOption === "opay"
+                      ? `⚡ Pay with OPay · ${formatKobo(stakeKobo ?? 0)}`
+                      : `Start Round ▶ · ${formatKobo(stakeKobo ?? 0)}`
                     : "Complete Steps 1 & 2 Above"}
               </button>
             </section>
@@ -727,6 +759,16 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
           reference={settlement.reference}
         />
       )}
+
+      {/* OPay Direct Checkout Modal */}
+      <OpayDirectCheckoutModal
+        isOpen={opayCheckoutOpen}
+        onClose={() => setOpayCheckoutOpen(false)}
+        stakeKobo={stakeKobo ?? 0}
+        potentialWinKobo={potentialNetKobo}
+        gameName="Black & Red"
+        onPaymentSuccess={executePlaceTicket}
+      />
     </main>
   );
 }

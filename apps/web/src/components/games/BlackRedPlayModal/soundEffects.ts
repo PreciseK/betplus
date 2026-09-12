@@ -18,8 +18,18 @@ class SoundEffects {
     return this.ctx;
   }
 
+  private shuffleAudio: HTMLAudioElement | null = null;
+
   public toggleMute(): boolean {
     this.muted = !this.muted;
+    if (this.muted && this.shuffleAudio) {
+      try {
+        this.shuffleAudio.pause();
+        this.shuffleAudio.currentTime = 0;
+      } catch {
+        // Guard
+      }
+    }
     return this.muted;
   }
 
@@ -70,26 +80,17 @@ class SoundEffects {
   }
 
   public playShuffle(): void {
-    if (this.muted) return;
-    const ctx = this.getContext();
-    if (!ctx) return;
+    if (this.muted || typeof window === "undefined") return;
 
-    for (let i = 0; i < 4; i++) {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const delay = i * 0.06;
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(180 + i * 40, ctx.currentTime + delay);
-      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + delay + 0.05);
-
-      gain.gain.setValueAtTime(0.06, ctx.currentTime + delay);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.05);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(ctx.currentTime + delay);
-      osc.stop(ctx.currentTime + delay + 0.05);
+    try {
+      if (!this.shuffleAudio) {
+        this.shuffleAudio = new Audio("/sounds/blackred/card-shuffle.mp3");
+      }
+      this.shuffleAudio.volume = 0.8;
+      this.shuffleAudio.currentTime = 0;
+      void this.shuffleAudio.play().catch(() => undefined);
+    } catch {
+      // AudioContext fallback
     }
   }
 

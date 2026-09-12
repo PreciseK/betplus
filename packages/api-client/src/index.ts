@@ -2,6 +2,14 @@ export { registrationGateway, ExistingAccountError } from "./registrationGateway
 export { sessionGateway } from "./sessionGateway";
 export { walletGateway } from "./walletGateway";
 export { blackRedGateway, BlackRedGatewayError, type BlackRedEligibilityCode } from "./blackRedGateway";
+export {
+  birdEscapeGateway,
+  BirdEscapeGatewayError,
+  BirdEscapeCashoutError,
+  type BirdEscapeEligibilityCode,
+  type BirdEscapeCashoutCode,
+} from "./birdEscapeGateway";
+export { multiplierHundredthsAtElapsedMs as birdEscapeMultiplierHundredthsAtElapsedMs } from "./birdEscapeMath";
 export { heritageGateway, HeritageGatewayError, type HeritageGatewayErrorCode } from "./heritageGateway";
 export { payoutGateway } from "./payoutGateway";
 export { responsiblePlayGateway } from "./responsiblePlayGateway";

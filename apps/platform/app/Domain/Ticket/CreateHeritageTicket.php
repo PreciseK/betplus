@@ -16,6 +16,7 @@ use App\Domain\ResponsibleGaming\Registries\RegistryCheckService;
 use App\Domain\ResponsibleGaming\VelocityService;
 use App\Domain\Tax\TaxEngine;
 use App\Domain\Wallet\WalletService;
+use App\Jobs\DispatchPrizePayoutJob;
 use App\Jobs\SubmitSecondChanceEntryJob;
 use App\Models\GameRegistry;
 use App\Models\HeritageSecondChanceEntry;
@@ -210,6 +211,10 @@ final class CreateHeritageTicket
         // REQ-HG-034 — asynchronous, durable, never blocking settlement.
         if ($engineResult->outcomeTier === 'TIER_SECOND_CHANCE') {
             SubmitSecondChanceEntryJob::dispatch($ticket->id);
+        }
+
+        if ($engineResult->won()) {
+            DispatchPrizePayoutJob::dispatch($ticket->id);
         }
 
         $this->velocity->evaluateAfterTicket($player, self::GAME_CODE, $stakeKobo);

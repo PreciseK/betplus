@@ -52,3 +52,14 @@ coverage/
 # Local dev databases
 *.sqlite
 *.sqlite3
+
+# Scratch / generated output — not part of the tracked project
+/graphify-out/
+/banani_flow_data.json
+/BirdEscapeBetting.jpg
+/BirdEscapeBetting-thumb.jpg
+/freesound_community-game-start-6104.mp3
+/freesound_community-shuffle-cards-46455.mp3
+/ivan_luzan-game-over-160612.mp3
+/xtremefreddy-game-music-loop-6-144641.mp3
+/xtremefreddy-game-music-loop-7-145285.mp3

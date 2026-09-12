@@ -43,6 +43,13 @@ final class RegistryCheckService
     {
         $ninHash = $player->ninHash;
         if ($ninHash === null) {
+            // 'local' only — see RegistrationService's identical note on why 'testing'
+            // must stay out of this gate. This is a fail-CLOSED compliance control
+            // (REQ-RG-014); the test suite has to be able to verify it actually fails
+            // closed, not see it silently defanged.
+            if (app()->environment('local')) {
+                return 'clear';
+            }
             // REQ-RG-012 — matching is by NIN; a player with no verified NIN has
             // nothing to check against. Fail closed rather than assume clear.
             return 'unavailable';

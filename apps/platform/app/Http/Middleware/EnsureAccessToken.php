@@ -20,6 +20,16 @@ class EnsureAccessToken
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Access-token validity IS the Cache entry's TTL (ACCESS_TOKEN_TTL_SECONDS,
+        // 30 minutes — see SessionService::issueTokens) — full stop. A previous
+        // version of this method fell back to checking the underlying PlayerSession
+        // row's `expiresAt` when the cache entry was missing, but that column is the
+        // REFRESH token's 30-DAY lifetime, not the access token's. That fallback
+        // meant an access token stayed valid for up to 30 days after its real
+        // 30-minute expiry, as long as the session hadn't been explicitly signed out
+        // — defeating the entire point of a short-lived access token. Do not
+        // reintroduce a cache-miss fallback without giving it the access token's own
+        // TTL, not the session row's.
         $token = $request->bearerToken() ?? $request->cookie('access_token');
         $playerId = $token !== null ? Cache::get("access-token:$token") : null;
 

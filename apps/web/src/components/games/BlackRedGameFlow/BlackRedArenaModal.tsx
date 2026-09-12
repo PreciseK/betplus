@@ -463,6 +463,12 @@ export function BlackRedArenaModal({
                       : `− ${currency}${stakeNaira.toLocaleString()}`}
                   </div>
 
+                  {roundWon && (
+                    <div style={{ fontSize: "12px", color: "#34d399", fontWeight: 700, margin: "4px 0 8px", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}>
+                      <span>⚡</span> Payout sent directly to your OPay wallet
+                    </div>
+                  )}
+
                   <div className={styles.resultRef}>
                     Ref: <strong>{roundRef}</strong> · {cardsCount} Cards (×{multiplier})
                   </div>

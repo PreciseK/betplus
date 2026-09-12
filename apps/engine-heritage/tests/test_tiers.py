@@ -7,12 +7,11 @@ from engine_heritage import tiers as tiersmod
 
 
 def _launch_tiers() -> list[tiersmod.PrizeTier]:
-    """PRD §9.4's exact launch table."""
+    """Launch table: 5 of 5 is Jackpot (25x), 4 of 5 is High (0.5x half stake back), 1-3 is Loss."""
     return [
         tiersmod.PrizeTier("TIER_JACKPOT", 200, 2_500, "cash"),
-        tiersmod.PrizeTier("TIER_HIGH", 600, 500, "cash"),
-        tiersmod.PrizeTier("TIER_SECOND_CHANCE", 1_600, 0, "draw_entry"),
-        tiersmod.PrizeTier("TIER_LOSS", 7_600, 0, "none"),
+        tiersmod.PrizeTier("TIER_HIGH", 600, 50, "cash"),
+        tiersmod.PrizeTier("TIER_LOSS", 9_200, 0, "none"),
     ]
 
 
@@ -49,17 +48,16 @@ def test_draw_tier_respects_weighting_over_many_draws() -> None:
     # Loose tolerance — this asserts the weighting is roughly right, not RNG-lab precision.
     assert 100 < counts["TIER_JACKPOT"] < 700
     assert 900 < counts["TIER_HIGH"] < 2_100
-    assert 13_000 < counts["TIER_LOSS"] < 20_000
+    assert 15_000 < counts["TIER_LOSS"] < 20_000
 
 
 def test_draw_match_count_returns_the_fixed_value_for_single_option_tiers() -> None:
     seed = os.urandom(32)
     assert tiersmod.draw_match_count(seed, 1, "TIER_JACKPOT") == 5
     assert tiersmod.draw_match_count(seed, 1, "TIER_HIGH") == 4
-    assert tiersmod.draw_match_count(seed, 1, "TIER_SECOND_CHANCE") == 3
 
 
-def test_draw_match_count_for_tier_loss_is_always_1_or_2() -> None:
+def test_draw_match_count_for_tier_loss_is_always_1_to_3() -> None:
     for i in range(200):
         seed = i.to_bytes(32, "big")
-        assert tiersmod.draw_match_count(seed, 1, "TIER_LOSS") in (1, 2)
+        assert tiersmod.draw_match_count(seed, 1, "TIER_LOSS") in (1, 2, 3)

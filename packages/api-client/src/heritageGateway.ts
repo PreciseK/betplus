@@ -99,11 +99,12 @@ export const heritageGateway = {
       taxRateBasisPoints: 0,
       traditions: game.traditions.map((t) => ({ id: t.code, name: t.label, kingTitle: t.king_title, queenTitle: t.queen_title })),
       prizeTiers: game.tiers.map((t) => ({
-        id: (t.outcome_type as "jackpot" | "high" | "second-chance" | "loss"),
+        id: t.name, // tier name is unique (TIER_JACKPOT, TIER_HIGH, etc.); outcome_type is NOT unique (multiple tiers share 'cash')
         label: t.name,
         matches: t.name,
         probabilityBasisPoints: t.probability_basis_points,
         multiplier: t.multiplier_hundredths ? t.multiplier_hundredths / 100 : undefined,
+        outcomeType: t.outcome_type,
       })),
       // No per-session tracking exists server-side (a "session" is a browser-only
       // concept) — this starts a fresh session at zero rather than inventing history.
@@ -124,7 +125,7 @@ export const heritageGateway = {
    * server round trip is correct, not a shortcut.
    */
   async quickPick() {
-    const positions = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    const positions = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     for (let i = positions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [positions[i], positions[j]] = [positions[j], positions[i]];
@@ -134,10 +135,16 @@ export const heritageGateway = {
   },
 
   async placeTicket(input: { selectedPositions: number[]; traditionId: string; leader: "king" | "queen"; stakeKobo: number }) {
+    // The web UI uses 1-based positions (1..9), while the backend API expects 0-based (0..8).
+    const isOneBased = input.selectedPositions.some((p) => p === 9) || !input.selectedPositions.includes(0);
+    const backendPositions = isOneBased
+      ? input.selectedPositions.map((p) => p - 1)
+      : input.selectedPositions;
+
     let purchase: { reference: string; status: "purchased" };
     try {
       purchase = await post<{ reference: string; status: "purchased" }>("/heritage/tickets", {
-        selected_positions: input.selectedPositions,
+        selected_positions: backendPositions,
         stake_kobo: input.stakeKobo,
         idempotency_key: crypto.randomUUID(),
         tradition: input.traditionId,
@@ -172,7 +179,8 @@ export const heritageGateway = {
         const item = catalogue.get(pos.number);
         if (!item) throw new Error(`Catalogue is missing item ${pos.number}`);
 
-        return { position: pos.position, selected: pos.picked, winning: pos.winning, item: toCatalogueItem(item) };
+        // Map backend 0-based position to 1-based position for UI components
+        return { position: pos.position + 1, selected: pos.picked, winning: pos.winning, item: toCatalogueItem(item) };
       }),
       secondChance: reveal.outcome_tier === "second-chance" && reveal.second_chance_stake_kobo !== null
         ? {
@@ -190,8 +198,13 @@ export const heritageGateway = {
 };
 
 function toHeritageError(error: unknown): Error {
-  if (error instanceof ApiError && error.status === 422 && typeof error.body.code === "string") {
-    return new HeritageGatewayError(error.body.code as HeritageGatewayErrorCode);
+  if (error instanceof ApiError && error.status === 422) {
+    if (typeof error.body?.code === "string") {
+      return new HeritageGatewayError(error.body.code as HeritageGatewayErrorCode);
+    }
+    if (error.body?.errors?.selected_positions || (typeof error.body?.message === "string" && error.body.message.includes("selected_positions"))) {
+      return new HeritageGatewayError("INVALID_SELECTION");
+    }
   }
   return error instanceof Error ? error : new Error("HERITAGE_REQUEST_FAILED");
 }

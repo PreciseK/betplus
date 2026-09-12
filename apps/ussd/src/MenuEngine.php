@@ -96,9 +96,11 @@ final class MenuEngine
             'blackred_pick' => $this->screenBlackRedPick($session, $input),
             'blackred_stake' => $this->screenBlackRedStake($session, $input),
             'blackred_confirm' => $this->screenBlackRedConfirm($session, $input),
+            'blackred_pay_otp' => $this->screenBlackRedPayOtp($session, $input),
             'heritage_pick' => $this->screenHeritagePick($session, $input),
             'heritage_stake' => $this->screenHeritageStake($session, $input),
             'heritage_confirm' => $this->screenHeritageConfirm($session, $input),
+            'heritage_pay_otp' => $this->screenHeritagePayOtp($session, $input),
             'fund_amount' => $this->screenFundAmount($session, $input),
             'fund_otp' => $this->screenFundOtp($session, $input),
             'rg_menu' => $this->screenRgMenu($session, $input),
@@ -293,6 +295,18 @@ final class MenuEngine
         $purchase = $this->platform->purchaseBlackRedTicket((string) $session->accessToken, $picks, (int) $session->data['brStakeKobo'], $idempotencyKey);
 
         if (!isset($purchase['reference'])) {
+            $quote = $this->platform->fundingQuote((string) $session->accessToken, (int) $session->data['brStakeKobo']);
+            if (isset($quote['quote_id'])) {
+                $deposit = $this->platform->createDeposit((string) $session->accessToken, (string) $quote['quote_id']);
+                if (($deposit['status'] ?? '') === 'otp_required') {
+                    $session->data['depositId'] = (int) $deposit['collection_id'];
+                    $session->screen = 'blackred_pay_otp';
+                    $naira = number_format(((int) $session->data['brStakeKobo']) / 100, 0);
+
+                    return Screen::continue("Stake NGN $naira via OPay.\nEnter the OTP OPay sent you to play:");
+                }
+            }
+
             return Screen::end('Could not place that ticket. Please try again.');
         }
 
@@ -303,9 +317,42 @@ final class MenuEngine
         // REQ-USSD-005/REQ-NOT-008 — the screen is transient; the SMS is not.
         $this->platform->notifyTicketSms((string) $session->accessToken, (string) $purchase['reference']);
 
-        $result = $won ? "You won! Net credit NGN $net." : 'No win this time.';
+        $result = $won ? "You won! Net credit NGN $net sent to your OPay." : 'No win this time.';
 
         return Screen::end("Result: {$result}\nRef: {$purchase['reference']}\nGood luck next time!");
+    }
+
+    private function screenBlackRedPayOtp(Session $session, string $input): Screen
+    {
+        if ($input === '') {
+            $naira = number_format(((int) $session->data['brStakeKobo']) / 100, 0);
+
+            return $this->errorPrefixed($session, 'blackred_pay_otp', "Stake NGN $naira via OPay.\nEnter the OTP OPay sent you to play:");
+        }
+
+        $result = $this->platform->submitDepositOtp((string) $session->accessToken, (int) $session->data['depositId'], $input);
+        if (($result['status'] ?? '') !== 'paid') {
+            return Screen::end('Payment could not be verified. Please try again.');
+        }
+
+        /** @var list<string> $picks */
+        $picks = $session->data['brPicks'];
+        $idempotencyKey = 'ussd-br-' . $session->sessionId;
+        $purchase = $this->platform->purchaseBlackRedTicket((string) $session->accessToken, $picks, (int) $session->data['brStakeKobo'], $idempotencyKey);
+
+        if (!isset($purchase['reference'])) {
+            return Screen::end('Payment received! Could not place ticket right now. Please try again.');
+        }
+
+        $reveal = $this->platform->revealBlackRedTicket((string) $session->accessToken, (string) $purchase['reference']);
+        $won = (bool) ($reveal['won'] ?? false);
+        $net = number_format((int) ($reveal['net_credit_kobo'] ?? 0) / 100, 0);
+
+        $this->platform->notifyTicketSms((string) $session->accessToken, (string) $purchase['reference']);
+
+        $result = $won ? "You won! Net credit NGN $net sent to your OPay." : 'No win this time.';
+
+        return Screen::end("Result: {$result}\nRef: {$purchase['reference']}");
     }
 
     // ── Heritage ─────────────────────────────────────────────────────────────
@@ -370,6 +417,18 @@ final class MenuEngine
         $purchase = $this->platform->purchaseHeritageTicket((string) $session->accessToken, $picks, (int) $session->data['hgStakeKobo'], $idempotencyKey);
 
         if (!isset($purchase['reference'])) {
+            $quote = $this->platform->fundingQuote((string) $session->accessToken, (int) $session->data['hgStakeKobo']);
+            if (isset($quote['quote_id'])) {
+                $deposit = $this->platform->createDeposit((string) $session->accessToken, (string) $quote['quote_id']);
+                if (($deposit['status'] ?? '') === 'otp_required') {
+                    $session->data['depositId'] = (int) $deposit['collection_id'];
+                    $session->screen = 'heritage_pay_otp';
+                    $naira = number_format(((int) $session->data['hgStakeKobo']) / 100, 0);
+
+                    return Screen::continue("Stake NGN $naira via OPay.\nEnter the OTP OPay sent you to play:");
+                }
+            }
+
             return Screen::end('Could not place that ticket. Please try again.');
         }
 
@@ -378,17 +437,50 @@ final class MenuEngine
         $tier = (string) ($reveal['outcome_tier'] ?? '');
         $net = number_format((int) ($reveal['net_credit_kobo'] ?? 0) / 100, 0);
 
-        // TIER_SECOND_CHANCE isn't a cash result yet (the draw hasn't run) — that SMS
-        // comes from Story 7.9's own notification path once the partner results it;
-        // sending a receipt here would be a premature/misleading "you won" mirror.
-        if ($tier !== 'TIER_SECOND_CHANCE') {
-            $this->platform->notifyTicketSms((string) $session->accessToken, (string) $purchase['reference']);
+        $this->platform->notifyTicketSms((string) $session->accessToken, (string) $purchase['reference']);
+
+        // 5 of 5 is Jackpot, 4 of 5 gets half stake back, 1-3 is a loss.
+        $summary = match ($tier) {
+            'TIER_JACKPOT' => "5 of 5 matched! JACKPOT! Net credit NGN $net sent to your OPay.",
+            'TIER_HIGH' => "4 of 5 matched! Half stake back. Net credit NGN $net sent to your OPay.",
+            default => "$matchCount of 5 matched. No prize this time.",
+        };
+
+        return Screen::end("Result: {$summary}\nRef: {$purchase['reference']}");
+    }
+
+    private function screenHeritagePayOtp(Session $session, string $input): Screen
+    {
+        if ($input === '') {
+            $naira = number_format(((int) $session->data['hgStakeKobo']) / 100, 0);
+
+            return $this->errorPrefixed($session, 'heritage_pay_otp', "Stake NGN $naira via OPay.\nEnter the OTP OPay sent you to play:");
         }
 
-        // REQ-HG-013/015 — full match count disclosed, never a "0 match" framing.
+        $result = $this->platform->submitDepositOtp((string) $session->accessToken, (int) $session->data['depositId'], $input);
+        if (($result['status'] ?? '') !== 'paid') {
+            return Screen::end('Payment could not be verified. Please try again.');
+        }
+
+        /** @var list<int> $picks */
+        $picks = $session->data['heritagePicks'];
+        $idempotencyKey = 'ussd-hg-' . $session->sessionId;
+        $purchase = $this->platform->purchaseHeritageTicket((string) $session->accessToken, $picks, (int) $session->data['hgStakeKobo'], $idempotencyKey);
+
+        if (!isset($purchase['reference'])) {
+            return Screen::end('Payment received! Could not place ticket right now. Please try again.');
+        }
+
+        $reveal = $this->platform->revealHeritageTicket((string) $session->accessToken, (string) $purchase['reference']);
+        $matchCount = (int) ($reveal['match_count'] ?? 0);
+        $tier = (string) ($reveal['outcome_tier'] ?? '');
+        $net = number_format((int) ($reveal['net_credit_kobo'] ?? 0) / 100, 0);
+
+        $this->platform->notifyTicketSms((string) $session->accessToken, (string) $purchase['reference']);
+
         $summary = match ($tier) {
-            'TIER_JACKPOT', 'TIER_HIGH' => "$matchCount of 5 matched! Net credit NGN $net.",
-            'TIER_SECOND_CHANCE' => "$matchCount of 5 matched. You're entered in the next 5/90 draw. SMS confirmation to follow.",
+            'TIER_JACKPOT' => "5 of 5 matched! JACKPOT! Net credit NGN $net sent to your OPay.",
+            'TIER_HIGH' => "4 of 5 matched! Half stake back. Net credit NGN $net sent to your OPay.",
             default => "$matchCount of 5 matched. No prize this time.",
         };
 

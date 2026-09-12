@@ -77,9 +77,8 @@ class HeritageGameSeeder extends Seeder
         // PRD §9.4's exact launch table. Modelled RTP 81.6% (5000 + 3000 + 160bp).
         $tiers = [
             ['tierName' => 'TIER_JACKPOT', 'probabilityBasisPoints' => 200, 'multiplierHundredths' => 2_500, 'outcomeType' => 'cash'],
-            ['tierName' => 'TIER_HIGH', 'probabilityBasisPoints' => 600, 'multiplierHundredths' => 500, 'outcomeType' => 'cash'],
-            ['tierName' => 'TIER_SECOND_CHANCE', 'probabilityBasisPoints' => 1_600, 'multiplierHundredths' => 0, 'outcomeType' => 'draw_entry'],
-            ['tierName' => 'TIER_LOSS', 'probabilityBasisPoints' => 7_600, 'multiplierHundredths' => 0, 'outcomeType' => 'none'],
+            ['tierName' => 'TIER_HIGH', 'probabilityBasisPoints' => 600, 'multiplierHundredths' => 50, 'outcomeType' => 'cash'],
+            ['tierName' => 'TIER_LOSS', 'probabilityBasisPoints' => 9_200, 'multiplierHundredths' => 0, 'outcomeType' => 'none'],
         ];
         foreach ($tiers as $tier) {
             $table->heritageTiers()->create($tier);

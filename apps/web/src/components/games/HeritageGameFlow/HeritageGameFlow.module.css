@@ -3138,3 +3138,62 @@
   0% { transform: translateY(0) rotate(0deg); opacity: 1; }
   100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
 }
+
+/* Payment Method Selection for Heritage */
+.paymentMethodSelector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.paymentMethodTab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f6f1e7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.paymentMethodTabActive {
+  background: rgba(217, 119, 6, 0.15);
+  border-color: #d97706;
+  box-shadow: 0 0 10px rgba(217, 119, 6, 0.3);
+}
+
+.paymentMethodTabActiveOpay {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.paymentMethodTabTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.paymentMethodTabSub {
+  font-size: 11px;
+  color: rgba(246, 241, 231, 0.6);
+  margin-top: 1px;
+}
+
+.paymentMethodTabSubOpay {
+  font-size: 11px;
+  color: #34d399;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.primaryActionOpay {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+  color: #03251a !important;
+  font-weight: 800 !important;
+  border: 1px solid #34d399 !important;
+}

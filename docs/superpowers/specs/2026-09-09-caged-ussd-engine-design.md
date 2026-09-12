@@ -37,7 +37,7 @@ USSD caller
   → POST /v1/caged/tickets  (apps/platform)
   → CagedController::purchase()
   → CreateCagedTicket::create()
-      → CagedPrizeTableResolver::resolveFor('CAGED', stateCode)
+      → PrizeTableResolver::resolveFor('CAGED', stateCode)
       → CagedEngine::resolve(seed, targetBirds, stakeKobo, tiers)
       → Wallet/Tax/RG/Analytics (existing, game-agnostic)
   ← Ticket + TicketOutcome
@@ -125,10 +125,16 @@ final readonly class CagedTier
 
 ## 4. Prize table & publication gate
 
-Reuse the existing `PrizeTable` model: add a `caged_tiers` table (migration) +
-`cagedTiers()` relation, mirroring `heritageTiers`. Columns: `prizeTableId`,
-`targetBirds`, `probabilityNumerator`, `probabilityDenominator`,
-`multiplierHundredths`.
+Reuse the existing `PrizeTable` model **and its existing generic
+`prizeTableTier` table/`tiers()` relation** — no new migration or model is
+needed. `PrizeTableTier`'s columns (`prizeTableId`, `positions`,
+`multiplierHundredths`, `probabilityNumerator`, `probabilityDenominator`) are
+already exactly Caged's tier shape (BlackRed already uses this same table);
+Caged's `positions` column holds `targetBirds` (1-5), scoped safely by its own
+`PrizeTable` row's `prizeTableId` (`gameCode = 'CAGED'`), so there's no
+collision with BlackRed's own 1-5 `positions` rows under a different
+`prizeTableId`. `CagedTier` (§3) is therefore a plain constructor argument
+built from `PrizeTableTier` rows at the call site, not a new Eloquent model.
 
 `App\Domain\Games\PrizeTable\CagedPrizeTablePublicationGate` (mirrors
 `PrizeTablePublicationGate`):
@@ -144,9 +150,13 @@ Reuse the existing `PrizeTable` model: add a `caged_tiers` table (migration) +
 - `actuarialCertRef` must be present (REQ-GEC-025 parity, same carve-out as
   the existing gates — the real actuarial workflow is not fabricated here).
 
-`App\Domain\Games\PrizeTable\CagedPrizeTableResolver` — thin copy of
-`PrizeTableResolver`/`HeritagePrizeTableResolver`, scoped to
-`gameCode = 'CAGED'`.
+No new resolver class is needed: `App\Domain\Games\PrizeTable\PrizeTableResolver`
+(the same one `CreateTicket`/`BlackRedController` already use) is fully
+generic — `resolveFor(string $gameCode, string $stateCode, ...)` — so
+`CreateCagedTicket`/`CagedController` inject it directly and call
+`resolveFor('CAGED', $stateCode)`. (Only Heritage needed a dedicated
+`HeritagePrizeTableResolver`, because its `PrizeTable` relation —
+`heritageTiers` — differs from the generic `tiers()` relation Caged reuses.)
 
 ## 5. Domain service — `App\Domain\Ticket\CreateCagedTicket`
 
@@ -155,7 +165,7 @@ Near-clone of `CreateTicket.php` (BlackRed's — chosen over
 complexity):
 
 - Constructor: same collaborators as `CreateTicket` (`AttributionService`,
-  `SeedIssuer`, `CagedPrizeTableResolver`, `CagedEngine`, `WalletService`,
+  `SeedIssuer`, `PrizeTableResolver`, `CagedEngine`, `WalletService`,
   `TaxEngine`, `LimitsService`, `ProtectionService`, `RegistryCheckService`,
   `VelocityService`, `AnalyticsEventRecorder`).
 - `create(Player $player, int $targetBirds, int $stakeKobo, string $idempotencyKey): Ticket`
@@ -211,7 +221,8 @@ Mirrors `HeritageGameSeeder`'s structure:
 - `PrizeTable`: `gameCode: 'CAGED'`, `stateCode: null`, a version string
   (e.g. `CG-NG-2026.1`), `status: 'published'`, `actuarialCertRef` set to a
   placeholder consistent with how other seeders record it.
-- Five `caged_tiers` rows per §3/§4's table.
+- Five `prizeTableTier` rows (via `$table->tiers()->create(...)`) per §3/§4's
+  table.
 - Registered in `DatabaseSeeder.php` alongside the other game seeders.
 
 ## 8. USSD side — `apps/ussd`

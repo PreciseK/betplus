@@ -30,9 +30,8 @@ final class HeritagePrizeTablePublicationGateTest extends TestCase
     {
         return [
             ['tierName' => 'TIER_JACKPOT', 'probabilityBasisPoints' => 200, 'multiplierHundredths' => 2_500, 'outcomeType' => 'cash'],
-            ['tierName' => 'TIER_HIGH', 'probabilityBasisPoints' => 600, 'multiplierHundredths' => 500, 'outcomeType' => 'cash'],
-            ['tierName' => 'TIER_SECOND_CHANCE', 'probabilityBasisPoints' => 1_600, 'multiplierHundredths' => 0, 'outcomeType' => 'draw_entry'],
-            ['tierName' => 'TIER_LOSS', 'probabilityBasisPoints' => 7_600, 'multiplierHundredths' => 0, 'outcomeType' => 'none'],
+            ['tierName' => 'TIER_HIGH', 'probabilityBasisPoints' => 600, 'multiplierHundredths' => 50, 'outcomeType' => 'cash'],
+            ['tierName' => 'TIER_LOSS', 'probabilityBasisPoints' => 9_200, 'multiplierHundredths' => 0, 'outcomeType' => 'none'],
         ];
     }
 
@@ -45,7 +44,7 @@ final class HeritagePrizeTablePublicationGateTest extends TestCase
 
     public function test_it_rejects_a_missing_tier(): void
     {
-        $tiers = array_slice($this->launchTiers(), 0, 3);
+        $tiers = array_slice($this->launchTiers(), 0, 2);
         $errors = app(HeritagePrizeTablePublicationGate::class)->validate($this->table($tiers), 500);
 
         $this->assertNotEmpty($errors);
@@ -60,10 +59,9 @@ final class HeritagePrizeTablePublicationGateTest extends TestCase
         $this->assertNotEmpty($errors);
     }
 
-    public function test_it_computes_gross_rtp_including_the_second_chance_house_cost(): void
+    public function test_it_computes_gross_rtp(): void
     {
-        // 5000 + 3000 + 160 = 8160bp (81.6%) — matches PRD §9.4 exactly, well under
-        // the 9500bp ceiling.
+        // 5000 + 300 = 5300bp (53.0%) — well under the 9500bp ceiling.
         $errors = app(HeritagePrizeTablePublicationGate::class)->validate($this->table($this->launchTiers()), 0);
 
         $this->assertSame([], $errors);

@@ -79,6 +79,34 @@ export function SignInFlow({
     }
   };
 
+  const handleQuickDemoSignIn = async () => {
+    const demoPhone = "+2348000000000";
+    setPhone("08000000000");
+    setPending(true);
+    setProviderError(undefined);
+    setCodeError(undefined);
+    try {
+      const response = await gateway.requestSignInCode(demoPhone);
+      setPhoneE164(demoPhone);
+      setChallengeId(response.challengeId);
+      const verifyRes = await gateway.verifySignInCode(response.challengeId, "123456");
+      if (typeof document !== "undefined") {
+        document.cookie = "betplus_signed_in=1; path=/; max-age=2592000; SameSite=Lax";
+      }
+      setDisplayName(verifyRes.player.displayName || "Demo Player");
+      setStep("signed-in");
+    } catch {
+      // Fallback: populate the form so user can submit with OTP 123456
+      setPhone("08000000000");
+      setPhoneE164(demoPhone);
+      setChallengeId(demoPhone);
+      setCode("123456");
+      setStep("code");
+    } finally {
+      setPending(false);
+    }
+  };
+
   const verifyCode = async (event: FormEvent) => {
     event.preventDefault();
     if (code.length !== 6) {
@@ -90,6 +118,9 @@ export function SignInFlow({
     setProviderError(undefined);
     try {
       const response = await gateway.verifySignInCode(challengeId, code);
+      if (typeof document !== "undefined") {
+        document.cookie = "betplus_signed_in=1; path=/; max-age=2592000; SameSite=Lax";
+      }
       setDisplayName(response.player.displayName);
       setStep("signed-in");
     } catch {
@@ -209,6 +240,26 @@ export function SignInFlow({
               {providerError && (
                 <div style={{ marginBottom: "20px" }}>
                   <InlineMessage tone="error" title="Sign-in is delayed">{providerError}</InlineMessage>
+                </div>
+              )}
+
+              {step === "phone" && (
+                <div className={styles.demoAccountCard}>
+                  <div className={styles.demoAccountHeader}>
+                    <span className={styles.demoBadge}>⚡ Demo Account</span>
+                    <span className={styles.demoBalance}>₦1,000,000.00</span>
+                  </div>
+                  <p className={styles.demoAccountDesc}>
+                    Phone: <strong>0800 000 0000</strong> · OTP: <strong>123456</strong>
+                  </p>
+                  <button
+                    type="button"
+                    className={styles.demoSignBtn}
+                    onClick={handleQuickDemoSignIn}
+                    disabled={pending}
+                  >
+                    <span>{pending ? "Signing in to Demo…" : "🚀 1-Click Sign In (₦1,000,000)"}</span>
+                  </button>
                 </div>
               )}
 

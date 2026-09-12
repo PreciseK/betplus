@@ -292,12 +292,18 @@ export function HeritageArenaModal({
                   <div>
                     <span style={{ fontSize: 11, color: "#86efac", textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.06em" }}>Jackpot Victory Claimed</span>
                     <div className={styles.payoutBig} style={{ color: "#4ade80" }}>+{formatKobo(settlement.netKobo)}</div>
+                    <div style={{ fontSize: 12, color: "#34d399", fontWeight: 700, marginTop: 4 }}>
+                      ⚡ Payout sent directly to your OPay wallet
+                    </div>
                   </div>
                 ) : isTried ? (
                   <div>
                     <span style={{ fontSize: 11, color: "#fde047", textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.06em" }}>Half Stake Returned (You Tried)</span>
                     <div className={styles.payoutBig} style={{ color: "#facc15" }}>+{formatKobo(settlement.netKobo)}</div>
                     <p style={{ margin: "2px 0 0", fontSize: 12, color: "#fef08a" }}>Matched 4 of 5 positions · 50% stake back</p>
+                    <div style={{ fontSize: 12, color: "#34d399", fontWeight: 700, marginTop: 4 }}>
+                      ⚡ Payout sent directly to your OPay wallet
+                    </div>
                   </div>
                 ) : (
                   <div>

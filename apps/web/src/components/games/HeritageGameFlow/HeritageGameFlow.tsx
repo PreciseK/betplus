@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as Reac
 import { formatKobo, parseNairaInputToKobo } from "@/lib/money";
 import { sounds } from "../BlackRedPlayModal/soundEffects";
 import { HeritageArenaModal } from "./HeritageArenaModal";
+import { OpayDirectCheckoutModal } from "@/components/wallet/OpayDirectCheckoutModal";
 import { MonarchSilhouetteWing } from "./MonarchSilhouetteWing";
 import { CommunitySidebarWing } from "./CommunitySidebarWing";
 import {
@@ -69,6 +70,8 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
   const [quickPicking, setQuickPicking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isArenaModalOpen, setIsArenaModalOpen] = useState(false);
+  const [paymentOption, setPaymentOption] = useState<"wallet" | "opay">("wallet");
+  const [opayCheckoutOpen, setOpayCheckoutOpen] = useState(false);
   const [confettiItems, setConfettiItems] = useState<ConfettiPiece[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>(RECENT_ACTIVITY_MOCK);
   const [hallOfChampions, setHallOfChampions] = useState<ChampionItem[]>(HALL_OF_CHAMPIONS);
@@ -232,7 +235,7 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
     return set;
   }, [settlement, visibleCount]);
 
-  const jackpotTier = snapshot?.prizeTiers.find((tier) => tier.id === "jackpot");
+  const jackpotTier = snapshot?.prizeTiers.find((tier) => tier.multiplier === 25 || tier.outcomeType === "cash" && tier.multiplier && tier.multiplier > 1);
   const jackpotGrossKobo = stakeKobo && jackpotTier?.multiplier ? stakeKobo * jackpotTier.multiplier : 0;
   const jackpotTaxKobo = snapshot && stakeKobo ? Math.round(Math.max(0, jackpotGrossKobo - stakeKobo) * snapshot.taxRateBasisPoints / 10_000) : 0;
 
@@ -418,7 +421,14 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
         <div className={styles.prizeStrip} aria-label="Heritage prize ladder">
           {snapshot.prizeTiers.map((tier) => (
             <span key={tier.id} data-tier={tier.id}>
-              <b>{tier.matches}</b> {tier.id === "jackpot" ? "25× jackpot" : tier.id === "high" || tier.multiplier === 0.5 ? "0.5× (half stake back)" : tier.id === "second-chance" ? "5/90 draw" : "No prize"}
+              <b>{tier.matches}</b>{" "}
+              {tier.multiplier === 25
+                ? "25× jackpot"
+                : tier.multiplier === 0.5
+                ? "0.5× (half stake back)"
+                : tier.outcomeType === "draw_entry"
+                ? "5/90 draw"
+                : "No prize"}
             </span>
           ))}
         </div>
@@ -620,9 +630,48 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
                         </div>
                       </div>
                     )}
+
+                    {(phase === "configuring" || phase === "confirming") && (
+                      <div className={styles.paymentMethodSelector}>
+                        <button
+                          type="button"
+                          className={`${styles.paymentMethodTab} ${paymentOption === "wallet" ? styles.paymentMethodTabActive : ""}`}
+                          onClick={() => setPaymentOption("wallet")}
+                        >
+                          <span className={styles.paymentMethodTabTitle}>👛 Wallet</span>
+                          <span className={styles.paymentMethodTabSub}>Betplus Balance</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.paymentMethodTab} ${paymentOption === "opay" ? styles.paymentMethodTabActiveOpay : ""}`}
+                          onClick={() => setPaymentOption("opay")}
+                        >
+                          <span className={styles.paymentMethodTabTitle}>⚡ OPay Direct</span>
+                          <span className={styles.paymentMethodTabSubOpay}>Debit & Auto-Payout</span>
+                        </button>
+                      </div>
+                    )}
+
                     {phase === "configuring" || phase === "confirming" ? (
-                      <button ref={playButtonRef} className={styles.primaryAction} type="button" onClick={() => setPhase("confirming")} disabled={!ready} aria-haspopup="dialog" aria-expanded={phase === "confirming"} aria-controls={phase === "confirming" ? confirmDialogId : undefined}>
-                        Reveal and dress · {stakeKobo ? formatKobo(stakeKobo) : ""}
+                      <button
+                        ref={playButtonRef}
+                        className={`${styles.primaryAction} ${paymentOption === "opay" ? styles.primaryActionOpay : ""}`}
+                        type="button"
+                        onClick={() => {
+                          if (paymentOption === "opay") {
+                            setOpayCheckoutOpen(true);
+                          } else {
+                            setPhase("confirming");
+                          }
+                        }}
+                        disabled={!ready}
+                        aria-haspopup="dialog"
+                        aria-expanded={phase === "confirming"}
+                        aria-controls={phase === "confirming" ? confirmDialogId : undefined}
+                      >
+                        {paymentOption === "opay"
+                          ? `⚡ Pay with OPay · ${stakeKobo ? formatKobo(stakeKobo) : ""}`
+                          : `Reveal and dress · ${stakeKobo ? formatKobo(stakeKobo) : ""}`}
                       </button>
                     ) : (
                       <div className={styles.resultActions} data-loss={isLoss}>
@@ -825,6 +874,16 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
         }}
         prizeTiers={snapshot?.prizeTiers ?? []}
       />
+
+      {/* OPay Direct Checkout Modal */}
+      <OpayDirectCheckoutModal
+        isOpen={opayCheckoutOpen}
+        onClose={() => setOpayCheckoutOpen(false)}
+        stakeKobo={stakeKobo ?? 0}
+        potentialWinKobo={(stakeKobo ?? 0) * 25}
+        gameName="Heritage Quest"
+        onPaymentSuccess={confirmPlay}
+      />
     </div>
   );
 }
@@ -957,11 +1016,11 @@ function SecondChanceSummary({ entry, reference }: { entry: NonNullable<Heritage
 }
 
 function PrizeRow({ tier, stakeKobo }: { tier: HeritagePrizeTier; stakeKobo: number }) {
-  const outcome = tier.id === "jackpot" || tier.multiplier === 25
+  const outcome = tier.multiplier === 25
     ? `${formatKobo(stakeKobo * 25)} · 25× stake`
-    : tier.id === "high" || tier.multiplier === 0.5
+    : tier.multiplier === 0.5
       ? `${formatKobo(Math.round(stakeKobo * 0.5))} · 0.5× stake (half back)`
-      : tier.id === "second-chance"
+      : tier.outcomeType === "draw_entry"
         ? `${formatKobo(Math.round(stakeKobo * 0.1))} 5/90 entry`
         : "No prize";
   return (

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\BirdEscapeController;
 use App\Http\Controllers\Api\V1\BlackRedController;
 use App\Http\Controllers\Api\V1\HeritageController;
 use App\Http\Controllers\Api\V1\IdentityVerificationController;
@@ -47,6 +48,12 @@ Route::prefix('v1')->group(function () {
         Route::get('/heritage/catalogue', [HeritageController::class, 'catalogue']);
         Route::post('/heritage/tickets', [HeritageController::class, 'purchase'])->middleware('idempotent');
         Route::get('/heritage/tickets/{reference}/reveal', [HeritageController::class, 'reveal']);
+
+        // Live multiplayer crash game — one shared round, not a per-play ticket, so
+        // its routes shape differs from the resolve-once ticket pattern above.
+        Route::get('/birdescape/rounds/current', [BirdEscapeController::class, 'currentRound']);
+        Route::post('/birdescape/rounds/{round}/bets', [BirdEscapeController::class, 'placeBet'])->middleware('idempotent');
+        Route::post('/birdescape/bets/{bet}/cashout', [BirdEscapeController::class, 'cashout'])->middleware('idempotent');
 
         // Story 8.5 (REQ-USSD-005/REQ-NOT-008) — game-agnostic, USSD-triggered.
         Route::post('/tickets/{reference}/notify-sms', [TicketNotificationController::class, 'notifySms']);

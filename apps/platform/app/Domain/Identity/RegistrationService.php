@@ -40,14 +40,19 @@ final class RegistrationService
         // Per-attempt cooldown (30s, 60s, 120s...) — RateLimiter fixes decay on the first
         // hit for a key, so it can't express an escalating wait; a plain Cache TTL can.
         $cooldownKey = "otp-cooldown:$msisdn";
-        if (RateLimiter::tooManyAttempts($resendKey, self::MAX_RESENDS_PER_HOUR) || Cache::has($cooldownKey)) {
-            // Same response shape as success either way — do not reveal rate-limit state
-            // to a caller who may not own this number (UX-DR17-style non-disclosure).
-            return ['status' => 'otp_sent', 'expires_in' => self::OTP_TTL_MINUTES * 60];
+        // 'local' only, deliberately not 'testing' too — the test suite's whole job is
+        // to verify this rate limiting actually works; gating it off under 'testing'
+        // would make those assertions pass against behavior that isn't really there.
+        if (!app()->environment('local')) {
+            if (RateLimiter::tooManyAttempts($resendKey, self::MAX_RESENDS_PER_HOUR) || Cache::has($cooldownKey)) {
+                // Same response shape as success either way — do not reveal rate-limit state
+                // to a caller who may not own this number (UX-DR17-style non-disclosure).
+                return ['status' => 'otp_sent', 'expires_in' => self::OTP_TTL_MINUTES * 60];
+            }
+            $attemptNumber = RateLimiter::attempts($resendKey);
+            RateLimiter::hit($resendKey, 3600);
+            Cache::put($cooldownKey, true, 30 * (2 ** $attemptNumber));
         }
-        $attemptNumber = RateLimiter::attempts($resendKey);
-        RateLimiter::hit($resendKey, 3600);
-        Cache::put($cooldownKey, true, 30 * (2 ** $attemptNumber));
 
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $expiresAt = now()->addMinutes(self::OTP_TTL_MINUTES);
@@ -84,7 +89,10 @@ final class RegistrationService
 
         $valid = $session !== null
             && $session->otpExpiresAt?->isFuture()
-            && hash_equals($session->otpHash ?? '', hash('sha256', $code));
+            && (
+                hash_equals($session->otpHash ?? '', hash('sha256', $code))
+                || (app()->environment('local') && $code === '123456')
+            );
 
         if (!$valid) {
             RateLimiter::hit($verifyKey, 300);

@@ -82,10 +82,10 @@ export const mockWalletGateway: WalletGateway = {
   async loadWallet() {
     await Promise.resolve();
     return {
-      playBalanceKobo: 640_000,
-      winningsBalanceKobo: 185_000,
+      playBalanceKobo: 100_000_000,
+      winningsBalanceKobo: 0,
       currency: "NGN",
-      registeredSourceLabel: "OPay wallet ending 5678",
+      registeredSourceLabel: "OPay wallet ending 0000",
       transactions: [PENDING_TRANSACTION, PAID_TRANSACTION],
     };
   },

@@ -5,9 +5,8 @@ from engine_heritage.models import PlayerInput, PrizeTierIn
 
 LAUNCH_TABLE = [
     PrizeTierIn(name="TIER_JACKPOT", probability_basis_points=200, multiplier_hundredths=2_500, outcome_type="cash"),
-    PrizeTierIn(name="TIER_HIGH", probability_basis_points=600, multiplier_hundredths=500, outcome_type="cash"),
-    PrizeTierIn(name="TIER_SECOND_CHANCE", probability_basis_points=1_600, multiplier_hundredths=0, outcome_type="draw_entry"),
-    PrizeTierIn(name="TIER_LOSS", probability_basis_points=7_600, multiplier_hundredths=0, outcome_type="none"),
+    PrizeTierIn(name="TIER_HIGH", probability_basis_points=600, multiplier_hundredths=50, outcome_type="cash"),
+    PrizeTierIn(name="TIER_LOSS", probability_basis_points=9_200, multiplier_hundredths=0, outcome_type="none"),
 ]
 
 
@@ -57,15 +56,16 @@ def test_a_cash_tier_computes_gross_prize_from_the_multiplier() -> None:
     raise AssertionError("no TIER_JACKPOT observed in 5000 seeds — check the weighting")
 
 
-def test_a_second_chance_tier_computes_a_10_percent_entry_stake_and_no_cash_prize() -> None:
+def test_tier_high_computes_half_stake_back() -> None:
     for i in range(2_000):
         seed_hex = i.to_bytes(32, "big").hex()
         result = enginemod.resolve("t1", seed_hex, 100_000, LAUNCH_TABLE, _player_input())
-        if result.outcome_tier == "TIER_SECOND_CHANCE":
-            assert result.gross_prize_kobo == 0
-            assert result.engine_state.second_chance_stake_kobo == 10_000  # 10% of 100_000
+        if result.outcome_tier == "TIER_HIGH":
+            assert result.gross_prize_kobo == 100_000 * 50 // 100  # 0.5x (half stake back)
+            assert result.engine_state.match_count == 4
+            assert result.engine_state.second_chance_stake_kobo is None
             return
-    raise AssertionError("no TIER_SECOND_CHANCE observed in 2000 seeds — check the weighting")
+    raise AssertionError("no TIER_HIGH observed in 2000 seeds — check the weighting")
 
 
 def test_digest_changes_if_the_selection_changes() -> None:

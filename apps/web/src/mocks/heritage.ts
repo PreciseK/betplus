@@ -14,11 +14,12 @@ export interface HeritageTradition {
 }
 
 export interface HeritagePrizeTier {
-  id: "jackpot" | "high" | "second-chance" | "loss";
+  id: string; // Unique tier name (e.g. TIER_JACKPOT). outcome_type ('cash', 'draw_entry', 'none') is NOT unique.
   label: string;
   matches: string;
   probabilityBasisPoints: number;
   multiplier?: number;
+  outcomeType?: "cash" | "draw_entry" | "none" | string;
 }
 
 export interface HeritageCatalogueItem {
@@ -117,9 +118,10 @@ const TRADITIONS: HeritageTradition[] = [
 ];
 
 export const HERITAGE_PRIZE_TIERS: HeritagePrizeTier[] = [
-  { id: "jackpot", label: "Jackpot", matches: "5 of 5", probabilityBasisPoints: 200, multiplier: 25 },
-  { id: "high", label: "You tried", matches: "4 of 5", probabilityBasisPoints: 800, multiplier: 0.5 },
-  { id: "loss", label: "No prize", matches: "1–3 match", probabilityBasisPoints: 9_000 },
+  { id: "TIER_JACKPOT", label: "Jackpot", matches: "5 of 5", probabilityBasisPoints: 200, multiplier: 25, outcomeType: "cash" },
+  { id: "TIER_HIGH", label: "You tried", matches: "4 of 5", probabilityBasisPoints: 600, multiplier: 0.5, outcomeType: "cash" },
+  { id: "TIER_SECOND_CHANCE", label: "Second chance", matches: "3–4 match", probabilityBasisPoints: 1_600, outcomeType: "draw_entry" },
+  { id: "TIER_LOSS", label: "No prize", matches: "1–2 match", probabilityBasisPoints: 7_600, outcomeType: "none" },
 ];
 
 type CatalogueSeed = Pick<HeritageCatalogueItem, "canonicalName" | "localName" | "origin" | "context" | "slot">;
@@ -277,7 +279,7 @@ export const mockHeritageGateway: HeritageGateway = {
     }
 
     await new Promise((resolve) => setTimeout(resolve, 260));
-    const tierCycle: HeritagePrizeTier["id"][] = ["high", "loss", "jackpot", "loss"];
+    const tierCycle: HeritagePrizeTier["id"][] = ["TIER_HIGH", "TIER_LOSS", "TIER_JACKPOT", "TIER_LOSS"];
     const settlement = createHeritageSettlement(input, tierCycle[roundIndex % tierCycle.length]);
     roundIndex += 1;
     return settlement;

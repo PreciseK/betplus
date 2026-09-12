@@ -168,6 +168,27 @@ final class MenuEngineTest extends TestCase
         $this->assertSame([0, 1, 2, 3, 4], $purchaseCall['args'][1]); // positions are 0-indexed internally
     }
 
+    public function test_heritage_4_of_5_gets_half_stake_back(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '2');
+        foreach (['1', '2', '3', '4', '5'] as $digit) {
+            $this->engine->handleTurn('sess-1', '+2348031234567', $digit);
+        }
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1000');
+        $this->platform->programResponse('purchaseHeritageTicket', ['reference' => 'tkt-3']);
+        $this->platform->programResponse('revealHeritageTicket', [
+            'outcome_tier' => 'TIER_HIGH', 'match_count' => 4, 'net_credit_kobo' => 50_000,
+        ]);
+
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $this->assertFalse($result->continues);
+        $this->assertStringContainsString('4 of 5 matched! Half stake back', $result->render());
+        $this->assertStringContainsString('NGN 500', $result->render());
+        $this->assertFits($result);
+    }
+
     public function test_heritage_pick_rejects_a_repeated_position(): void
     {
         $this->signIn('sess-1', '+2348031234567');

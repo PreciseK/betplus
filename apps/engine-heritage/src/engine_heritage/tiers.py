@@ -17,14 +17,12 @@ from engine_heritage import seed as seedmod
 
 OutcomeType = Literal["cash", "draw_entry", "none"]
 
-# REQ-HG-010/014 — TIER_LOSS spans 1-2 matches (0 matches is structurally impossible
-# on a 9-tile board with 5 winning positions and a 5-position player pick: at most 4
-# non-picked positions exist, so at least 1 of the 5 winners must fall in the pick).
+# TIER_LOSS spans 1-3 matches. 4 matches is TIER_HIGH (half stake back).
+# 5 matches is TIER_JACKPOT. 0 matches is structurally impossible on a 9-tile/5-winner board.
 TIER_MATCH_COUNTS: dict[str, tuple[int, ...]] = {
     "TIER_JACKPOT": (5,),
     "TIER_HIGH": (4,),
-    "TIER_SECOND_CHANCE": (3,),
-    "TIER_LOSS": (1, 2),
+    "TIER_LOSS": (1, 2, 3),
 }
 
 

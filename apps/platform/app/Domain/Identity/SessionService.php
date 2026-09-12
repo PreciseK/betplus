@@ -39,10 +39,14 @@ final class SessionService
     public function signIn(string $rawMsisdn, string $channel = 'web', ?string $ipAddress = null): array
     {
         $ipKey = 'sign-in-ip:' . ($ipAddress ?? 'unknown');
-        if (RateLimiter::tooManyAttempts($ipKey, self::MAX_ATTEMPTS_PER_IP)) {
-            return ['status' => 'too_many_attempts'];
+        // 'local' only — see RegistrationService's identical note on why 'testing' must
+        // stay out of this gate.
+        if (!app()->environment('local')) {
+            if (RateLimiter::tooManyAttempts($ipKey, self::MAX_ATTEMPTS_PER_IP)) {
+                return ['status' => 'too_many_attempts'];
+            }
+            RateLimiter::hit($ipKey, self::DECAY_SECONDS);
         }
-        RateLimiter::hit($ipKey, self::DECAY_SECONDS);
 
         $msisdn = PhoneNumber::toE164($rawMsisdn);
 

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\BackOffice\AnalyticsController;
 use App\Http\Controllers\BackOffice\AuditLogController;
+use App\Http\Controllers\BackOffice\BirdEscapeRoundAuditController;
 use App\Http\Controllers\BackOffice\CollectionController;
+use App\Http\Controllers\BackOffice\CrashConfigController;
 use App\Http\Controllers\BackOffice\DailySummaryController;
 use App\Http\Controllers\BackOffice\GameRegistryController;
 use App\Http\Controllers\BackOffice\HeritageCatalogueController;
@@ -64,6 +66,17 @@ Route::prefix('backoffice/v1')->group(function () {
             Route::post('/prize-tables', [GameRegistryController::class, 'createPrizeTable']);
             Route::patch('/prize-tables/{id}', [GameRegistryController::class, 'updatePrizeTable']);
             Route::delete('/prize-tables/{id}', [GameRegistryController::class, 'destroyPrizeTable']);
+        });
+
+        // BirdEscape crash config — same maker-checker-gated shape as prize tables above.
+        Route::get('/crash-configs', [CrashConfigController::class, 'index']);
+        Route::get('/crash-configs/presets', [CrashConfigController::class, 'presets']);
+        Route::get('/crash-configs/{id}', [CrashConfigController::class, 'show']);
+        Route::get('/birdescape/rounds/{roundNumber}/replay', [BirdEscapeRoundAuditController::class, 'replay']);
+        Route::middleware('institution.role:game_ops,system_admin')->group(function () {
+            Route::post('/crash-configs', [CrashConfigController::class, 'store']);
+            Route::patch('/crash-configs/{id}', [CrashConfigController::class, 'update']);
+            Route::delete('/crash-configs/{id}', [CrashConfigController::class, 'destroy']);
         });
 
         // Story 6.3 — maker-checker. Any role may propose; approval eligibility

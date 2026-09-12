@@ -84,7 +84,7 @@ final class HeritageTicketTest extends TestCase
             'pick_size' => 5,
             'prize_table_version' => 'HG-NG-2026.1',
         ]);
-        $this->assertCount(4, $response->json('tiers'));
+        $this->assertCount(3, $response->json('tiers'));
         $this->assertCount(7, $response->json('traditions'));
     }
 

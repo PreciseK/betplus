@@ -18,7 +18,7 @@ use App\Models\PrizeTable;
 final class HeritagePrizeTablePublicationGate
 {
     private const RTP_CEILING_BASIS_POINTS = 9_500; // 95% (REQ-GEC-023)
-    private const REQUIRED_TIER_NAMES = ['TIER_JACKPOT', 'TIER_HIGH', 'TIER_SECOND_CHANCE', 'TIER_LOSS'];
+    private const REQUIRED_TIER_NAMES = ['TIER_JACKPOT', 'TIER_HIGH', 'TIER_LOSS'];
 
     // REQ-HG-030's "sc_stake_ratio x player stake (default 0.10)" — must match
     // engine_heritage.engine.SECOND_CHANCE_STAKE_RATIO_BASIS_POINTS exactly, since

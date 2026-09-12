@@ -8,9 +8,8 @@ client = TestClient(app)
 
 LAUNCH_TABLE = [
     {"name": "TIER_JACKPOT", "probability_basis_points": 200, "multiplier_hundredths": 2_500, "outcome_type": "cash"},
-    {"name": "TIER_HIGH", "probability_basis_points": 600, "multiplier_hundredths": 500, "outcome_type": "cash"},
-    {"name": "TIER_SECOND_CHANCE", "probability_basis_points": 1_600, "multiplier_hundredths": 0, "outcome_type": "draw_entry"},
-    {"name": "TIER_LOSS", "probability_basis_points": 7_600, "multiplier_hundredths": 0, "outcome_type": "none"},
+    {"name": "TIER_HIGH", "probability_basis_points": 600, "multiplier_hundredths": 50, "outcome_type": "cash"},
+    {"name": "TIER_LOSS", "probability_basis_points": 9_200, "multiplier_hundredths": 0, "outcome_type": "none"},
 ]
 
 
@@ -33,7 +32,7 @@ def test_describe_declares_the_engine_contract() -> None:
     assert body["game_code"] == "HERITAGE"
     assert body["board_size"] == 9
     assert body["pick_size"] == 5
-    assert sorted(body["tier_names"]) == ["TIER_HIGH", "TIER_JACKPOT", "TIER_LOSS", "TIER_SECOND_CHANCE"]
+    assert sorted(body["tier_names"]) == ["TIER_HIGH", "TIER_JACKPOT", "TIER_LOSS"]
 
 
 def test_resolve_returns_a_structurally_valid_outcome() -> None:
