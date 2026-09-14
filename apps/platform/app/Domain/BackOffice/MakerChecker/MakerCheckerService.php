@@ -21,6 +21,7 @@ final class MakerCheckerService
         'prize_table_publish' => PrizeTablePublishApplier::class,
         'manual_credit_debit' => ManualCreditDebitApplier::class,
         'crash_config_publish' => CrashConfigPublishApplier::class,
+        'game_economics_config_publish' => GameEconomicsConfigPublishApplier::class,
     ];
 
     /**
