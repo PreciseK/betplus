@@ -61,7 +61,7 @@ final class PrizeTablePublicationGateTest extends TestCase
         $this->assertStringContainsString('fair-coin', $errors[0]);
     }
 
-    public function test_rejects_a_tier_whose_gross_rtp_exceeds_the_95_percent_ceiling(): void
+    public function test_rejects_a_tier_whose_gross_rtp_exceeds_the_88_percent_ceiling(): void
     {
         // 1-in-2 chance at a 2.5x multiplier is 125% RTP — well above the ceiling.
         $table = $this->tableWithTiers([

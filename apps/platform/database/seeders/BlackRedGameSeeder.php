@@ -16,9 +16,11 @@ use RuntimeException;
  * Story 3.4/3.5 — the minimum configuration BlackRed needs to be playable in dev and
  * staging: a game registry entry, one state's exclusion-registry gate satisfied (Lagos,
  * matching the frontend's own mock stateName default), and a published prize table
- * whose tiers are exactly the frontend's certified-looking numbers (1.85x..26.00x —
- * see apps/web/src/mocks/blackred.ts). Real publication (maker-checker, actuarial
- * cert) is Epic 6; this seeder writes the same shape the gate would accept.
+ * whose tiers are close to the frontend's certified-looking numbers (1.70x..26.00x —
+ * see apps/web/src/mocks/blackred.ts, which still shows the pre-recalibration 1.85x/
+ * 3.60x for tiers 1-2 as of 2026-09-14; a frontend follow-up is needed to match).
+ * Real publication (maker-checker, actuarial cert) is Epic 6; this seeder writes the
+ * same shape the gate would accept.
  */
 class BlackRedGameSeeder extends Seeder
 {

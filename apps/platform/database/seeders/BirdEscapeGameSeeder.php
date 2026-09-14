@@ -55,7 +55,14 @@ class BirdEscapeGameSeeder extends Seeder
             ['gameCode' => 'BIRDESCAPE', 'version' => 'BE-NG-2026.1'],
             [
                 'status' => 'draft',
-                'houseEdgeBasisPoints' => 1200,
+                // Recalibrated 2026-09-14 (was 500bp = 95.00% RTP, exactly at the OLD
+                // 9500bp ceiling) to clear the tightened 8800bp ceiling
+                // (RtpCeiling::BASIS_POINTS) with a real margin — 1500bp house edge =
+                // 85.00% RTP, matching the ~300bp safety margin used for BlackRed's and
+                // Caged's recalibrations in the same commit, not landing exactly on the
+                // boundary. Interim placeholder pending real product/actuarial sign-off,
+                // same category as the BlackRed/Caged changes in commit ffc5902.
+                'houseEdgeBasisPoints' => 1500,
                 'bettingWindowSeconds' => 7,
                 'postCrashIntervalSeconds' => 5,
                 'growthRateConstant' => 4000,

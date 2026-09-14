@@ -39,11 +39,12 @@ final class FinancialReportingTest extends TestCase
         ]);
     }
 
-    /** One-position BLACKRED/LAG ticket at BR-NG-2026.1: stake 100_000 kobo, 1.85x. */
+    /** One-position BLACKRED/LAG ticket at BR-NG-2026.1: stake 100_000 kobo, 1.70x
+     *  (recalibrated 2026-09-14 for the 8800bp ceiling — was 1.85x). */
     private function ticket(Player $player, bool $won, int $stakeKobo = 100_000): Ticket
     {
         $seed = app(SeedIssuer::class)->issue();
-        $grossPrizeKobo = $won ? (int) round($stakeKobo * 1.85) : 0;
+        $grossPrizeKobo = $won ? (int) round($stakeKobo * 1.70) : 0;
         $taxWithheldKobo = $won ? (int) round($grossPrizeKobo * 0.05) : 0;
 
         $ticket = Ticket::create([
@@ -100,11 +101,11 @@ final class FinancialReportingTest extends TestCase
         $this->assertSame(3, $row['ticketCount']);
         $this->assertSame(300_000, $row['stakesKobo']);
         $this->assertSame(1, $row['winningTicketCount']);
-        $this->assertSame(185_000, $row['grossPrizesKobo']);
+        $this->assertSame(170_000, $row['grossPrizesKobo']);
         // GGR = stakes - gross prizes paid out.
-        $this->assertSame(300_000 - 185_000, $row['ggrKobo']);
+        $this->assertSame(300_000 - 170_000, $row['ggrKobo']);
         // RTP actual = grossPrizesKobo / stakesKobo, in basis points.
-        $this->assertSame((int) round(185_000 / 300_000 * 10_000), $row['rtpActualBasisPoints']);
+        $this->assertSame((int) round(170_000 / 300_000 * 10_000), $row['rtpActualBasisPoints']);
         // RTP modelled uses the tier's real fair-coin probability (1/2) and multiplier
         // (1.70x, recalibrated 2026-09-14 for the 8800bp ceiling) against the actual
         // stake mix played — not the actual outcome.
