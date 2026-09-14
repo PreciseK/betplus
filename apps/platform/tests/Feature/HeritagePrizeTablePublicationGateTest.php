@@ -61,7 +61,7 @@ final class HeritagePrizeTablePublicationGateTest extends TestCase
 
     public function test_it_computes_gross_rtp(): void
     {
-        // 5000 + 300 = 5300bp (53.0%) — well under the 9500bp ceiling.
+        // 5000 + 300 = 5300bp (53.0%) — well under the 8800bp ceiling.
         $errors = app(HeritagePrizeTablePublicationGate::class)->validate($this->table($this->launchTiers()), 0);
 
         $this->assertSame([], $errors);

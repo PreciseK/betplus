@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Games\PrizeTable;
 
+use App\Domain\Games\Economics\RtpCeiling;
 use App\Models\PrizeTable;
 
 /**
@@ -17,7 +18,6 @@ use App\Models\PrizeTable;
  */
 final class HeritagePrizeTablePublicationGate
 {
-    private const RTP_CEILING_BASIS_POINTS = 9_500; // 95% (REQ-GEC-023)
     private const REQUIRED_TIER_NAMES = ['TIER_JACKPOT', 'TIER_HIGH', 'TIER_LOSS'];
 
     // REQ-HG-030's "sc_stake_ratio x player stake (default 0.10)" — must match
@@ -66,11 +66,11 @@ final class HeritagePrizeTablePublicationGate
         }
         $netRtpBasisPoints = (int) round($grossRtpBasisPoints * (10_000 - $withholdingRateBasisPoints) / 10_000);
 
-        if ($grossRtpBasisPoints > self::RTP_CEILING_BASIS_POINTS) {
-            $errors[] = "Gross RTP {$grossRtpBasisPoints}bp exceeds the 9500bp ceiling.";
+        if ($grossRtpBasisPoints > RtpCeiling::BASIS_POINTS) {
+            $errors[] = "Gross RTP {$grossRtpBasisPoints}bp exceeds the " . RtpCeiling::BASIS_POINTS . 'bp ceiling.';
         }
-        if ($netRtpBasisPoints > self::RTP_CEILING_BASIS_POINTS) {
-            $errors[] = "Net-of-WHT RTP {$netRtpBasisPoints}bp exceeds the 9500bp ceiling.";
+        if ($netRtpBasisPoints > RtpCeiling::BASIS_POINTS) {
+            $errors[] = "Net-of-WHT RTP {$netRtpBasisPoints}bp exceeds the " . RtpCeiling::BASIS_POINTS . 'bp ceiling.';
         }
 
         if ($table->actuarialCertRef === null) {
