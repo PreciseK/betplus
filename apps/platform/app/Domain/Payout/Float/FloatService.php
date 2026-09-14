@@ -46,6 +46,14 @@ final class FloatService
         return $latest !== null ? $latest->alertState : 'ok';
     }
 
+    /** Model 1's Kelly-style stake/exposure caps read this — the current OPay float, in kobo. */
+    public function currentFloatKobo(): int
+    {
+        $latest = FloatSnapshot::orderByDesc('polledAt')->first();
+
+        return $latest?->opayBalanceKobo ?? 0;
+    }
+
     /** REQ-FLOAT-006 — true means automatic disbursement should queue rather than call OPay. */
     public function isHalted(): bool
     {
