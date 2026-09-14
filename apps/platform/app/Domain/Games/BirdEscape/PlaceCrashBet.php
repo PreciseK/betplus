@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Games\BirdEscape;
 
 use App\Domain\Analytics\AnalyticsEventRecorder;
+use App\Domain\Games\Economics\EconomicsConfigResolver;
+use App\Domain\Games\Economics\EconomicsContext;
+use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
+use App\Domain\Games\Engine\BirdEscape\BirdEscapeEngine;
 use App\Domain\Jurisdiction\AttributionService;
 use App\Domain\ResponsibleGaming\LimitsService;
 use App\Domain\ResponsibleGaming\ProtectionService;
@@ -32,6 +36,8 @@ final class PlaceCrashBet
         private readonly AttributionService $attribution,
         private readonly WalletService $wallet,
         private readonly LimitsService $limits,
+        private readonly EconomicsConfigResolver $economicsConfigResolver,
+        private readonly EconomicsModelStrategyFactory $economicsStrategyFactory,
         private readonly ProtectionService $protection,
         private readonly RegistryCheckService $registry,
         private readonly VelocityService $velocity,
@@ -69,8 +75,11 @@ final class PlaceCrashBet
         }
         $this->limits->assertStakeWithinLimits($player, $stakeKobo);
 
+        $economicsStrategy = $this->economicsStrategyFactory->forCrashGame($this->economicsConfigResolver->resolveFor($round->gameCode));
+        $economicsStrategy->assertAcceptable($round->gameCode, $stakeKobo, EconomicsContext::forCrashRound($round));
+
         // ── COMMITMENT — single transaction, locks held briefly ──
-        $bet = DB::transaction(function () use ($player, $round, $stakeKobo, $autoCashoutMultiplierHundredths, $idempotencyKey, $attribution) {
+        $bet = DB::transaction(function () use ($player, $round, $stakeKobo, $autoCashoutMultiplierHundredths, $idempotencyKey, $attribution, $economicsStrategy) {
             // REQ-TKT-012-style re-assertion inside the transaction.
             $player->refresh();
             $this->assertKycTier($player);
@@ -84,6 +93,10 @@ final class PlaceCrashBet
                 throw new TicketEligibilityException('ROUND_NOT_ACCEPTING_BETS', 'This round is no longer accepting bets.');
             }
 
+            // Re-check against the FRESH row's exposureKobo — a concurrent bet could
+            // have grown it since the read above.
+            $economicsStrategy->assertAcceptable($freshRound->gameCode, $stakeKobo, EconomicsContext::forCrashRound($freshRound));
+
             $bet = CrashBet::create([
                 'roundId' => $round->id,
                 'playerId' => $player->id,
@@ -95,6 +108,8 @@ final class PlaceCrashBet
             ]);
 
             $this->wallet->reserveStake($player, $stakeKobo, 'crash_bet', $bet->id, $attribution['stateCode']);
+
+            $freshRound->increment('exposureKobo', BirdEscapeEngine::worstCaseLiabilityKobo($stakeKobo));
 
             return $bet;
         });
