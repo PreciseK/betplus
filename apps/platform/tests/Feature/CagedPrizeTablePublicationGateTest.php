@@ -37,11 +37,16 @@ final class CagedPrizeTablePublicationGateTest extends TestCase
         ];
     }
 
-    public function test_the_launch_table_passes_with_no_errors(): void
+    public function test_the_launch_tables_tier_1_now_fails_the_8800bp_ceiling(): void
     {
+        // Tier 1 gross RTP = 71.80% x 1.25x = 89.75% — cleared the old 9500bp ceiling
+        // but exceeds the tightened 8800bp ceiling (RtpCeiling::BASIS_POINTS,
+        // 2026-09-14). Tiers 2-5 (87.78%, 87.78%, 85.50%, 86.40%) stay under it.
         $errors = app(CagedPrizeTablePublicationGate::class)->validate($this->table($this->launchTiers()), 500);
 
-        $this->assertSame([], $errors);
+        $this->assertSame([
+            'Tier 1: gross RTP 8975bp exceeds the 8800bp ceiling.',
+        ], $errors);
     }
 
     public function test_it_rejects_a_missing_tier(): void
@@ -64,11 +69,15 @@ final class CagedPrizeTablePublicationGateTest extends TestCase
         $this->assertStringContainsString('does not match the documented', implode(' ', $errors));
     }
 
-    public function test_it_accepts_the_launch_table_rtp_under_the_ceiling(): void
+    public function test_it_rejects_the_launch_tables_tier_1_rtp_now_over_the_8800bp_ceiling(): void
     {
+        // Same launch tiers as above — tier 1's gross RTP (89.75%) exceeds the
+        // tightened 8800bp ceiling (RtpCeiling::BASIS_POINTS, 2026-09-14).
         $errors = app(CagedPrizeTablePublicationGate::class)->validate($this->table($this->launchTiers()), 500);
 
-        $this->assertSame([], $errors);
+        $this->assertSame([
+            'Tier 1: gross RTP 8975bp exceeds the 8800bp ceiling.',
+        ], $errors);
     }
 
     public function test_it_rejects_a_table_whose_gross_rtp_exceeds_the_ceiling(): void
