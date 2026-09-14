@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Games\PrizeTable;
 
+use App\Domain\Games\Economics\RtpCeiling;
 use App\Models\PrizeTable;
 
 /**
@@ -32,8 +33,6 @@ use App\Models\PrizeTable;
  */
 final class PrizeTablePublicationGate
 {
-    private const RTP_CEILING_BASIS_POINTS = 9500; // 95% (REQ-GEC-023)
-
     /**
      * @return list<string> validation errors; empty means the table may publish
      */
@@ -60,11 +59,11 @@ final class PrizeTablePublicationGate
             $grossRtpBasisPoints = (int) round($probability * $tier->multiplierHundredths * 100);
             $netRtpBasisPoints = (int) round($grossRtpBasisPoints * (10_000 - $withholdingRateBasisPoints) / 10_000);
 
-            if ($grossRtpBasisPoints > self::RTP_CEILING_BASIS_POINTS) {
-                $errors[] = "Tier {$tier->positions}: gross RTP {$grossRtpBasisPoints}bp exceeds the 9500bp ceiling.";
+            if ($grossRtpBasisPoints > RtpCeiling::BASIS_POINTS) {
+                $errors[] = "Tier {$tier->positions}: gross RTP {$grossRtpBasisPoints}bp exceeds the " . RtpCeiling::BASIS_POINTS . 'bp ceiling.';
             }
-            if ($netRtpBasisPoints > self::RTP_CEILING_BASIS_POINTS) {
-                $errors[] = "Tier {$tier->positions}: net-of-WHT RTP {$netRtpBasisPoints}bp exceeds the 9500bp ceiling.";
+            if ($netRtpBasisPoints > RtpCeiling::BASIS_POINTS) {
+                $errors[] = "Tier {$tier->positions}: net-of-WHT RTP {$netRtpBasisPoints}bp exceeds the " . RtpCeiling::BASIS_POINTS . 'bp ceiling.';
             }
         }
 

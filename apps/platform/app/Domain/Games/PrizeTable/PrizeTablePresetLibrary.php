@@ -15,6 +15,10 @@ namespace App\Domain\Games\PrizeTable;
  *   PrizeTablePublicationGate — that failure is the point, not a bug.
  * - "good" is the approved Betplus design target (Betplus_PRD.md §8.4): margin rises
  *   with variance, 7.5%-18.7% house edge.
+ *   ⚠ Tiers 1 (92.50% RTP) and 2 (90.00% RTP) now exceed the 88% RTP ceiling
+ *   (RtpCeiling::BASIS_POINTS) introduced 2026-09-14 — a new "good"-preset draft
+ *   will fail PrizeTablePublicationGate on those two tiers until Finance/actuary
+ *   recalibrates the multipliers. Tiers 3-5 (87.5%, 84.375%, 81.25%) are unaffected.
  * - "best" is a flat 30% house edge across every tier — still inside the 95% ceiling,
  *   but roughly double "good"'s steepest tier. Model it against real volume before
  *   publishing: smaller headline payouts are a retention risk, not a math risk.
