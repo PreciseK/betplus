@@ -6,6 +6,9 @@ namespace App\Domain\Ticket;
 
 use App\Domain\Analytics\AnalyticsEventRecorder;
 use App\Domain\Fairness\SeedIssuer;
+use App\Domain\Games\Economics\EconomicsConfigResolver;
+use App\Domain\Games\Economics\EconomicsContext;
+use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
 use App\Domain\Games\Engine\Caged\CagedEngine;
 use App\Domain\Games\Engine\Caged\CagedTier;
 use App\Domain\Games\PrizeTable\PrizeTableResolver;
@@ -48,6 +51,8 @@ final class CreateCagedTicket
         private readonly WalletService $wallet,
         private readonly TaxEngine $tax,
         private readonly LimitsService $limits,
+        private readonly EconomicsConfigResolver $economicsConfigResolver,
+        private readonly EconomicsModelStrategyFactory $economicsStrategyFactory,
         private readonly ProtectionService $protection,
         private readonly RegistryCheckService $registry,
         private readonly VelocityService $velocity,
@@ -83,6 +88,9 @@ final class CreateCagedTicket
         }
         $this->limits->assertStakeWithinLimits($player, $stakeKobo);
 
+        $economicsStrategy = $this->economicsStrategyFactory->forTicketGame($this->economicsConfigResolver->resolveFor(self::GAME_CODE));
+        $economicsStrategy->assertAcceptable(self::GAME_CODE, $stakeKobo, EconomicsContext::forTicket());
+
         $prizeTable = $this->prizeTableResolver->resolveFor(self::GAME_CODE, $attribution['stateCode']);
         if ($prizeTable === null || $prizeTable->tiers->firstWhere('positions', $targetBirds) === null) {
             throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Caged has no published prize table for this state.');
@@ -112,12 +120,14 @@ final class CreateCagedTicket
 
         // ── COMMITMENT — single transaction, locks held briefly ──
         $ticket = DB::transaction(function () use (
-            $player, $targetBirds, $stakeKobo, $idempotencyKey, $attribution, $seed, $engineResult, $withholding, $prizeTable,
+            $player, $targetBirds, $stakeKobo, $idempotencyKey, $attribution, $seed, $engineResult, $withholding, $prizeTable, $economicsStrategy,
         ) {
             $player->refresh();
             $this->assertKycTier($player);
             $this->protection->assertPlayAndDepositAllowed($player);
             $this->limits->assertStakeWithinLimits($player, $stakeKobo);
+
+            $economicsStrategy->assertAcceptable(self::GAME_CODE, $stakeKobo, EconomicsContext::forTicket());
 
             $ticket = Ticket::create([
                 'reference' => (string) Str::ulid(),
