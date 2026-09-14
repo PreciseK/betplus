@@ -139,9 +139,9 @@ final class CagedTicketTest extends TestCase
         }
 
         $this->assertNotNull($won, 'No win in 20 target=1 tickets — engine bias is suspect.');
-        $this->assertSame(12_500, $won['gross_prize_kobo']); // 10_000 * 1.25
-        $this->assertSame(625, $won['tax_withheld_kobo']); // 5% of gross
-        $this->assertSame(11_875, $won['net_credit_kobo']);
+        $this->assertSame(12_000, $won['gross_prize_kobo']); // 10_000 * 1.20 (recalibrated 2026-09-14 for the 8800bp ceiling)
+        $this->assertSame(600, $won['tax_withheld_kobo']); // 5% of gross
+        $this->assertSame(11_400, $won['net_credit_kobo']);
         $this->assertSame($won['winnings_balance_after_kobo'], $won['net_credit_kobo']);
     }
 

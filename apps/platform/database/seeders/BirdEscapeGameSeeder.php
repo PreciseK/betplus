@@ -55,7 +55,7 @@ class BirdEscapeGameSeeder extends Seeder
             ['gameCode' => 'BIRDESCAPE', 'version' => 'BE-NG-2026.1'],
             [
                 'status' => 'draft',
-                'houseEdgeBasisPoints' => 500,
+                'houseEdgeBasisPoints' => 1200,
                 'bettingWindowSeconds' => 7,
                 'postCrashIntervalSeconds' => 5,
                 'growthRateConstant' => 4000,

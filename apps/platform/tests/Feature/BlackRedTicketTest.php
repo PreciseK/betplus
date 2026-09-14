@@ -133,9 +133,9 @@ final class BlackRedTicketTest extends TestCase
         }
 
         $this->assertNotNull($won, 'No win in 30 single-position tickets — engine bias is suspect.');
-        $this->assertSame(18_500, $won['gross_prize_kobo']); // 10_000 * 1.85
-        $this->assertSame(925, $won['tax_withheld_kobo']); // 5% of gross
-        $this->assertSame(17_575, $won['net_credit_kobo']);
+        $this->assertSame(17_000, $won['gross_prize_kobo']); // 10_000 * 1.70 (recalibrated 2026-09-14 for the 8800bp ceiling)
+        $this->assertSame(850, $won['tax_withheld_kobo']); // 5% of gross
+        $this->assertSame(16_150, $won['net_credit_kobo']);
         $this->assertSame($won['winnings_balance_after_kobo'], $won['net_credit_kobo']);
     }
 

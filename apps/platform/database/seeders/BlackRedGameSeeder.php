@@ -64,9 +64,15 @@ class BlackRedGameSeeder extends Seeder
         );
 
         $table->tiers()->delete();
+        // Tiers 1-2 recalibrated 2026-09-14 (185->170, 360->340) to clear the tightened
+        // 8800bp RTP ceiling (RtpCeiling::BASIS_POINTS) — the original 92.50%/90.00% RTP
+        // values (still referenced in apps/web/src/mocks/blackred.ts, out of scope for
+        // this backend change) exceeded it and made this seeder itself throw. This is an
+        // interim placeholder pending real Finance/actuarial redesign of the "good"
+        // preset, not a finished design (see docs/game-engine-economics.md).
         $tiers = [
-            ['positions' => 1, 'multiplierHundredths' => 185, 'probabilityNumerator' => 1, 'probabilityDenominator' => 2],
-            ['positions' => 2, 'multiplierHundredths' => 360, 'probabilityNumerator' => 1, 'probabilityDenominator' => 4],
+            ['positions' => 1, 'multiplierHundredths' => 170, 'probabilityNumerator' => 1, 'probabilityDenominator' => 2],
+            ['positions' => 2, 'multiplierHundredths' => 340, 'probabilityNumerator' => 1, 'probabilityDenominator' => 4],
             ['positions' => 3, 'multiplierHundredths' => 700, 'probabilityNumerator' => 1, 'probabilityDenominator' => 8],
             ['positions' => 4, 'multiplierHundredths' => 1350, 'probabilityNumerator' => 1, 'probabilityDenominator' => 16],
             ['positions' => 5, 'multiplierHundredths' => 2600, 'probabilityNumerator' => 1, 'probabilityDenominator' => 32],

@@ -106,8 +106,9 @@ final class FinancialReportingTest extends TestCase
         // RTP actual = grossPrizesKobo / stakesKobo, in basis points.
         $this->assertSame((int) round(185_000 / 300_000 * 10_000), $row['rtpActualBasisPoints']);
         // RTP modelled uses the tier's real fair-coin probability (1/2) and multiplier
-        // (1.85x) against the actual stake mix played — not the actual outcome.
-        $this->assertSame(9_250, $row['rtpModelledBasisPoints']);
+        // (1.70x, recalibrated 2026-09-14 for the 8800bp ceiling) against the actual
+        // stake mix played — not the actual outcome.
+        $this->assertSame(8_500, $row['rtpModelledBasisPoints']);
         // Honestly untracked — no MDR/levy accrual exists anywhere in this codebase.
         $this->assertSame(0, $row['providerFeesKobo']);
         $this->assertSame(0, $row['ggrLevyKobo']);

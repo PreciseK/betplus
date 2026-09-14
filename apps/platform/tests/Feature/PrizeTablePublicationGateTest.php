@@ -30,13 +30,11 @@ final class PrizeTablePublicationGateTest extends TestCase
         return $table->refresh();
     }
 
-    public function test_the_good_presets_tiers_1_and_2_now_fail_the_8800bp_ceiling(): void
+    public function test_tiers_exceeding_the_8800bp_ceiling_by_450bp_and_200bp_are_rejected(): void
     {
-        // Tier 1 = 92.50% gross RTP, tier 2 = 90.00% gross RTP — both cleared the old
-        // 9500bp ceiling but exceed the tightened 8800bp ceiling (RtpCeiling::BASIS_POINTS,
-        // 2026-09-14). See the ⚠ note on PrizeTablePresetLibrary's "good" preset: a new
-        // "good"-preset draft using these tiers must fail here until Finance/actuary
-        // recalibrates the multipliers — this is not a bug to silently fix.
+        // Arbitrary example values chosen to exceed the ceiling (450bp and 200bp over) —
+        // NOT the live "good" preset, which was recalibrated 2026-09-14 to 170/340 and no
+        // longer trips this gate. This test exists purely to verify the ceiling math.
         $table = $this->tableWithTiers([
             ['positions' => 1, 'multiplierHundredths' => 185, 'probabilityNumerator' => 1, 'probabilityDenominator' => 2],
             ['positions' => 2, 'multiplierHundredths' => 360, 'probabilityNumerator' => 1, 'probabilityDenominator' => 4],

@@ -132,7 +132,7 @@ final class MakerCheckerTest extends TestCase
             'gameCode' => 'BLACKRED', 'stateCode' => null, 'version' => 'TEST-GOOD-1',
             'status' => 'draft', 'effectiveAt' => now(), 'actuarialCertRef' => 'CERT-2',
         ]);
-        $table->tiers()->create(['positions' => 1, 'multiplierHundredths' => 185, 'probabilityNumerator' => 1, 'probabilityDenominator' => 2]);
+        $table->tiers()->create(['positions' => 1, 'multiplierHundredths' => 170, 'probabilityNumerator' => 1, 'probabilityDenominator' => 2]);
 
         $change = app(MakerCheckerService::class)->propose('prize_table_publish', ['prize_table_id' => $table->id], null, $maker, 'Publishing a new table.');
         app(MakerCheckerService::class)->approve($change, $checker);

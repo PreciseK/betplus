@@ -61,7 +61,12 @@ class CagedGameSeeder extends Seeder
 
         $table->tiers()->delete();
         $tiers = [
-            ['positions' => 1, 'multiplierHundredths' => 125, 'probabilityNumerator' => 7180, 'probabilityDenominator' => 10_000],
+            // Multiplier recalibrated 2026-09-14 (125->120, i.e. 1.25x->1.20x) to clear
+            // the tightened 8800bp RTP ceiling (RtpCeiling::BASIS_POINTS) — probability
+            // stays exactly 7180/10000 (locked by CagedPrizeTablePublicationGate's
+            // EXPECTED_PROBABILITIES check against the documented "Escape Count"
+            // frequencies). Interim placeholder pending real product/actuarial sign-off.
+            ['positions' => 1, 'multiplierHundredths' => 120, 'probabilityNumerator' => 7180, 'probabilityDenominator' => 10_000],
             ['positions' => 2, 'multiplierHundredths' => 190, 'probabilityNumerator' => 4620, 'probabilityDenominator' => 10_000],
             ['positions' => 3, 'multiplierHundredths' => 380, 'probabilityNumerator' => 2310, 'probabilityDenominator' => 10_000],
             ['positions' => 4, 'multiplierHundredths' => 750, 'probabilityNumerator' => 1140, 'probabilityDenominator' => 10_000],
