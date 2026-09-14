@@ -30,6 +30,18 @@ final class BirdEscapeEngine
     public const MAX_MULTIPLIER_HUNDREDTHS = 3500;
 
     /**
+     * Worst-case liability a single bet could ever create for the house — stake paid
+     * out at the absolute maximum crash multiplier, regardless of what this round
+     * actually crashes at (which the bettor never sees before it happens). Used by
+     * BalancedHybridCrashStrategy to project a round's aggregate exposure — real
+     * disclosed math, not privileged information about the actual crash point.
+     */
+    public static function worstCaseLiabilityKobo(int $stakeKobo): int
+    {
+        return intdiv($stakeKobo * self::ABSOLUTE_MAX_MULTIPLIER_HUNDREDTHS, 100);
+    }
+
+    /**
      * Resolves the crash point from the seed adhering to:
      * - 70% of rounds: 1.00x - 2.50x
      * - 15% of rounds: 2.51x - 3.50x
