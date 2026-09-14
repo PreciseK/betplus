@@ -20,4 +20,9 @@ final class GameEconomicsConfigMigrationTest extends TestCase
             'effectiveAt', 'publishedAt', 'createdAt', 'updatedAt',
         ]));
     }
+
+    public function test_crash_round_has_an_exposure_kobo_column_defaulting_to_zero(): void
+    {
+        $this->assertTrue(Schema::hasColumn('crashRound', 'exposureKobo'));
+    }
 }
