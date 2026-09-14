@@ -8,6 +8,7 @@ use App\Http\Controllers\BackOffice\BirdEscapeRoundAuditController;
 use App\Http\Controllers\BackOffice\CollectionController;
 use App\Http\Controllers\BackOffice\CrashConfigController;
 use App\Http\Controllers\BackOffice\DailySummaryController;
+use App\Http\Controllers\BackOffice\GameEconomicsConfigController;
 use App\Http\Controllers\BackOffice\GameRegistryController;
 use App\Http\Controllers\BackOffice\HeritageCatalogueController;
 use App\Http\Controllers\BackOffice\InstitutionAuthController;
@@ -77,6 +78,17 @@ Route::prefix('backoffice/v1')->group(function () {
             Route::post('/crash-configs', [CrashConfigController::class, 'store']);
             Route::patch('/crash-configs/{id}', [CrashConfigController::class, 'update']);
             Route::delete('/crash-configs/{id}', [CrashConfigController::class, 'destroy']);
+        });
+
+        // Game economics model switcher — same maker-checker-gated shape as crash
+        // configs and prize tables above (Phase 1 of docs/superpowers/specs/
+        // 2026-09-13-admin-gaming-economics-models-design.md).
+        Route::get('/game-economics-configs', [GameEconomicsConfigController::class, 'index']);
+        Route::get('/game-economics-configs/{id}', [GameEconomicsConfigController::class, 'show']);
+        Route::middleware('institution.role:game_ops,system_admin')->group(function () {
+            Route::post('/game-economics-configs', [GameEconomicsConfigController::class, 'store']);
+            Route::patch('/game-economics-configs/{id}', [GameEconomicsConfigController::class, 'update']);
+            Route::delete('/game-economics-configs/{id}', [GameEconomicsConfigController::class, 'destroy']);
         });
 
         // Story 6.3 — maker-checker. Any role may propose; approval eligibility
