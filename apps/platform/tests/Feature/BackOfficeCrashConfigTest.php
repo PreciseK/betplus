@@ -98,7 +98,7 @@ final class BackOfficeCrashConfigTest extends TestCase
 
         $response->assertOk();
         $this->assertNotEmpty($response->json('gate_errors'));
-        $this->assertStringContainsString('exceeds the 9500bp ceiling', $response->json('gate_errors.0'));
+        $this->assertStringContainsString('exceeds the 8800bp ceiling', $response->json('gate_errors.0'));
     }
 
     public function test_updating_a_draft_crash_config_replaces_its_fields(): void
@@ -152,13 +152,18 @@ final class BackOfficeCrashConfigTest extends TestCase
     public function test_a_valid_draft_can_be_proposed_and_approved_for_publication(): void
     {
         $maker = $this->institutionToken('game_ops');
-        $draft = $this->withToken($maker)->postJson('/backoffice/v1/crash-configs', $this->draftPayload('DRAFT-PUBLISH-1', 'ACT-TEST'))->json();
+        // 1500bp house edge (85% modelled RTP) rather than draftPayload()'s 500bp
+        // (95% RTP) default — that default now exceeds the tightened 8800bp ceiling
+        // (RtpCeiling::BASIS_POINTS, 2026-09-14) and is deliberately left unchanged
+        // for the other tests in this file; this happy-path test just needs any
+        // house edge that clears the gate, so it supplies its own.
+        $draft = $this->withToken($maker)->postJson('/backoffice/v1/crash-configs', $this->draftPayload('DRAFT-PUBLISH-1', 'ACT-TEST', 1500))->json();
         $this->assertEmpty($draft['gate_errors']);
 
         $proposeResponse = $this->withToken($maker)->postJson('/backoffice/v1/changes', [
             'change_type' => 'crash_config_publish',
             'payload' => ['crash_config_id' => $draft['id']],
-            'justification' => 'Launching BirdEscape at a 5% house edge.',
+            'justification' => 'Launching BirdEscape at a 15% house edge.',
         ]);
         $proposeResponse->assertStatus(201);
 

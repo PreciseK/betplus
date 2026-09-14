@@ -231,7 +231,7 @@ final class BackOfficeOperationsTest extends TestCase
 
         $response->assertOk();
         $this->assertNotEmpty($response->json('gate_errors'));
-        $this->assertStringContainsString('exceeds the 9500bp ceiling', $response->json('gate_errors.0'));
+        $this->assertStringContainsString('exceeds the 8800bp ceiling', $response->json('gate_errors.0'));
     }
 
     public function test_updating_a_draft_prize_table_replaces_its_tiers(): void

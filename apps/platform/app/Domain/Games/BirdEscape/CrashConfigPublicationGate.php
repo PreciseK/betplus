@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Games\BirdEscape;
 
+use App\Domain\Games\Economics\RtpCeiling;
 use App\Models\CrashConfig;
 
 /**
@@ -20,7 +21,6 @@ use App\Models\CrashConfig;
  */
 final class CrashConfigPublicationGate
 {
-    private const RTP_CEILING_BASIS_POINTS = 9500; // 95% (same ceiling as BlackRed's prize table gate)
     private const MIN_BETTING_WINDOW_SECONDS = 3;
     private const MAX_BETTING_WINDOW_SECONDS = 30;
 
@@ -30,8 +30,8 @@ final class CrashConfigPublicationGate
         $errors = [];
 
         $rtpBasisPoints = 10_000 - $config->houseEdgeBasisPoints;
-        if ($rtpBasisPoints > self::RTP_CEILING_BASIS_POINTS) {
-            $errors[] = "Modelled RTP {$rtpBasisPoints}bp exceeds the 9500bp ceiling.";
+        if ($rtpBasisPoints > RtpCeiling::BASIS_POINTS) {
+            $errors[] = "Modelled RTP {$rtpBasisPoints}bp exceeds the " . RtpCeiling::BASIS_POINTS . 'bp ceiling.';
         }
         if ($config->houseEdgeBasisPoints < 0 || $config->houseEdgeBasisPoints > 10_000) {
             $errors[] = "houseEdgeBasisPoints {$config->houseEdgeBasisPoints} is outside the valid 0-10000 range.";
