@@ -6,6 +6,9 @@ namespace App\Domain\Ticket;
 
 use App\Domain\Analytics\AnalyticsEventRecorder;
 use App\Domain\Fairness\SeedIssuer;
+use App\Domain\Games\Economics\EconomicsConfigResolver;
+use App\Domain\Games\Economics\EconomicsContext;
+use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
 use App\Domain\Games\Engine\BlackRed\BlackRedEngine;
 use App\Domain\Games\Engine\BlackRed\EngineTier;
 use App\Domain\Games\PrizeTable\PrizeTableResolver;
@@ -51,6 +54,8 @@ final class CreateTicket
         private readonly WalletService $wallet,
         private readonly TaxEngine $tax,
         private readonly LimitsService $limits,
+        private readonly EconomicsConfigResolver $economicsConfigResolver,
+        private readonly EconomicsModelStrategyFactory $economicsStrategyFactory,
         private readonly ProtectionService $protection,
         private readonly RegistryCheckService $registry,
         private readonly VelocityService $velocity,
@@ -88,6 +93,9 @@ final class CreateTicket
         }
         $this->limits->assertStakeWithinLimits($player, $stakeKobo);
 
+        $economicsStrategy = $this->economicsStrategyFactory->forTicketGame($this->economicsConfigResolver->resolveFor('BLACKRED'));
+        $economicsStrategy->assertAcceptable('BLACKRED', $stakeKobo, EconomicsContext::forTicket());
+
         $prizeTable = $this->prizeTableResolver->resolveFor('BLACKRED', $attribution['stateCode']);
         if ($prizeTable === null || $prizeTable->tiers->firstWhere('positions', $length) === null) {
             throw new TicketEligibilityException('GAME_UNAVAILABLE', 'BlackRed has no published prize table for this state.');
@@ -105,13 +113,14 @@ final class CreateTicket
         $withholding = $engineResult->won ? $this->tax->withhold($engineResult->grossPrizeKobo, $player) : null;
 
         // ── COMMITMENT — single transaction, locks held briefly (REQ-TKT-002 steps 8-11) ──
-        $ticket = DB::transaction(function () use ($player, $prediction, $stakeKobo, $idempotencyKey, $attribution, $seed, $engineResult, $withholding, $length, $prizeTable) {
+        $ticket = DB::transaction(function () use ($player, $prediction, $stakeKobo, $idempotencyKey, $attribution, $seed, $engineResult, $withholding, $length, $prizeTable, $economicsStrategy) {
             // REQ-TKT-012 — re-assert KYC tier, protection status and limits inside the
             // transaction; jurisdiction/registry are not re-asserted (see class doc).
             $player->refresh();
             $this->assertKycTier($player);
             $this->protection->assertPlayAndDepositAllowed($player);
             $this->limits->assertStakeWithinLimits($player, $stakeKobo);
+            $economicsStrategy->assertAcceptable('BLACKRED', $stakeKobo, EconomicsContext::forTicket());
 
             $ticket = Ticket::create([
                 'reference' => (string) Str::ulid(),
