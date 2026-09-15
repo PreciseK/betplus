@@ -136,6 +136,20 @@ final class FundingService
      * Executes direct collection/withdrawal from a player's OPay wallet balance without requiring
      * out-of-band interactive web OTP (used for automated USSD direct funding and insufficient balance resolution).
      *
+     * No Collections API doc exists in this repo to pull the exact amount from the
+     * player's own wallet without OTP (OpayGateway's own class doc flags this — only
+     * the Payout API is documented here). Rather than crediting on faith, this gates
+     * the credit behind two real, documented OPay Payout API calls before ever
+     * marking the Collection 'paid':
+     *   1. OpayGateway::nameLookup() — OPay Payout API Developer Guide §2.6 "Opay
+     *      wallet validate" — confirms the phone number is a real OPay wallet whose
+     *      registered name matches the player, so a stranger's number can't be used
+     *      to mint credit.
+     *   2. OpayGateway::floatBalanceKobo() — §2.4 "Merchant balance query" —
+     *      confirms BetPlus's own OPay merchant balance can actually cover the
+     *      advance, so the credit can never exceed real money BetPlus verifiably
+     *      holds at that moment.
+     *
      * @return array{status: string, credited_kobo?: int, play_balance_kobo?: int, reference?: string, message?: string}
      */
     public function directWithdrawFromOpay(Player $player, int $amountKobo, ?string $reference = null): array
@@ -165,6 +179,19 @@ final class FundingService
             ];
         }
 
+        $walletCheck = $this->opay->nameLookup($player->msisdn);
+        if ($walletCheck['status'] !== 'found') {
+            return ['status' => 'wallet_unverified', 'message' => 'Could not verify an OPay wallet for this phone number.'];
+        }
+        if (!$this->namesResemble($walletCheck['firstName'] . ' ' . $walletCheck['lastName'], $player->registeredName)) {
+            return ['status' => 'wallet_unverified', 'message' => 'OPay wallet name does not match the registered account holder.'];
+        }
+
+        $floatKobo = $this->opay->floatBalanceKobo();
+        if ($floatKobo === null || $floatKobo < $amountKobo) {
+            return ['status' => 'float_unavailable', 'message' => 'Unable to verify sufficient OPay merchant balance for this advance.'];
+        }
+
         $collection = Collection::create([
             'playerId' => $player->id,
             'reference' => $ref,
@@ -189,6 +216,22 @@ final class FundingService
             'play_balance_kobo' => (int) $wallet->playBalanceKobo,
             'reference' => $collection->reference,
         ];
+    }
+
+    /** Loose match: same words present, case/accent/whitespace-insensitive, order-independent (OPay and BetPlus name field ordering isn't guaranteed to match). */
+    private function namesResemble(string $a, string $b): bool
+    {
+        $normalize = fn (string $s): array => array_filter(explode(' ', preg_replace('/[^a-z ]/', '', strtolower(trim($s))) ?? ''));
+        $wordsA = $normalize($a);
+        $wordsB = $normalize($b);
+
+        if ($wordsA === [] || $wordsB === []) {
+            return false;
+        }
+
+        $overlap = array_intersect($wordsA, $wordsB);
+
+        return count($overlap) >= min(2, count($wordsB));
     }
 
     /**
