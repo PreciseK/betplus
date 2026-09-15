@@ -10,6 +10,9 @@ use App\Domain\Games\Economics\EconomicsConfigResolver;
 use App\Domain\Games\Economics\EconomicsContext;
 use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
 use App\Domain\Games\Economics\GameDailyLedgerService;
+use App\Domain\Games\Economics\PariMutuelPoolParams;
+use App\Domain\Games\Economics\PoolDrawService;
+use App\Domain\Games\Economics\EconomicsModelStrategy;
 use App\Domain\Games\Engine\Caged\CagedEngine;
 use App\Domain\Games\Engine\Caged\CagedTier;
 use App\Domain\Games\PrizeTable\PrizeTableResolver;
@@ -24,6 +27,8 @@ use App\Domain\Wallet\WalletService;
 use App\Jobs\DispatchPrizePayoutJob;
 use App\Models\GameRegistry;
 use App\Models\Player;
+use App\Models\PoolEntry;
+use App\Models\PrizeTable;
 use App\Models\Ticket;
 use App\Models\TicketOutcome;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +62,7 @@ final class CreateCagedTicket
         private readonly EconomicsConfigResolver $economicsConfigResolver,
         private readonly EconomicsModelStrategyFactory $economicsStrategyFactory,
         private readonly GameDailyLedgerService $dailyLedger,
+        private readonly PoolDrawService $poolDraws,
         private readonly ProtectionService $protection,
         private readonly RegistryCheckService $registry,
         private readonly VelocityService $velocity,
@@ -94,12 +100,17 @@ final class CreateCagedTicket
         }
         $this->limits->assertStakeWithinLimits($player, $stakeKobo);
 
-        $economicsStrategy = $this->economicsStrategyFactory->forTicketGame($this->economicsConfigResolver->resolveFor(self::GAME_CODE));
+        $economicsConfig = $this->economicsConfigResolver->resolveFor(self::GAME_CODE);
+        $economicsStrategy = $this->economicsStrategyFactory->forTicketGame($economicsConfig);
         $economicsStrategy->assertAcceptable(self::GAME_CODE, $stakeKobo, EconomicsContext::forTicket());
 
         $prizeTable = $this->prizeTableResolver->resolveFor(self::GAME_CODE, $attribution['stateCode']);
         if ($prizeTable === null || $prizeTable->tiers->firstWhere('positions', $targetBirds) === null) {
             throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Caged has no published prize table for this state.');
+        }
+
+        if ($economicsConfig?->activeModel === 'PARI_MUTUEL_POOL') {
+            return $this->joinPool($player, $targetBirds, $stakeKobo, $idempotencyKey, $attribution, $prizeTable, $economicsStrategy, PariMutuelPoolParams::fromArray($economicsConfig->paramsJson));
         }
 
         $seed = $this->seedIssuer->issue();
@@ -221,6 +232,70 @@ final class CreateCagedTicket
         ]);
 
         return $ticket;
+    }
+
+    /**
+     * ponytail: same turnover/velocity/analytics skip as BlackRed's joinPool() —
+     * see that class's doc comment.
+     *
+     * @param array{stateCode: string, confidence: float, rulesetVersion: string} $attribution
+     */
+    private function joinPool(
+        Player $player,
+        int $targetBirds,
+        int $stakeKobo,
+        string $idempotencyKey,
+        array $attribution,
+        PrizeTable $prizeTable,
+        EconomicsModelStrategy $economicsStrategy,
+        PariMutuelPoolParams $poolParams,
+    ): Ticket {
+        // Caged runs one pool per window regardless of target (poolKey null) —
+        // unlike BlackRed, whose pick-length changes the RNG's shape entirely, a
+        // target here is just a threshold read against one shared escaped-bird draw.
+        $seed = $this->seedIssuer->issue();
+
+        return DB::transaction(function () use ($player, $targetBirds, $stakeKobo, $idempotencyKey, $attribution, $prizeTable, $economicsStrategy, $poolParams, $seed) {
+            $player->refresh();
+            $this->assertKycTier($player);
+            $this->protection->assertPlayAndDepositAllowed($player);
+            $this->limits->assertStakeWithinLimits($player, $stakeKobo);
+            $economicsStrategy->assertAcceptable(self::GAME_CODE, $stakeKobo, EconomicsContext::forTicket());
+
+            $pool = $this->poolDraws->currentOrNextPool(self::GAME_CODE, null, $poolParams->poolWindowMinutes);
+
+            $ticket = Ticket::create([
+                'reference' => (string) Str::ulid(),
+                'playerId' => $player->id,
+                'gameCode' => self::GAME_CODE,
+                'idempotencyKey' => $idempotencyKey,
+                'stateCode' => $attribution['stateCode'],
+                'attributionConfidence' => $attribution['confidence'],
+                'jurisdictionRulesetVersion' => $attribution['rulesetVersion'],
+                'stakeKobo' => $stakeKobo,
+                'predictionJson' => [$targetBirds],
+                'positions' => $targetBirds,
+                'prizeTableVersion' => $prizeTable->version,
+                'rngSeedRef' => $seed->id,
+                'rngAlgorithm' => $seed->algorithm,
+                'engineVersion' => CagedEngine::VERSION,
+                'status' => 'PENDING_DRAW',
+            ]);
+
+            $this->wallet->reserveStake($player, $stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
+
+            PoolEntry::create([
+                'poolDrawId' => $pool->id,
+                'ticketId' => $ticket->id,
+                'playerId' => $player->id,
+                'predictionJson' => [$targetBirds],
+                'stakeKobo' => $stakeKobo,
+            ]);
+
+            $pool->increment('grossStakedKobo', $stakeKobo);
+
+            return $ticket;
+        });
     }
 
     private function assertKycTier(Player $player): void
