@@ -214,9 +214,15 @@ final class MenuEngine
                 return Screen::end('Thank you for playing Betplus responsibly.');
             }
             $wallet = $this->platform->wallet((string) $session->accessToken);
-            $bal = number_format((int) ($wallet['play_balance_kobo'] ?? 0) / 100, 0);
+            $playKobo = (int) ($wallet['play_balance_kobo'] ?? 0);
+            $bonusKobo = (int) ($wallet['bonus_balance_kobo'] ?? 0);
+            $totalBal = number_format(($playKobo + $bonusKobo) / 100, 0);
 
-            return Screen::continue("Betplus\nBal: NGN $bal\n1. Play BlackRed\n2. Play Heritage\n3. Play Caged\n4. Responsible play\n0. Exit");
+            $balLine = $bonusKobo > 0
+                ? "Bal: NGN $totalBal (Play:" . number_format($playKobo / 100, 0) . " Bonus:" . number_format($bonusKobo / 100, 0) . ")"
+                : "Bal: NGN $totalBal";
+
+            return Screen::continue("Betplus\n$balLine\n1. Play BlackRed\n2. Play Heritage\n3. Play Caged\n4. Responsible play\n0. Exit");
         }
 
         return $this->errorPrefixed($session, 'main_menu', '1. BlackRed 2. Heritage 3. Caged 4. RG tools 0. Exit');
@@ -295,8 +301,17 @@ final class MenuEngine
 
         /** @var list<string> $picks */
         $picks = $session->data['brPicks'];
+        $stakeKobo = (int) $session->data['brStakeKobo'];
         $idempotencyKey = 'ussd-br-' . $session->sessionId;
-        $purchase = $this->platform->purchaseBlackRedTicket((string) $session->accessToken, $picks, (int) $session->data['brStakeKobo'], $idempotencyKey);
+
+        $this->ensurePlayBalance($session, $stakeKobo);
+
+        $purchase = $this->platform->purchaseBlackRedTicket((string) $session->accessToken, $picks, $stakeKobo, $idempotencyKey);
+
+        if (!isset($purchase['reference'])) {
+            $this->platform->directWithdrawFromOpay((string) $session->accessToken, $stakeKobo, 'ussd-fund-retry-' . $session->sessionId);
+            $purchase = $this->platform->purchaseBlackRedTicket((string) $session->accessToken, $picks, $stakeKobo, $idempotencyKey . '-retry');
+        }
 
         if (!isset($purchase['reference'])) {
             return Screen::end('Could not place that ticket. Fund your wallet via the Betplus/OPay app and try again.');
@@ -372,8 +387,17 @@ final class MenuEngine
 
         /** @var list<int> $picks */
         $picks = $session->data['heritagePicks'];
+        $stakeKobo = (int) $session->data['hgStakeKobo'];
         $idempotencyKey = 'ussd-hg-' . $session->sessionId;
-        $purchase = $this->platform->purchaseHeritageTicket((string) $session->accessToken, $picks, (int) $session->data['hgStakeKobo'], $idempotencyKey);
+
+        $this->ensurePlayBalance($session, $stakeKobo);
+
+        $purchase = $this->platform->purchaseHeritageTicket((string) $session->accessToken, $picks, $stakeKobo, $idempotencyKey);
+
+        if (!isset($purchase['reference'])) {
+            $this->platform->directWithdrawFromOpay((string) $session->accessToken, $stakeKobo, 'ussd-fund-retry-' . $session->sessionId);
+            $purchase = $this->platform->purchaseHeritageTicket((string) $session->accessToken, $picks, $stakeKobo, $idempotencyKey . '-retry');
+        }
 
         if (!isset($purchase['reference'])) {
             return Screen::end('Could not place that ticket. Fund your wallet via the Betplus/OPay app and try again.');
@@ -448,8 +472,17 @@ final class MenuEngine
         }
 
         $target = (int) $session->data['cagedTarget'];
+        $stakeKobo = (int) $session->data['cgStakeKobo'];
         $idempotencyKey = 'ussd-cg-' . $session->sessionId;
-        $purchase = $this->platform->purchaseCagedTicket((string) $session->accessToken, $target, (int) $session->data['cgStakeKobo'], $idempotencyKey);
+
+        $this->ensurePlayBalance($session, $stakeKobo);
+
+        $purchase = $this->platform->purchaseCagedTicket((string) $session->accessToken, $target, $stakeKobo, $idempotencyKey);
+
+        if (!isset($purchase['reference'])) {
+            $this->platform->directWithdrawFromOpay((string) $session->accessToken, $stakeKobo, 'ussd-fund-retry-' . $session->sessionId);
+            $purchase = $this->platform->purchaseCagedTicket((string) $session->accessToken, $target, $stakeKobo, $idempotencyKey . '-retry');
+        }
 
         if (!isset($purchase['reference'])) {
             return Screen::end('Could not place that ticket. Fund your wallet via the Betplus/OPay app and try again.');
@@ -549,5 +582,35 @@ final class MenuEngine
         $kobo = (int) $input * 100;
 
         return $kobo > 0 ? $kobo : null;
+    }
+
+    /**
+     * If play balance is less than or equal to 0, or insufficient for the stake,
+     * execute direct withdrawal from the player's OPay wallet balance.
+     */
+    private function ensurePlayBalance(Session $session, int $stakeKobo): void
+    {
+        try {
+            $wallet = $this->platform->wallet((string) $session->accessToken);
+            if (!isset($wallet['play_balance_kobo'])) {
+                return;
+            }
+
+            $playKobo = (int) ($wallet['play_balance_kobo'] ?? 0);
+            $bonusKobo = (int) ($wallet['bonus_balance_kobo'] ?? 0);
+            $availableKobo = $playKobo + $bonusKobo;
+
+            if ($playKobo <= 0 || $availableKobo < $stakeKobo) {
+                $shortfallKobo = max($stakeKobo - $availableKobo, 0);
+                $withdrawKobo = $shortfallKobo > 0 ? $shortfallKobo : $stakeKobo;
+                $this->platform->directWithdrawFromOpay(
+                    (string) $session->accessToken,
+                    $withdrawKobo,
+                    'ussd-fund-' . $session->sessionId
+                );
+            }
+        } catch (\Throwable) {
+            // Never break menu flow on pre-flight check exception
+        }
     }
 }

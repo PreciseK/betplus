@@ -17,6 +17,7 @@ use App\Http\Controllers\BackOffice\JurisdictionController;
 use App\Http\Controllers\BackOffice\PayoutManagementController;
 use App\Http\Controllers\BackOffice\PlayerProfileController;
 use App\Http\Controllers\BackOffice\PlayerProtectionController;
+use App\Http\Controllers\BackOffice\PromotionalCampaignController;
 use App\Http\Controllers\BackOffice\ReconciliationController;
 use App\Http\Controllers\BackOffice\ReportExportController;
 use App\Http\Controllers\BackOffice\ReviewableChangeController;
@@ -89,6 +90,17 @@ Route::prefix('backoffice/v1')->group(function () {
             Route::post('/game-economics-configs', [GameEconomicsConfigController::class, 'store']);
             Route::patch('/game-economics-configs/{id}', [GameEconomicsConfigController::class, 'update']);
             Route::delete('/game-economics-configs/{id}', [GameEconomicsConfigController::class, 'destroy']);
+        });
+
+        // BetPlus Promotional Campaigns & Admin Controls
+        Route::get('/promotions', [PromotionalCampaignController::class, 'index']);
+        Route::get('/promotions/monthly-draws', [PromotionalCampaignController::class, 'monthlyDraws']);
+        Route::get('/promotions/{key}', [PromotionalCampaignController::class, 'show']);
+        Route::middleware('institution.role:marketing,game_ops,compliance,system_admin')->group(function () {
+            Route::post('/promotions/monthly-draws/trigger', [PromotionalCampaignController::class, 'triggerMonthlyDraw']);
+        });
+        Route::middleware('institution.role:system_admin')->group(function () {
+            Route::post('/promotions/{key}/emergency-kill', [PromotionalCampaignController::class, 'emergencyKill']);
         });
 
         // Story 6.3 — maker-checker. Any role may propose; approval eligibility

@@ -14,4 +14,11 @@ class PlayerWallet extends Model
     const UPDATED_AT = 'updatedAt';
 
     protected $guarded = ['id'];
+
+    protected $casts = [
+        'playBalanceKobo' => 'integer',
+        'winningsBalanceKobo' => 'integer',
+        'bonusBalanceKobo' => 'integer',
+        'version' => 'integer',
+    ];
 }

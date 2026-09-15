@@ -34,7 +34,7 @@ describe("ContentConsole", () => {
     publishHeritageCatalogueItem.mockResolvedValueOnce({ ...ITEM, gate_errors: ["Item 1 has no recorded cultural-advisor sign-off reference (REQ-HG-064)."] });
     render(<ContentConsole />);
 
-    expect(await screen.findByText("Ade")).toBeInTheDocument();
+    expect((await screen.findAllByText("Ade"))[0]).toBeInTheDocument();
     expect(screen.getByText("Preview only")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Publish" }));

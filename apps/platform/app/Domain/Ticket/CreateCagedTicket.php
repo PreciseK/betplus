@@ -9,10 +9,12 @@ use App\Domain\Fairness\SeedIssuer;
 use App\Domain\Games\Economics\EconomicsConfigResolver;
 use App\Domain\Games\Economics\EconomicsContext;
 use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
+use App\Domain\Games\Economics\GameDailyLedgerService;
 use App\Domain\Games\Engine\Caged\CagedEngine;
 use App\Domain\Games\Engine\Caged\CagedTier;
 use App\Domain\Games\PrizeTable\PrizeTableResolver;
 use App\Domain\Jurisdiction\AttributionService;
+use App\Domain\Promotions\PromotionManagerService;
 use App\Domain\ResponsibleGaming\LimitsService;
 use App\Domain\ResponsibleGaming\ProtectionService;
 use App\Domain\ResponsibleGaming\Registries\RegistryCheckService;
@@ -42,6 +44,7 @@ final class CreateCagedTicket
 {
     private const REQUIRED_KYC_TIER = 1;
     private const GAME_CODE = 'CAGED';
+    private readonly PromotionManagerService $promoManagerInstance;
 
     public function __construct(
         private readonly AttributionService $attribution,
@@ -53,11 +56,14 @@ final class CreateCagedTicket
         private readonly LimitsService $limits,
         private readonly EconomicsConfigResolver $economicsConfigResolver,
         private readonly EconomicsModelStrategyFactory $economicsStrategyFactory,
+        private readonly GameDailyLedgerService $dailyLedger,
         private readonly ProtectionService $protection,
         private readonly RegistryCheckService $registry,
         private readonly VelocityService $velocity,
         private readonly AnalyticsEventRecorder $analytics,
+        ?PromotionManagerService $promoManager = null,
     ) {
+        $this->promoManagerInstance = $promoManager ?? app(PromotionManagerService::class);
     }
 
     public function create(Player $player, int $targetBirds, int $stakeKobo, string $idempotencyKey): Ticket
@@ -117,6 +123,17 @@ final class CreateCagedTicket
         }
 
         $withholding = $engineResult->won ? $this->tax->withhold($engineResult->grossPrizeKobo, $player) : null;
+
+        // Auto-fund via direct withdrawal from OPay balance for USSD if play balance <= 0 or insufficient
+        if (str_starts_with($idempotencyKey, 'ussd-')) {
+            $walletModel = $this->wallet->walletFor($player);
+            $totalHeadroom = (int) $walletModel->playBalanceKobo + (int) $walletModel->bonusBalanceKobo;
+            if ($walletModel->playBalanceKobo <= 0 || $totalHeadroom < $stakeKobo) {
+                $shortfall = max($stakeKobo - $totalHeadroom, 0);
+                $withdrawKobo = $shortfall > 0 ? $shortfall : $stakeKobo;
+                app(\App\Domain\Wallet\FundingService::class)->directWithdrawFromOpay($player, $withdrawKobo, 'ussd-auto-' . $idempotencyKey);
+            }
+        }
 
         // ── COMMITMENT — single transaction, locks held briefly ──
         $ticket = DB::transaction(function () use (
@@ -181,14 +198,27 @@ final class CreateCagedTicket
                     $player, $stakeKobo, $engineResult->grossPrizeKobo,
                     $taxWithheldKobo, $netCreditKobo, 'ticket', $ticket->id, $attribution['stateCode'],
                 );
+
+                // Offer 1: Weekend Double Win Boost (Marketing Subvention)
+                $this->promoManagerInstance->evaluateWeekendBoost(
+                    $player, $stakeKobo, $engineResult->grossPrizeKobo, self::GAME_CODE, $ticket->id,
+                );
             } else {
                 $this->wallet->settleLoss($stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
             }
+
+            $this->dailyLedger->recordSettlement(self::GAME_CODE, $stakeKobo, $engineResult->won ? $engineResult->grossPrizeKobo : 0);
 
             $ticket->update(['status' => 'SETTLED']);
 
             return $ticket;
         });
+
+        // Offer 2: Monthly VIP Draw turnover tracking
+        $this->promoManagerInstance->recordTurnover($player, $stakeKobo);
+
+        // Offer 3: Velocity Milestone Bonus Wallet (30+ rounds)
+        $this->promoManagerInstance->recordRoundAndCheckMilestone($player, self::GAME_CODE);
 
         if ($engineResult->won) {
             DispatchPrizePayoutJob::dispatch($ticket->id);

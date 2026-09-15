@@ -21,8 +21,9 @@ describe("OperationsNav", () => {
 
   it("shows the complete task navigation to a super administrator", () => {
     render(<OperationsNav role="super-admin" variant="desktop" />);
-    expect(screen.getAllByRole("link")).toHaveLength(27);
+    expect(screen.getAllByRole("link")).toHaveLength(28);
     expect(screen.getByRole("link", { name: "Team access" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Promotions & Boosts" })).toBeInTheDocument();
     expect(screen.getByText("Customers")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Notifications" })).toBeInTheDocument();
   });

@@ -5,18 +5,18 @@ export function Hero() {
       <div className="hero-rings" aria-hidden="true"><span /><span /><span /></div>
 
       <div className="hero-copy t-stagger">
-        <p className="eyebrow t-stagger-line t-stagger-line--1">One account across every game</p>
+        <p className="eyebrow t-stagger-line t-stagger-line--1">Web, Android &amp; USSD *7006#</p>
         <h1 id="hero-title" className="t-stagger-line t-stagger-line--2">
           <span className="hero-brand">Betplus</span>
-          <span className="hero-promise">Two games.<br />One wallet.</span>
+          <span className="hero-promise">Three games.<br />One wallet.</span>
         </h1>
         <p className="hero-summary t-stagger-line t-stagger-line--3">
-          Choose your game, know your stake, and follow every Naira from play to payout.
+          Predict BlackRed cards, discover Heritage regalia, or test your nerve with Caged birds. Play on the web or dial <strong>*7006#</strong> with seamless OPay direct withdrawal.
         </p>
         <div className="hero-actions t-stagger-line t-stagger-line--4">
           <a className="button button-primary" href="#games">Explore the games</a>
-          <a className="button button-quiet" href="#how-it-works">
-            How it works
+          <a className="button button-quiet" href="#access">
+            Play via USSD (*7006#)
             <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
           </a>
         </div>
@@ -30,6 +30,8 @@ export function Hero() {
         <img className="hero-logo" src="/assets/hero-community.png" alt="Betplus Community" />
         <div className="orbit orbit-blackred"><span>B / R</span><small>BLACKRED</small></div>
         <div className="orbit orbit-heritage"><span>05 / 90</span><small>HERITAGE</small></div>
+        <div className="orbit orbit-caged"><span>1-5 BIRDS</span><small>CAGED CRASH</small></div>
+        <div className="orbit orbit-ussd"><span>*7006#</span><small>USSD PLAY</small></div>
         <div className="orbit orbit-opay"><span>₦</span><small>ONE WALLET</small></div>
       </div>
 

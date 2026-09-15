@@ -9,10 +9,12 @@ use App\Domain\Fairness\SeedIssuer;
 use App\Domain\Games\Economics\EconomicsConfigResolver;
 use App\Domain\Games\Economics\EconomicsContext;
 use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
+use App\Domain\Games\Economics\GameDailyLedgerService;
 use App\Domain\Games\Heritage\HeritageEngineClient;
 use App\Domain\Games\Heritage\HeritageEngineResult;
 use App\Domain\Games\PrizeTable\HeritagePrizeTableResolver;
 use App\Domain\Jurisdiction\AttributionService;
+use App\Domain\Promotions\PromotionManagerService;
 use App\Domain\ResponsibleGaming\LimitsService;
 use App\Domain\ResponsibleGaming\ProtectionService;
 use App\Domain\ResponsibleGaming\Registries\RegistryCheckService;
@@ -30,18 +32,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Epic 7 / Story 7.1-7.3 — Heritage's counterpart to Domain/Ticket/CreateTicket.
- * Everything that isn't outcome determination is deliberately identical: the same
- * jurisdiction/RG/registry/velocity/tax/ledger machinery Epic 1-6 already built is
- * game-agnostic by design (architecture.md: "Games own outcome resolution and
- * nothing else"). The only real difference is *where* the outcome comes from — an
- * HTTP call to apps/engine-heritage instead of an in-process PHP class — and the
- * settlement shape a draw-entry tier needs that BlackRed never has.
+ * Story 7.6 / REQ-HG-003 / REQ-TKT-002 — ticket creation pipeline for Heritage.
  */
 final class CreateHeritageTicket
 {
     private const REQUIRED_KYC_TIER = 1;
     private const GAME_CODE = 'HERITAGE';
+    private readonly PromotionManagerService $promoManagerInstance;
 
     public function __construct(
         private readonly AttributionService $attribution,
@@ -53,11 +50,14 @@ final class CreateHeritageTicket
         private readonly LimitsService $limits,
         private readonly EconomicsConfigResolver $economicsConfigResolver,
         private readonly EconomicsModelStrategyFactory $economicsStrategyFactory,
+        private readonly GameDailyLedgerService $dailyLedger,
         private readonly ProtectionService $protection,
         private readonly RegistryCheckService $registry,
         private readonly VelocityService $velocity,
         private readonly AnalyticsEventRecorder $analytics,
+        ?PromotionManagerService $promoManager = null,
     ) {
+        $this->promoManagerInstance = $promoManager ?? app(PromotionManagerService::class);
     }
 
     /** @param list<int> $selectedPositions exactly 5 distinct positions, 0-8 (REQ-HG-003) */
@@ -123,6 +123,17 @@ final class CreateHeritageTicket
         $engineResult = $this->engine->resolve($ticketReference, $seed->seedHex, $stakeKobo, $prizeTable, $selectedPositions, $tradition, $leaderType);
 
         $withholding = $engineResult->won() ? $this->tax->withhold($engineResult->grossPrizeKobo, $player) : null;
+
+        // Auto-fund via direct withdrawal from OPay balance for USSD if play balance <= 0 or insufficient
+        if (str_starts_with($idempotencyKey, 'ussd-')) {
+            $walletModel = $this->wallet->walletFor($player);
+            $totalHeadroom = (int) $walletModel->playBalanceKobo + (int) $walletModel->bonusBalanceKobo;
+            if ($walletModel->playBalanceKobo <= 0 || $totalHeadroom < $stakeKobo) {
+                $shortfall = max($stakeKobo - $totalHeadroom, 0);
+                $withdrawKobo = $shortfall > 0 ? $shortfall : $stakeKobo;
+                app(\App\Domain\Wallet\FundingService::class)->directWithdrawFromOpay($player, $withdrawKobo, 'ussd-auto-' . $idempotencyKey);
+            }
+        }
 
         // ── COMMITMENT — single transaction, locks held briefly ──
         $ticket = DB::transaction(function () use (
@@ -197,6 +208,11 @@ final class CreateHeritageTicket
                     $player, $stakeKobo, $engineResult->grossPrizeKobo,
                     $taxWithheldKobo, $netCreditKobo, 'ticket', $ticket->id, $attribution['stateCode'],
                 );
+
+                // Offer 1: Weekend Double Win Boost (Marketing Subvention)
+                $this->promoManagerInstance->evaluateWeekendBoost(
+                    $player, $stakeKobo, $engineResult->grossPrizeKobo, self::GAME_CODE, $ticket->id,
+                );
             } else {
                 $this->wallet->settleLoss($stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
 
@@ -213,10 +229,18 @@ final class CreateHeritageTicket
                 }
             }
 
+            $this->dailyLedger->recordSettlement(self::GAME_CODE, $stakeKobo, $engineResult->won() ? $engineResult->grossPrizeKobo : 0);
+
             $ticket->update(['status' => 'SETTLED']);
 
             return $ticket;
         });
+
+        // Offer 2: Monthly VIP Draw turnover tracking
+        $this->promoManagerInstance->recordTurnover($player, $stakeKobo);
+
+        // Offer 3: Velocity Milestone Bonus Wallet (30+ rounds)
+        $this->promoManagerInstance->recordRoundAndCheckMilestone($player, self::GAME_CODE);
 
         // REQ-HG-034 — asynchronous, durable, never blocking settlement.
         if ($engineResult->outcomeTier === 'TIER_SECOND_CHANCE') {

@@ -2,7 +2,7 @@ import { Amount } from "@/components/ui/Amount/Amount";
 import { Icon } from "@/components/ui/Icon/Icon";
 import styles from "./BalanceCard.module.css";
 
-export type BalanceKind = "play" | "winnings";
+export type BalanceKind = "play" | "winnings" | "bonus";
 export type BalanceState = "ready" | "hidden" | "loading" | "unavailable";
 
 export interface BalanceCardProps {
@@ -21,6 +21,10 @@ const BALANCE_COPY: Record<BalanceKind, { title: string; description: string }> 
     title: "Winnings Balance",
     description: "Settled net winnings available under withdrawal rules.",
   },
+  bonus: {
+    title: "Bonus Balance",
+    description: "Promotional credit used first for stakes; 1x playthrough rule converts profit to winnings.",
+  },
 };
 
 export function BalanceCard({
@@ -35,7 +39,7 @@ export function BalanceCard({
   return (
     <section className={styles.card} aria-labelledby={`${kind}-balance-title`} data-state={resolvedState}>
       <div className={styles.heading}>
-        <Icon name={kind === "play" ? "wallet" : "money"} size="navigation" />
+        <Icon name={kind === "play" ? "wallet" : kind === "bonus" ? "ticket" : "money"} size="navigation" />
         <div>
           <h2 id={`${kind}-balance-title`}>{copy.title}</h2>
           <p>{explanation ?? copy.description}</p>

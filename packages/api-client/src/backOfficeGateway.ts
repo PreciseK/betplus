@@ -250,6 +250,47 @@ export interface BackOfficePrizeTablePreset {
   tiers: Array<BackOfficePrizeTableTier & { gross_rtp_basis_points: number }>;
 }
 
+export type EconomicsModel = "FIXED_RTP" | "BALANCED_HYBRID" | "DAILY_LOSS_STOP" | "PARI_MUTUEL_POOL";
+
+export interface BackOfficeGameEconomicsConfig {
+  id: number;
+  game_code: string;
+  version: string;
+  status: string;
+  active_model: EconomicsModel;
+  params: Record<string, unknown>;
+  effective_at: string;
+  published_at: string | null;
+}
+
+export interface BackOfficePromotion {
+  campaign_key: string;
+  name: string;
+  description: string;
+  status: "ENABLED" | "DISABLED";
+  version: number;
+  rules: Record<string, unknown>;
+  stats: Record<string, unknown>;
+}
+
+export interface BackOfficeMonthlyDrawPool {
+  id: number;
+  month_period: string;
+  status: string;
+  total_turnover_kobo: number;
+  allocated_prize_pool_kobo: number;
+  total_tickets_issued: number;
+  qualifying_players_count: number;
+  drawn_at: string | null;
+  winners: Array<{
+    rank: number;
+    player_id: number;
+    percentage: number;
+    amount_kobo: number;
+    ticket_number?: number;
+  }> | null;
+}
+
 async function request<T>(
   path: string,
   options: { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; query?: Record<string, QueryValue>; authenticated?: boolean } = {},
@@ -368,6 +409,33 @@ export const backOfficeGateway = {
     return request<{ id: number; deleted: true }>(`/prize-tables/${id}`, { method: "DELETE" });
   },
 
+  gameEconomicsConfigs(gameCode?: string) {
+    return request<{ game_economics_configs: BackOfficeGameEconomicsConfig[] }>("/game-economics-configs", { query: { game_code: gameCode } });
+  },
+
+  createGameEconomicsConfig(payload: {
+    game_code: string;
+    version: string;
+    active_model: EconomicsModel;
+    params?: Record<string, unknown>;
+    effective_at: string;
+  }) {
+    return request<BackOfficeGameEconomicsConfig & { gate_errors: string[] }>("/game-economics-configs", { method: "POST", body: payload });
+  },
+
+  updateGameEconomicsConfig(id: number, payload: {
+    version: string;
+    active_model: EconomicsModel;
+    params?: Record<string, unknown>;
+    effective_at: string;
+  }) {
+    return request<BackOfficeGameEconomicsConfig & { gate_errors: string[] }>(`/game-economics-configs/${id}`, { method: "PATCH", body: payload });
+  },
+
+  deleteGameEconomicsConfig(id: number) {
+    return request<{ id: number; deleted: true }>(`/game-economics-configs/${id}`, { method: "DELETE" });
+  },
+
   jurisdictions() {
     return request<{ states: BackOfficeJurisdiction[] }>("/jurisdictions");
   },
@@ -447,7 +515,7 @@ export const backOfficeGateway = {
         registration_channel: string; created_at: string; last_login_at: string | null;
         has_verified_nin: boolean; has_verified_bvn: boolean;
       };
-      balances: { play_balance_kobo: number; winnings_balance_kobo: number };
+      balances: { play_balance_kobo: number; winnings_balance_kobo: number; bonus_balance_kobo?: number };
       rg_status: { protection: { type: string; ends_at: string } | null; registry_status: string };
       tickets: Array<{ reference: string; game_code: string; stake_kobo: number; status: string; won: boolean | null; net_credit_kobo: number | null; created_at: string }>;
       payments: {
@@ -478,5 +546,31 @@ export const backOfficeGateway = {
 
   reportStatus(id: number) {
     return request<{ id: number; report_type: string; status: string; row_count: number | null; failure_reason: string | null; download_url: string | null }>(`/reports/exports/${id}`);
+  },
+
+  promotions() {
+    return request<{ promotions: BackOfficePromotion[] }>("/promotions");
+  },
+
+  promotion(key: string) {
+    return request<BackOfficePromotion>(`/promotions/${encodeURIComponent(key)}`);
+  },
+
+  emergencyKillPromotion(key: string, payload?: { justification?: string }) {
+    return request<{ message: string; campaign_key: string; status: "DISABLED" }>(
+      `/promotions/${encodeURIComponent(key)}/emergency-kill`,
+      { method: "POST", body: payload ?? {} },
+    );
+  },
+
+  monthlyDraws() {
+    return request<{ draw_pools: BackOfficeMonthlyDrawPool[] }>("/promotions/monthly-draws");
+  },
+
+  triggerMonthlyDraw(payload?: { month_period?: string }) {
+    return request<{ message: string }>("/promotions/monthly-draws/trigger", {
+      method: "POST",
+      body: payload ?? {},
+    });
   },
 };

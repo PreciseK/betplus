@@ -88,6 +88,21 @@ final class MenuEngineTest extends TestCase
         $this->assertStringNotContainsStringIgnoringCase('otp', $screen->render());
     }
 
+    public function test_split_balance_renders_bonus_balance_when_present(): void
+    {
+        $this->platform->programResponse('identify', ['status' => 'signed_in', 'access_token' => 'tok-bonus', 'registered_name' => 'Ada']);
+        $this->platform->programResponse('wallet', [
+            'play_balance_kobo' => 70_000,
+            'bonus_balance_kobo' => 50_000,
+        ]);
+
+        $screen = $this->engine->handleTurn('sess-bonus', '+2348031234567', '');
+
+        $this->assertTrue($screen->continues);
+        $this->assertStringContainsString('Bal: NGN 1,200 (Play:700 Bonus:500)', $screen->render());
+        $this->assertLessThanOrEqual(160, strlen($screen->render()));
+    }
+
     // ── Invalid input (REQ-USSD-006) ─────────────────────────────────────────
 
     public function test_invalid_input_re_renders_the_same_screen_with_an_error_prefix(): void
@@ -135,6 +150,29 @@ final class MenuEngineTest extends TestCase
         $purchaseCall = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseBlackRedTicket'))[0];
         $this->assertSame(['B', 'R'], $purchaseCall['args'][1]);
         $this->assertSame(50_000, $purchaseCall['args'][2]);
+    }
+
+    public function test_blackred_confirm_directly_withdraws_from_opay_if_play_balance_is_zero_or_insufficient(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+
+        $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
+        $this->platform->programResponse('directWithdrawFromOpay', ['status' => 'paid', 'credited_kobo' => 50_000]);
+        $this->platform->programResponse('purchaseBlackRedTicket', ['reference' => 'tkt-auto-funded']);
+        $this->platform->programResponse('revealBlackRedTicket', ['won' => false, 'net_credit_kobo' => 0]);
+
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $this->assertFalse($result->continues);
+        $this->assertStringContainsString('tkt-auto-funded', $result->render());
+
+        $withdrawCalls = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'directWithdrawFromOpay'));
+        $this->assertCount(1, $withdrawCalls);
+        $this->assertSame(50_000, $withdrawCalls[0]['args'][1]);
     }
 
     public function test_cancelling_at_blackred_confirm_returns_to_the_main_menu(): void
@@ -219,6 +257,29 @@ final class MenuEngineTest extends TestCase
         $purchaseCall = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseCagedTicket'))[0];
         $this->assertSame(2, $purchaseCall['args'][1]); // target_birds
         $this->assertSame(20_000, $purchaseCall['args'][2]); // stake_kobo
+    }
+
+    public function test_caged_confirm_directly_withdraws_from_opay_if_play_balance_is_zero_or_insufficient(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '3'); // Caged
+        $this->engine->handleTurn('sess-1', '+2348031234567', '2'); // target 2 birds
+        $this->engine->handleTurn('sess-1', '+2348031234567', '200'); // stake 20,000 kobo
+
+        $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
+        $this->platform->programResponse('directWithdrawFromOpay', ['status' => 'paid', 'credited_kobo' => 20_000]);
+        $this->platform->programResponse('purchaseCagedTicket', ['reference' => 'tkt-cg-funded']);
+        $this->platform->programResponse('revealCagedTicket', ['won' => true, 'escaped_birds' => 3, 'net_credit_kobo' => 38_000]);
+
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $this->assertFalse($result->continues);
+        $this->assertStringContainsString('CAGED WIN!', $result->render());
+        $this->assertStringContainsString('tkt-cg-funded', $result->render());
+
+        $withdrawCalls = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'directWithdrawFromOpay'));
+        $this->assertCount(1, $withdrawCalls);
+        $this->assertSame(20_000, $withdrawCalls[0]['args'][1]);
     }
 
     public function test_a_caged_loss_shows_the_escaped_count_and_lost_stake(): void

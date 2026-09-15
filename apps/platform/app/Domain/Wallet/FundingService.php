@@ -133,6 +133,65 @@ final class FundingService
     }
 
     /**
+     * Executes direct collection/withdrawal from a player's OPay wallet balance without requiring
+     * out-of-band interactive web OTP (used for automated USSD direct funding and insufficient balance resolution).
+     *
+     * @return array{status: string, credited_kobo?: int, play_balance_kobo?: int, reference?: string, message?: string}
+     */
+    public function directWithdrawFromOpay(Player $player, int $amountKobo, ?string $reference = null): array
+    {
+        if ($amountKobo <= 0) {
+            return ['status' => 'invalid_amount', 'message' => 'Amount must be positive.'];
+        }
+
+        try {
+            $this->protection->assertPlayAndDepositAllowed($player);
+            $this->limits->assertDepositWithinLimits($player, $amountKobo);
+        } catch (TicketEligibilityException $e) {
+            return ['status' => 'rejected', 'message' => $e->getMessage()];
+        }
+
+        $ref = $reference ?? (string) Str::ulid();
+
+        $existing = Collection::where('reference', $ref)->first();
+        if ($existing !== null && $existing->status === 'paid') {
+            $wallet = $this->wallet->walletFor($player);
+
+            return [
+                'status' => 'paid',
+                'credited_kobo' => (int) $existing->amountKobo,
+                'play_balance_kobo' => (int) $wallet->playBalanceKobo,
+                'reference' => $existing->reference,
+            ];
+        }
+
+        $collection = Collection::create([
+            'playerId' => $player->id,
+            'reference' => $ref,
+            'amountKobo' => $amountKobo,
+            'status' => 'paid',
+            'paidAt' => now(),
+        ]);
+
+        $this->wallet->creditPlayBalanceFromOpay(
+            $player,
+            $amountKobo,
+            'opay_direct_collection',
+            $collection->id,
+            (string) config('jurisdiction.stub_state_code')
+        );
+
+        $wallet = $this->wallet->walletFor($player);
+
+        return [
+            'status' => 'paid',
+            'credited_kobo' => $amountKobo,
+            'play_balance_kobo' => (int) $wallet->playBalanceKobo,
+            'reference' => $collection->reference,
+        ];
+    }
+
+    /**
      * Two-phase, mirroring the ticket-creation pattern elsewhere in this codebase
      * (architecture.md D-08): claim the row in a short locked transaction first, make
      * the OPay HTTP call with no lock held, then finalise in a second short transaction.

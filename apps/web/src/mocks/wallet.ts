@@ -14,6 +14,7 @@ export interface MoneyTransaction {
 export interface WalletSnapshot {
   playBalanceKobo: number;
   winningsBalanceKobo: number;
+  bonusBalanceKobo?: number;
   currency: "NGN";
   registeredSourceLabel: string;
   transactions: MoneyTransaction[];

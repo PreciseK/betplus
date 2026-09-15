@@ -6,6 +6,7 @@ namespace Tests\Unit;
 
 use App\Domain\Games\Economics\BalancedHybridCrashStrategy;
 use App\Domain\Games\Economics\BalancedHybridTicketStrategy;
+use App\Domain\Games\Economics\DailyLossStopStrategy;
 use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
 use App\Domain\Games\Economics\FixedRtpStrategy;
 use App\Models\GameEconomicsConfig;
@@ -17,7 +18,7 @@ final class EconomicsModelStrategyFactoryTest extends TestCase
     {
         $config = new GameEconomicsConfig();
         $config->activeModel = $activeModel;
-        $config->paramsJson = ['kelly_factor_basis_points' => 300];
+        $config->paramsJson = ['kelly_factor_basis_points' => 300, 'daily_loss_cap_kobo' => 500_000_00];
 
         return $config;
     }
@@ -42,10 +43,15 @@ final class EconomicsModelStrategyFactoryTest extends TestCase
         $this->assertInstanceOf(BalancedHybridCrashStrategy::class, app(EconomicsModelStrategyFactory::class)->forCrashGame($this->config('BALANCED_HYBRID')));
     }
 
-    public function test_daily_loss_stop_and_pari_mutuel_pool_fall_back_to_fixed_rtp_for_now(): void
+    public function test_daily_loss_stop_model_yields_the_same_strategy_for_both_engine_shapes(): void
     {
         $factory = app(EconomicsModelStrategyFactory::class);
-        $this->assertInstanceOf(FixedRtpStrategy::class, $factory->forTicketGame($this->config('DAILY_LOSS_STOP')));
-        $this->assertInstanceOf(FixedRtpStrategy::class, $factory->forCrashGame($this->config('PARI_MUTUEL_POOL')));
+        $this->assertInstanceOf(DailyLossStopStrategy::class, $factory->forTicketGame($this->config('DAILY_LOSS_STOP')));
+        $this->assertInstanceOf(DailyLossStopStrategy::class, $factory->forCrashGame($this->config('DAILY_LOSS_STOP')));
+    }
+
+    public function test_pari_mutuel_pool_falls_back_to_fixed_rtp_for_now(): void
+    {
+        $this->assertInstanceOf(FixedRtpStrategy::class, app(EconomicsModelStrategyFactory::class)->forCrashGame($this->config('PARI_MUTUEL_POOL')));
     }
 }

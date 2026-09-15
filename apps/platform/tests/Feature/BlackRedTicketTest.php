@@ -222,4 +222,24 @@ final class BlackRedTicketTest extends TestCase
 
         $this->assertSame($totals->debits, $totals->credits);
     }
+
+    public function test_ussd_ticket_purchase_auto_funds_via_opay_when_play_balance_is_zero(): void
+    {
+        [$player, $token] = $this->signedInPlayer(fundedKobo: 0);
+
+        $response = $this->withToken($token)->postJson('/v1/tickets', [
+            'prediction' => ['B', 'R'],
+            'stake_kobo' => 50_000,
+            'idempotency_key' => 'ussd-br-sess-auto-fund',
+        ]);
+
+        $response->assertOk();
+        $this->assertNotNull($response->json('reference'));
+
+        $totals = DB::table('ledgerEntry')->selectRaw(
+            "SUM(CASE WHEN direction = 'debit' THEN amountKobo ELSE 0 END) as debits, " .
+            "SUM(CASE WHEN direction = 'credit' THEN amountKobo ELSE 0 END) as credits",
+        )->first();
+        $this->assertSame($totals->debits, $totals->credits);
+    }
 }

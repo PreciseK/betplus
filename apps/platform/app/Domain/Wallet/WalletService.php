@@ -29,12 +29,16 @@ final class WalletService
 {
     /** The only account types the ledger recognises (REQ-WAL-012). */
     private const ACCOUNT_TYPES = [
-        'PLAYER_PLAY', 'PLAYER_WINNINGS', 'SUSPENSE', 'HOUSE_REVENUE',
+        'PLAYER_PLAY', 'PLAYER_WINNINGS', 'PLAYER_BONUS', 'SUSPENSE', 'HOUSE_REVENUE',
         'PAYMENT_CLEARING', 'OPAY_FLOAT', 'PRIZE_LIABILITY',
         'WHT_PAYABLE', 'GGR_LEVY_PAYABLE', 'FEES', 'DRAW_TICKET_COST',
+        'MARKETING_EXPENSE', 'BONUS_EXPENSE', 'PROMO_DRAW_POOL', 'RESERVE_FUND',
     ];
 
-    private const CREDIT_NORMAL = ['PLAYER_PLAY', 'PLAYER_WINNINGS', 'HOUSE_REVENUE', 'PRIZE_LIABILITY', 'WHT_PAYABLE', 'GGR_LEVY_PAYABLE'];
+    private const CREDIT_NORMAL = [
+        'PLAYER_PLAY', 'PLAYER_WINNINGS', 'PLAYER_BONUS', 'HOUSE_REVENUE',
+        'PRIZE_LIABILITY', 'WHT_PAYABLE', 'GGR_LEVY_PAYABLE', 'PROMO_DRAW_POOL', 'RESERVE_FUND',
+    ];
 
     public function provisionWallet(Player $player): PlayerWallet
     {
@@ -121,34 +125,70 @@ final class WalletService
     }
 
     /**
-     * REQ-WAL-020 / REQ-TKT-012 — debits Play Balance into SUSPENSE. The balance check
-     * is inherent in the conditional UPDATE below (`WHERE playBalanceKobo >= amount`),
-     * so a concurrent second reservation cannot both succeed against the same headroom
-     * — this IS the "re-asserted inside the commitment transaction" balance check.
+     * Inspects the ledger to determine how much of a stake reservation came from PLAYER_BONUS.
+     */
+    public function bonusStakeFor(string $referenceType, int $referenceId): int
+    {
+        return (int) DB::table('ledgerEntry')
+            ->join('ledgerAccount', 'ledgerEntry.accountId', '=', 'ledgerAccount.id')
+            ->where('ledgerEntry.referenceType', $referenceType)
+            ->where('ledgerEntry.referenceId', $referenceId)
+            ->where('ledgerAccount.type', 'PLAYER_BONUS')
+            ->where('ledgerEntry.direction', 'debit')
+            ->sum('ledgerEntry.amountKobo');
+    }
+
+    /**
+     * REQ-WAL-020 / REQ-TKT-012 — debits available balance into SUSPENSE.
+     * Wager Priority Engine: consumes bonusBalanceKobo first, then playBalanceKobo for the remainder.
      */
     public function reserveStake(Player $player, int $amountKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
     {
         $wallet = $this->provisionWallet($player);
 
         for ($attempt = 0; $attempt < 3; $attempt++) {
-            $affected = PlayerWallet::where('id', $wallet->id)
+            $availableBonusKobo = (int) $wallet->bonusBalanceKobo;
+            $bonusUsedKobo = min($availableBonusKobo, $amountKobo);
+            $playUsedKobo = $amountKobo - $bonusUsedKobo;
+
+            $query = PlayerWallet::where('id', $wallet->id)
                 ->where('version', $wallet->version)
-                ->where('playBalanceKobo', '>=', $amountKobo)
-                ->update([
-                    'playBalanceKobo' => DB::raw("playBalanceKobo - ($amountKobo)"),
-                    'version' => DB::raw('version + 1'),
-                ]);
+                ->where('playBalanceKobo', '>=', $playUsedKobo);
+
+            if ($bonusUsedKobo > 0) {
+                $query->where('bonusBalanceKobo', '>=', $bonusUsedKobo);
+            }
+
+            $updates = [
+                'version' => DB::raw('version + 1'),
+            ];
+            if ($playUsedKobo > 0) {
+                $updates['playBalanceKobo'] = DB::raw("playBalanceKobo - ($playUsedKobo)");
+            }
+            if ($bonusUsedKobo > 0) {
+                $updates['bonusBalanceKobo'] = DB::raw("bonusBalanceKobo - ($bonusUsedKobo)");
+            }
+
+            $affected = $query->update($updates);
 
             if ($affected === 1) {
-                return $this->post([
-                    new LedgerLine('PLAYER_PLAY', (string) $player->id, 'debit', $amountKobo, $stateCode),
-                    new LedgerLine('SUSPENSE', null, 'credit', $amountKobo, $stateCode),
-                ], $referenceType, $referenceId);
+                $lines = [];
+                if ($bonusUsedKobo > 0) {
+                    $lines[] = new LedgerLine('PLAYER_BONUS', (string) $player->id, 'debit', $bonusUsedKobo, $stateCode);
+                    $lines[] = new LedgerLine('SUSPENSE', null, 'credit', $bonusUsedKobo, $stateCode);
+                }
+                if ($playUsedKobo > 0) {
+                    $lines[] = new LedgerLine('PLAYER_PLAY', (string) $player->id, 'debit', $playUsedKobo, $stateCode);
+                    $lines[] = new LedgerLine('SUSPENSE', null, 'credit', $playUsedKobo, $stateCode);
+                }
+
+                return $this->post($lines, $referenceType, $referenceId);
             }
 
             $wallet = PlayerWallet::findOrFail($wallet->id);
-            if ($wallet->playBalanceKobo < $amountKobo) {
-                throw new TicketEligibilityException('INSUFFICIENT_PLAY_BALANCE', 'Stake exceeds Play Balance.');
+            $totalHeadroomKobo = (int) $wallet->playBalanceKobo + (int) $wallet->bonusBalanceKobo;
+            if ($totalHeadroomKobo < $amountKobo) {
+                throw new TicketEligibilityException('INSUFFICIENT_PLAY_BALANCE', 'Stake exceeds available balance.');
             }
             // Otherwise a concurrent write raced the version — retry against fresh state.
         }
@@ -156,33 +196,69 @@ final class WalletService
         throw new RuntimeException('Could not reserve stake after 3 concurrent-write retries.');
     }
 
-    /** REQ-WAL-020 — a loss moves the reserved stake from SUSPENSE to HOUSE_REVENUE. */
-    public function settleLoss(int $stakeKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    /** REQ-WAL-020 — a loss moves reserved cash to HOUSE_REVENUE and reserved bonus to BONUS_EXPENSE. */
+    public function settleLoss(int $stakeKobo, string $referenceType, int $referenceId, ?string $stateCode = null, ?int $bonusStakeKobo = null): string
     {
-        return $this->post([
-            new LedgerLine('SUSPENSE', null, 'debit', $stakeKobo, $stateCode),
-            new LedgerLine('HOUSE_REVENUE', null, 'credit', $stakeKobo, $stateCode),
-        ], $referenceType, $referenceId);
+        $bonusUsedKobo = $bonusStakeKobo ?? $this->bonusStakeFor($referenceType, $referenceId);
+        $playUsedKobo = $stakeKobo - $bonusUsedKobo;
+
+        $lines = [];
+        if ($bonusUsedKobo > 0) {
+            $lines[] = new LedgerLine('SUSPENSE', null, 'debit', $bonusUsedKobo, $stateCode);
+            $lines[] = new LedgerLine('BONUS_EXPENSE', null, 'credit', $bonusUsedKobo, $stateCode);
+        }
+        if ($playUsedKobo > 0) {
+            $lines[] = new LedgerLine('SUSPENSE', null, 'debit', $playUsedKobo, $stateCode);
+            $lines[] = new LedgerLine('HOUSE_REVENUE', null, 'credit', $playUsedKobo, $stateCode);
+        }
+
+        return $this->post($lines, $referenceType, $referenceId);
     }
 
     /**
-     * REQ-WAL-020 / REQ-TAX-005 — a win clears the reserved stake from SUSPENSE, funds
-     * the excess over stake from HOUSE_REVENUE (the house's accumulated take from other
-     * tickets funds this one's prize — how a fixed-odds book works), and credits
-     * Winnings Balance net of the withholding posted to WHT_PAYABLE:{state}.
+     * REQ-WAL-020 / REQ-TAX-005 — a win clears reserved stake from SUSPENSE, funds
+     * excess from HOUSE_REVENUE, reclaims bonus principal to BONUS_EXPENSE (1x playthrough rule),
+     * and credits net profit won + real cash stake to Winnings Balance.
      */
-    public function settleWin(Player $player, int $stakeKobo, int $grossPrizeKobo, int $taxWithheldKobo, int $netCreditKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
-    {
+    public function settleWin(
+        Player $player,
+        int $stakeKobo,
+        int $grossPrizeKobo,
+        int $taxWithheldKobo,
+        int $netCreditKobo,
+        string $referenceType,
+        int $referenceId,
+        ?string $stateCode = null,
+        ?int $bonusStakeKobo = null,
+    ): string {
+        $bonusUsedKobo = $bonusStakeKobo ?? $this->bonusStakeFor($referenceType, $referenceId);
         $excessKobo = $grossPrizeKobo - $stakeKobo;
 
-        $group = $this->post(array_values(array_filter([
-            $excessKobo > 0 ? new LedgerLine('HOUSE_REVENUE', null, 'debit', $excessKobo, $stateCode) : null,
-            new LedgerLine('SUSPENSE', null, 'debit', $stakeKobo, $stateCode),
-            $taxWithheldKobo > 0 ? new LedgerLine('WHT_PAYABLE', $stateCode, 'credit', $taxWithheldKobo, $stateCode) : null,
-            new LedgerLine('PLAYER_WINNINGS', (string) $player->id, 'credit', $netCreditKobo, $stateCode),
-        ])), $referenceType, $referenceId);
+        // Under 1x playthrough rule: bonus principal ($bonusUsedKobo) is reclaimed by house to BONUS_EXPENSE.
+        // Net profit won + real cash stake returns to winnings.
+        $actualNetCreditKobo = $netCreditKobo - $bonusUsedKobo;
 
-        $this->adjustCachedBalance($player, playDeltaKobo: 0, winningsDeltaKobo: $netCreditKobo);
+        $lines = [];
+        if ($excessKobo > 0) {
+            $lines[] = new LedgerLine('HOUSE_REVENUE', null, 'debit', $excessKobo, $stateCode);
+        }
+        $lines[] = new LedgerLine('SUSPENSE', null, 'debit', $stakeKobo, $stateCode);
+
+        if ($bonusUsedKobo > 0) {
+            $lines[] = new LedgerLine('BONUS_EXPENSE', null, 'credit', $bonusUsedKobo, $stateCode);
+        }
+        if ($taxWithheldKobo > 0) {
+            $lines[] = new LedgerLine('WHT_PAYABLE', $stateCode, 'credit', $taxWithheldKobo, $stateCode);
+        }
+        if ($actualNetCreditKobo > 0) {
+            $lines[] = new LedgerLine('PLAYER_WINNINGS', (string) $player->id, 'credit', $actualNetCreditKobo, $stateCode);
+        }
+
+        $group = $this->post($lines, $referenceType, $referenceId);
+
+        if ($actualNetCreditKobo > 0) {
+            $this->adjustCachedBalance($player, playDeltaKobo: 0, winningsDeltaKobo: $actualNetCreditKobo);
+        }
 
         return $group;
     }
@@ -346,7 +422,92 @@ final class WalletService
         return $group;
     }
 
-    private function adjustCachedBalance(Player $player, int $playDeltaKobo, int $winningsDeltaKobo): void
+    /**
+     * Credits bonus play credits into PLAYER_BONUS and updates cached bonusBalanceKobo.
+     * Non-withdrawable play credits.
+     */
+    public function creditBonusPlayBalance(Player $player, int $amountKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    {
+        $group = $this->post([
+            new LedgerLine('BONUS_EXPENSE', null, 'debit', $amountKobo, $stateCode),
+            new LedgerLine('PLAYER_BONUS', (string) $player->id, 'credit', $amountKobo, $stateCode),
+        ], $referenceType, $referenceId);
+
+        $this->adjustCachedBalance($player, playDeltaKobo: 0, winningsDeltaKobo: 0, bonusDeltaKobo: $amountKobo);
+
+        return $group;
+    }
+
+    /**
+     * Burns expired bonus credits from PLAYER_BONUS back to BONUS_EXPENSE.
+     */
+    public function expireBonusPlayBalance(Player $player, int $amountKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    {
+        $group = $this->post([
+            new LedgerLine('PLAYER_BONUS', (string) $player->id, 'debit', $amountKobo, $stateCode),
+            new LedgerLine('BONUS_EXPENSE', null, 'credit', $amountKobo, $stateCode),
+        ], $referenceType, $referenceId);
+
+        $this->adjustCachedBalance($player, playDeltaKobo: 0, winningsDeltaKobo: 0, bonusDeltaKobo: -$amountKobo);
+
+        return $group;
+    }
+
+    /**
+     * Settle Weekend Double Odds boost bonus from marketing subvention to player winnings.
+     */
+    public function settleMarketingBoost(Player $player, int $boostBonusKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    {
+        $group = $this->post([
+            new LedgerLine('MARKETING_EXPENSE', null, 'debit', $boostBonusKobo, $stateCode),
+            new LedgerLine('PLAYER_WINNINGS', (string) $player->id, 'credit', $boostBonusKobo, $stateCode),
+        ], $referenceType, $referenceId);
+
+        $this->adjustCachedBalance($player, playDeltaKobo: 0, winningsDeltaKobo: $boostBonusKobo, bonusDeltaKobo: 0);
+
+        return $group;
+    }
+
+    /**
+     * Settle Monthly VIP Draw cash prize to player winnings from the promotional pool reserve.
+     */
+    public function settleMonthlyDrawPrize(Player $player, int $prizeKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    {
+        $group = $this->post([
+            new LedgerLine('PROMO_DRAW_POOL', null, 'debit', $prizeKobo, $stateCode),
+            new LedgerLine('PLAYER_WINNINGS', (string) $player->id, 'credit', $prizeKobo, $stateCode),
+        ], $referenceType, $referenceId);
+
+        $this->adjustCachedBalance($player, playDeltaKobo: 0, winningsDeltaKobo: $prizeKobo, bonusDeltaKobo: 0);
+
+        return $group;
+    }
+
+    /**
+     * Allocates monthly turnover rake from HOUSE_REVENUE to PROMO_DRAW_POOL.
+     */
+    public function allocateMonthlyDrawPool(int $rakeAmountKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    {
+        return $this->post([
+            new LedgerLine('HOUSE_REVENUE', null, 'debit', $rakeAmountKobo, $stateCode),
+            new LedgerLine('PROMO_DRAW_POOL', null, 'credit', $rakeAmountKobo, $stateCode),
+        ], $referenceType, $referenceId);
+    }
+
+    /**
+     * Model 1's reserve-fund siphon (BalancedHybridParams::reserveSiphonBps) — moves a
+     * slice of a day's net GGR from HOUSE_REVENUE into the segregated RESERVE_FUND
+     * account, same shape as allocateMonthlyDrawPool.
+     */
+    public function allocateReserveFund(int $amountKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    {
+        return $this->post([
+            new LedgerLine('HOUSE_REVENUE', null, 'debit', $amountKobo, $stateCode),
+            new LedgerLine('RESERVE_FUND', null, 'credit', $amountKobo, $stateCode),
+        ], $referenceType, $referenceId);
+    }
+
+    private function adjustCachedBalance(Player $player, int $playDeltaKobo, int $winningsDeltaKobo, int $bonusDeltaKobo = 0): void
     {
         $wallet = $this->provisionWallet($player);
 
@@ -356,6 +517,7 @@ final class WalletService
                 ->update([
                     'playBalanceKobo' => DB::raw("playBalanceKobo + ($playDeltaKobo)"),
                     'winningsBalanceKobo' => DB::raw("winningsBalanceKobo + ($winningsDeltaKobo)"),
+                    'bonusBalanceKobo' => DB::raw("bonusBalanceKobo + ($bonusDeltaKobo)"),
                     'version' => DB::raw('version + 1'),
                 ]);
 

@@ -23,6 +23,9 @@ interface PlatformClientInterface
     public function wallet(string $token): array;
 
     /** @return array<string, mixed> */
+    public function directWithdrawFromOpay(string $token, int $amountKobo, string $idempotencyKey): array;
+
+    /** @return array<string, mixed> */
     public function verifyNin(string $token, string $dateOfBirth, string $nin): array;
 
     /** @return array<string, mixed> */

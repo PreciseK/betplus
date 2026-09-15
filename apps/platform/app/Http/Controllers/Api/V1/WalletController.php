@@ -31,6 +31,7 @@ class WalletController extends Controller
         return response()->json([
             'play_balance_kobo' => $wallet->playBalanceKobo,
             'winnings_balance_kobo' => $wallet->winningsBalanceKobo,
+            'bonus_balance_kobo' => (int) $wallet->bonusBalanceKobo,
             'currency' => 'NGN',
             'registered_source_label' => 'OPay wallet ending ' . substr($player->msisdn, -4),
         ]);
@@ -56,6 +57,16 @@ class WalletController extends Controller
     public function deposit(CreateDepositRequest $request): JsonResponse
     {
         return response()->json($this->funding->createCollection($this->player(), $request->string('quote_id')->toString()));
+    }
+
+    /** POST /v1/wallet/direct-withdraw-opay */
+    public function directWithdrawOpay(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $amountKobo = (int) $request->input('amount_kobo');
+        $reference = $request->input('reference') ? (string) $request->input('reference') : null;
+        $result = $this->funding->directWithdrawFromOpay($this->player(), $amountKobo, $reference);
+
+        return response()->json($result, $result['status'] === 'paid' ? 200 : 422);
     }
 
     /** POST /v1/wallet/deposits/{id}/otp */

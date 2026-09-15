@@ -67,6 +67,7 @@ class PlayerProfileController extends Controller
             'balances' => [
                 'play_balance_kobo' => $wallet->playBalanceKobo,
                 'winnings_balance_kobo' => $wallet->winningsBalanceKobo,
+                'bonus_balance_kobo' => (int) $wallet->bonusBalanceKobo,
             ],
             'rg_status' => [
                 'protection' => $protectionEvent === null ? null : [

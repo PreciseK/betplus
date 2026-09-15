@@ -49,6 +49,11 @@ final class FakePlatformClient implements PlatformClientInterface
         return $this->respond(__FUNCTION__, [$token]);
     }
 
+    public function directWithdrawFromOpay(string $token, int $amountKobo, string $idempotencyKey): array
+    {
+        return $this->respond(__FUNCTION__, [$token, $amountKobo, $idempotencyKey]);
+    }
+
     public function verifyNin(string $token, string $dateOfBirth, string $nin): array
     {
         return $this->respond(__FUNCTION__, [$token, $dateOfBirth, $nin]);

@@ -34,7 +34,7 @@ function toMoneyTransaction(t: ApiTransaction) {
 export const walletGateway = {
   async loadWallet() {
     const [wallet, history] = await Promise.all([
-      get<{ play_balance_kobo: number; winnings_balance_kobo: number; currency: "NGN"; registered_source_label: string }>(
+      get<{ play_balance_kobo: number; winnings_balance_kobo: number; bonus_balance_kobo?: number; currency: "NGN"; registered_source_label: string }>(
         "/wallet",
       ),
       get<{ transactions: ApiTransaction[] }>("/wallet/transactions"),
@@ -43,6 +43,7 @@ export const walletGateway = {
     return {
       playBalanceKobo: wallet.play_balance_kobo,
       winningsBalanceKobo: wallet.winnings_balance_kobo,
+      bonusBalanceKobo: wallet.bonus_balance_kobo ?? 0,
       currency: wallet.currency,
       registeredSourceLabel: wallet.registered_source_label,
       transactions: history.transactions.map(toMoneyTransaction),

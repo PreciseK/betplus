@@ -35,7 +35,7 @@ describe("DailySummaryConsole", () => {
     render(<DailySummaryConsole />);
 
     expect(await screen.findByText("Gross stakes")).toBeInTheDocument();
-    expect(screen.getByText("₦1,000")).toBeInTheDocument();
+    expect(screen.getAllByText("₦1,000")[0]).toBeInTheDocument();
     expect(dailySummary).toHaveBeenCalledWith("2026-08-20", undefined);
     expect(dailySummary).toHaveBeenCalledWith("2026-08-19", undefined);
   });

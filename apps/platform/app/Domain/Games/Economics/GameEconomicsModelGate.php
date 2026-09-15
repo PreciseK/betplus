@@ -20,6 +20,10 @@ final class GameEconomicsModelGate
     // 20% of the current float — generous headroom above the 1-5% (100-500bp) the
     // design spec suggests as a working default, without leaving the field unbounded.
     private const MAX_KELLY_FACTOR_BASIS_POINTS = 2_000;
+    private const MIN_DAILY_LOSS_CAP_KOBO = 1;
+    // 50% of a day's net GGR — a hard ceiling on the reserve siphon so a misconfigured
+    // value can't starve HOUSE_REVENUE.
+    private const MAX_RESERVE_SIPHON_BPS = 5_000;
 
     /** @return list<string> validation errors; empty means the config may publish */
     public function validate(GameEconomicsConfig $config): array
@@ -32,12 +36,15 @@ final class GameEconomicsModelGate
             return $this->validateBalancedHybrid($config);
         }
 
-        // DAILY_LOSS_STOP and PARI_MUTUEL_POOL params are not validated yet,
-        // deliberately — their real param shapes (DailyLossStopParams,
-        // PariMutuelPoolParams) and enforcement land in Phase 2 and Phase 3 of
+        if ($config->activeModel === 'DAILY_LOSS_STOP') {
+            return $this->validateDailyLossStop($config);
+        }
+
+        // PARI_MUTUEL_POOL params are not validated yet, deliberately — its real
+        // param shape and enforcement land in Phase 3 of
         // docs/superpowers/specs/2026-09-13-admin-gaming-economics-models-design.md.
-        // Selecting either model today is allowed; EconomicsModelStrategyFactory
-        // resolves both to a no-op strategy until then.
+        // Selecting it today is allowed; EconomicsModelStrategyFactory resolves it
+        // to a no-op strategy until then.
         return [];
     }
 
@@ -52,6 +59,36 @@ final class GameEconomicsModelGate
 
         if ($kellyFactorBasisPoints < self::MIN_KELLY_FACTOR_BASIS_POINTS || $kellyFactorBasisPoints > self::MAX_KELLY_FACTOR_BASIS_POINTS) {
             return ["kelly_factor_basis_points {$kellyFactorBasisPoints} is outside the sane " . self::MIN_KELLY_FACTOR_BASIS_POINTS . '-' . self::MAX_KELLY_FACTOR_BASIS_POINTS . ' range.'];
+        }
+
+        // reserve_siphon_bps is optional (0 / absent means no siphon); only its
+        // range is validated when present.
+        if (array_key_exists('reserve_siphon_bps', $config->paramsJson)) {
+            $reserveSiphonBps = $config->paramsJson['reserve_siphon_bps'];
+
+            if (!is_int($reserveSiphonBps)) {
+                return ['reserve_siphon_bps must be an integer when present.'];
+            }
+
+            if ($reserveSiphonBps < 0 || $reserveSiphonBps > self::MAX_RESERVE_SIPHON_BPS) {
+                return ["reserve_siphon_bps {$reserveSiphonBps} is outside the sane 0-" . self::MAX_RESERVE_SIPHON_BPS . ' range.'];
+            }
+        }
+
+        return [];
+    }
+
+    /** @return list<string> */
+    private function validateDailyLossStop(GameEconomicsConfig $config): array
+    {
+        $dailyLossCapKobo = $config->paramsJson['daily_loss_cap_kobo'] ?? null;
+
+        if (!is_int($dailyLossCapKobo)) {
+            return ['DAILY_LOSS_STOP requires an integer daily_loss_cap_kobo param.'];
+        }
+
+        if ($dailyLossCapKobo < self::MIN_DAILY_LOSS_CAP_KOBO) {
+            return ["daily_loss_cap_kobo {$dailyLossCapKobo} must be at least " . self::MIN_DAILY_LOSS_CAP_KOBO . '.'];
         }
 
         return [];

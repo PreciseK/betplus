@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Games\BirdEscape;
 
+use App\Domain\Games\Economics\GameDailyLedgerService;
 use App\Domain\Tax\TaxEngine;
 use App\Domain\Wallet\WalletService;
 use App\Models\CrashBet;
@@ -24,9 +25,12 @@ use Illuminate\Support\Facades\DB;
  */
 final class BirdEscapeSettlement
 {
+    private const GAME_CODE = 'BIRDESCAPE';
+
     public function __construct(
         private readonly WalletService $wallet,
         private readonly TaxEngine $tax,
+        private readonly GameDailyLedgerService $dailyLedger,
     ) {
     }
 
@@ -64,6 +68,8 @@ final class BirdEscapeSettlement
                 $bet->stateCode,
             );
 
+            $this->dailyLedger->recordSettlement(self::GAME_CODE, $bet->stakeKobo, $grossPrizeKobo);
+
             return true;
         });
     }
@@ -79,6 +85,8 @@ final class BirdEscapeSettlement
             }
 
             $this->wallet->settleLoss($bet->stakeKobo, 'crash_bet', $bet->id, $bet->stateCode);
+
+            $this->dailyLedger->recordSettlement(self::GAME_CODE, $bet->stakeKobo, 0);
 
             return true;
         });

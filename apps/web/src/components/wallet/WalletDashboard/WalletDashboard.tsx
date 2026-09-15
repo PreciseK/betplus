@@ -130,6 +130,13 @@ export function WalletDashboard({
           amountKobo={snapshot.winningsBalanceKobo}
           explanation="Settled winnings available under withdrawal and verification rules."
         />
+        {snapshot.bonusBalanceKobo !== undefined && snapshot.bonusBalanceKobo > 0 && (
+          <BalanceCard
+            kind="bonus"
+            amountKobo={snapshot.bonusBalanceKobo}
+            explanation="Non-withdrawable promo credit. Staked first on eligible games (1x playthrough converts net profit to winnings)."
+          />
+        )}
       </div>
 
       {/* 2. Turnover Progress */}

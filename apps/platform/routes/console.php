@@ -22,6 +22,10 @@ Schedule::command('payout:snapshot-float')->everyMinute();
 // of anyone opening a back-office dashboard for it.
 Schedule::command('analytics:rollup')->dailyAt('01:30');
 
+// Admin gaming economics Phase 2 — runs after the prior day's GameDailyLedger rows are
+// fully closed (well after analytics:rollup, same closed-day assumption).
+Schedule::command('economics:siphon-reserve-fund')->dailyAt('01:45');
+
 // Story 7.8 (REQ-HG-039) — daily reconciliation between submitted second-chance
 // entries and partner-confirmed entries.
 Schedule::command('heritage:reconcile-second-chance')->dailyAt('02:00');
@@ -33,3 +37,9 @@ Schedule::command('heritage:notify-second-chance-results')->everyFiveMinutes();
 
 // Story 8.1 (REQ-USSD-005) — "purges expired sessions every 5 minutes."
 Schedule::command('ussd:cleanup-sessions')->everyFiveMinutes();
+
+// BetPlus Promotions: Monthly VIP Draw aggregation on the 1st of every month at 00:10 WAT
+Schedule::job(new \App\Domain\Promotions\Jobs\MonthlyDrawTicketAggregationJob())->monthlyOn(1, '00:10');
+
+// BetPlus Promotions: Daily sweep to expire unclaimed or aged promotional bonus balances
+Schedule::job(new \App\Domain\Promotions\Jobs\ExpireBonusBalancesJob())->dailyAt('00:05');

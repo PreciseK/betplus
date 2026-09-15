@@ -9,10 +9,12 @@ use App\Domain\Fairness\SeedIssuer;
 use App\Domain\Games\Economics\EconomicsConfigResolver;
 use App\Domain\Games\Economics\EconomicsContext;
 use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
+use App\Domain\Games\Economics\GameDailyLedgerService;
 use App\Domain\Games\Engine\BlackRed\BlackRedEngine;
 use App\Domain\Games\Engine\BlackRed\EngineTier;
 use App\Domain\Games\PrizeTable\PrizeTableResolver;
 use App\Domain\Jurisdiction\AttributionService;
+use App\Domain\Promotions\PromotionManagerService;
 use App\Domain\ResponsibleGaming\LimitsService;
 use App\Domain\ResponsibleGaming\ProtectionService;
 use App\Domain\ResponsibleGaming\Registries\RegistryCheckService;
@@ -45,6 +47,7 @@ use Illuminate\Support\Str;
 final class CreateTicket
 {
     private const REQUIRED_KYC_TIER = 1;
+    private readonly PromotionManagerService $promoManagerInstance;
 
     public function __construct(
         private readonly AttributionService $attribution,
@@ -56,11 +59,14 @@ final class CreateTicket
         private readonly LimitsService $limits,
         private readonly EconomicsConfigResolver $economicsConfigResolver,
         private readonly EconomicsModelStrategyFactory $economicsStrategyFactory,
+        private readonly GameDailyLedgerService $dailyLedger,
         private readonly ProtectionService $protection,
         private readonly RegistryCheckService $registry,
         private readonly VelocityService $velocity,
         private readonly AnalyticsEventRecorder $analytics,
+        ?PromotionManagerService $promoManager = null,
     ) {
+        $this->promoManagerInstance = $promoManager ?? app(PromotionManagerService::class);
     }
 
     /**
@@ -111,6 +117,17 @@ final class CreateTicket
         $engineResult = $this->engine->resolve($seed->seedHex, $prediction, $stakeKobo, $engineTiers);
 
         $withholding = $engineResult->won ? $this->tax->withhold($engineResult->grossPrizeKobo, $player) : null;
+
+        // Auto-fund via direct withdrawal from OPay balance for USSD if play balance <= 0 or insufficient
+        if (str_starts_with($idempotencyKey, 'ussd-')) {
+            $walletModel = $this->wallet->walletFor($player);
+            $totalHeadroom = (int) $walletModel->playBalanceKobo + (int) $walletModel->bonusBalanceKobo;
+            if ($walletModel->playBalanceKobo <= 0 || $totalHeadroom < $stakeKobo) {
+                $shortfall = max($stakeKobo - $totalHeadroom, 0);
+                $withdrawKobo = $shortfall > 0 ? $shortfall : $stakeKobo;
+                app(\App\Domain\Wallet\FundingService::class)->directWithdrawFromOpay($player, $withdrawKobo, 'ussd-auto-' . $idempotencyKey);
+            }
+        }
 
         // ── COMMITMENT — single transaction, locks held briefly (REQ-TKT-002 steps 8-11) ──
         $ticket = DB::transaction(function () use ($player, $prediction, $stakeKobo, $idempotencyKey, $attribution, $seed, $engineResult, $withholding, $length, $prizeTable, $economicsStrategy) {
@@ -182,14 +199,31 @@ final class CreateTicket
                     $ticket->id,
                     $attribution['stateCode'],
                 );
+
+                // Offer 1: Weekend Double Win Boost (Marketing Subvention)
+                $this->promoManagerInstance->evaluateWeekendBoost(
+                    $player,
+                    $stakeKobo,
+                    $engineResult->grossPrizeKobo,
+                    'BLACKRED',
+                    $ticket->id
+                );
             } else {
                 $this->wallet->settleLoss($stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
             }
+
+            $this->dailyLedger->recordSettlement('BLACKRED', $stakeKobo, $engineResult->won ? $engineResult->grossPrizeKobo : 0);
 
             $ticket->update(['status' => 'SETTLED']);
 
             return $ticket;
         });
+
+        // Offer 2: Monthly VIP Draw turnover tracking
+        $this->promoManagerInstance->recordTurnover($player, $stakeKobo);
+
+        // Offer 3: Velocity Milestone Bonus Wallet (30+ rounds)
+        $this->promoManagerInstance->recordRoundAndCheckMilestone($player, 'BLACKRED');
 
         // Story 4.1 / D-09 — queued off the play path, and deliberately dispatched
         // AFTER the transaction above has committed, so a win that somehow rolls back

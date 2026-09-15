@@ -178,4 +178,25 @@ class FundingTest extends TestCase
         $wallet = PlayerWallet::where('playerId', $player->id)->first();
         $this->assertNull($wallet);
     }
+
+    public function test_direct_withdraw_from_opay_credits_play_balance_immediately(): void
+    {
+        [$player, $token] = $this->signedInTier2Player();
+
+        $response = $this->withToken($token)->postJson('/v1/wallet/direct-withdraw-opay', [
+            'amount_kobo' => 100_000,
+            'reference' => 'opay-dir-ref-1',
+        ]);
+
+        $response->assertOk()->assertJson([
+            'status' => 'paid',
+            'credited_kobo' => 100_000,
+            'play_balance_kobo' => 100_000,
+            'reference' => 'opay-dir-ref-1',
+        ]);
+
+        $wallet = PlayerWallet::where('playerId', $player->id)->first();
+        $this->assertNotNull($wallet);
+        $this->assertSame(100_000, $wallet->playBalanceKobo);
+    }
 }

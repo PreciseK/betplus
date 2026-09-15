@@ -101,6 +101,7 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
             <div className={styles.balances} aria-label="Player balances">
               <div><span>Play Balance</span><strong>{formatKobo(player.balances.play_balance_kobo)}</strong></div>
               <div><span>Winnings Balance</span><strong>{formatKobo(player.balances.winnings_balance_kobo)}</strong></div>
+              <div><span>Bonus Balance</span><strong>{formatKobo(player.balances.bonus_balance_kobo ?? 0)}</strong></div>
             </div>
           </section>
 

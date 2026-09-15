@@ -21,5 +21,13 @@ final class BalancedHybridParamsTest extends TestCase
         $params = BalancedHybridParams::fromArray([]);
 
         $this->assertSame(0, $params->kellyFactorBasisPoints);
+        $this->assertSame(0, $params->reserveSiphonBps);
+    }
+
+    public function test_reads_the_reserve_siphon_bps_from_the_params_array(): void
+    {
+        $params = BalancedHybridParams::fromArray(['kelly_factor_basis_points' => 300, 'reserve_siphon_bps' => 500]);
+
+        $this->assertSame(500, $params->reserveSiphonBps);
     }
 }

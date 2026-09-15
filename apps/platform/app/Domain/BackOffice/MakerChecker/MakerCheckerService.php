@@ -22,6 +22,7 @@ final class MakerCheckerService
         'manual_credit_debit' => ManualCreditDebitApplier::class,
         'crash_config_publish' => CrashConfigPublishApplier::class,
         'game_economics_config_publish' => GameEconomicsConfigPublishApplier::class,
+        'promotional_config_publish' => PromotionalConfigPublishApplier::class,
     ];
 
     /**

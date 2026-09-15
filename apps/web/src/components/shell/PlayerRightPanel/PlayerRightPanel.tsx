@@ -24,6 +24,7 @@ export function PlayerRightPanel() {
   const [kycTier, setKycTier] = useState<number>();
   const [playBalanceKobo, setPlayBalanceKobo] = useState(0);
   const [winningsBalanceKobo, setWinningsBalanceKobo] = useState(0);
+  const [bonusBalanceKobo, setBonusBalanceKobo] = useState(0);
   const [loadFailed, setLoadFailed] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -38,6 +39,7 @@ export function PlayerRightPanel() {
         setRegisteredSourceLabel(wallet.registeredSourceLabel);
         setPlayBalanceKobo(wallet.playBalanceKobo);
         setWinningsBalanceKobo(wallet.winningsBalanceKobo);
+        setBonusBalanceKobo(wallet.bonusBalanceKobo ?? 0);
       })
       .catch(() => {
         if (active) setLoadFailed(true);
@@ -129,6 +131,15 @@ export function PlayerRightPanel() {
                     <strong className={styles.tileAmount}>{hideBalances ? "••••••" : formatKobo(winningsBalanceKobo)}</strong>
                   </div>
                 </div>
+
+                {bonusBalanceKobo > 0 && (
+                  <div className={styles.balanceTile}>
+                    <span className={styles.tileLabel}>BONUS BALANCE</span>
+                    <div className={styles.tileValueRow}>
+                      <strong className={styles.tileAmount}>{hideBalances ? "••••••" : formatKobo(bonusBalanceKobo)}</strong>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className={styles.heroActionBtnsRow}>
