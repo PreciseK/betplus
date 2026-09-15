@@ -124,17 +124,6 @@ final class CreateHeritageTicket
 
         $withholding = $engineResult->won() ? $this->tax->withhold($engineResult->grossPrizeKobo, $player) : null;
 
-        // Auto-fund via direct withdrawal from OPay balance for USSD if play balance <= 0 or insufficient
-        if (str_starts_with($idempotencyKey, 'ussd-')) {
-            $walletModel = $this->wallet->walletFor($player);
-            $totalHeadroom = (int) $walletModel->playBalanceKobo + (int) $walletModel->bonusBalanceKobo;
-            if ($walletModel->playBalanceKobo <= 0 || $totalHeadroom < $stakeKobo) {
-                $shortfall = max($stakeKobo - $totalHeadroom, 0);
-                $withdrawKobo = $shortfall > 0 ? $shortfall : $stakeKobo;
-                app(\App\Domain\Wallet\FundingService::class)->directWithdrawFromOpay($player, $withdrawKobo, 'ussd-auto-' . $idempotencyKey);
-            }
-        }
-
         // ── COMMITMENT — single transaction, locks held briefly ──
         $ticket = DB::transaction(function () use (
             $player, $selectedPositions, $stakeKobo, $idempotencyKey, $attribution, $seed,

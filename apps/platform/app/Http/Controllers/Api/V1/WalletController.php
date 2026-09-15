@@ -8,7 +8,6 @@ use App\Domain\Wallet\FundingService;
 use App\Domain\Wallet\WalletService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CreateDepositRequest;
-use App\Http\Requests\Api\V1\DirectWithdrawOpayRequest;
 use App\Http\Requests\Api\V1\FundingQuoteRequest;
 use App\Http\Requests\Api\V1\SubmitDepositOtpRequest;
 use App\Models\Collection;
@@ -58,18 +57,6 @@ class WalletController extends Controller
     public function deposit(CreateDepositRequest $request): JsonResponse
     {
         return response()->json($this->funding->createCollection($this->player(), $request->string('quote_id')->toString()));
-    }
-
-    /** POST /v1/wallet/direct-withdraw-opay */
-    public function directWithdrawOpay(DirectWithdrawOpayRequest $request): JsonResponse
-    {
-        $result = $this->funding->directWithdrawFromOpay(
-            $this->player(),
-            (int) $request->input('amount_kobo'),
-            $request->string('reference')->toString(),
-        );
-
-        return response()->json($result, $result['status'] === 'paid' ? 200 : 422);
     }
 
     /** POST /v1/wallet/deposits/{id}/otp */

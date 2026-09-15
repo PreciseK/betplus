@@ -9,16 +9,27 @@ use Betplus\Ussd\PlatformClientInterface;
 /** Records every call and returns pre-programmed responses — no HTTP, no platform. */
 final class FakePlatformClient implements PlatformClientInterface
 {
-    /** @var array<string, array<string, mixed>> */
+    /** @var array<string, list<array<string, mixed>>> queue per method — each programResponse() call appends one */
     public array $responses = [];
+
+    /** @var array<string, array<string, mixed>> the last response shifted off each method's queue, repeated once the queue is empty */
+    private array $lastResponse = [];
 
     /** @var list<array{method:string, args:array<int, mixed>}> */
     public array $calls = [];
 
-    /** @param array<string, mixed> $response */
+    /**
+     * Program the next response a method call returns. Call it more than once for
+     * the same method to hand out different responses to successive calls (e.g. a
+     * flow that calls createDeposit() twice, once before and once after identity
+     * verification) — once the queue is exhausted, the last-programmed response
+     * repeats, so a single call still behaves as it always has.
+     *
+     * @param array<string, mixed> $response
+     */
     public function programResponse(string $method, array $response): void
     {
-        $this->responses[$method] = $response;
+        $this->responses[$method][] = $response;
     }
 
     /** @return array<string, mixed> */
@@ -26,7 +37,11 @@ final class FakePlatformClient implements PlatformClientInterface
     {
         $this->calls[] = ['method' => $method, 'args' => $args];
 
-        return $this->responses[$method] ?? [];
+        if (($this->responses[$method] ?? []) !== []) {
+            $this->lastResponse[$method] = array_shift($this->responses[$method]);
+        }
+
+        return $this->lastResponse[$method] ?? [];
     }
 
     public function identify(string $msisdn): array
@@ -49,14 +64,24 @@ final class FakePlatformClient implements PlatformClientInterface
         return $this->respond(__FUNCTION__, [$token]);
     }
 
-    public function directWithdrawFromOpay(string $token, int $amountKobo, string $idempotencyKey): array
-    {
-        return $this->respond(__FUNCTION__, [$token, $amountKobo, $idempotencyKey]);
-    }
-
     public function verifyNin(string $token, string $dateOfBirth, string $nin): array
     {
         return $this->respond(__FUNCTION__, [$token, $dateOfBirth, $nin]);
+    }
+
+    public function verifyBvn(string $token, string $bvn): array
+    {
+        return $this->respond(__FUNCTION__, [$token, $bvn]);
+    }
+
+    public function createDeposit(string $token, int $amountKobo): array
+    {
+        return $this->respond(__FUNCTION__, [$token, $amountKobo]);
+    }
+
+    public function submitDepositOtp(string $token, int $collectionId, string $otp): array
+    {
+        return $this->respond(__FUNCTION__, [$token, $collectionId, $otp]);
     }
 
     public function blackRedDescriptor(string $token): array

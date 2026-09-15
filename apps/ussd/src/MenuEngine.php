@@ -107,6 +107,10 @@ final class MenuEngine
             'caged_pick' => $this->screenCagedPick($session, $input),
             'caged_stake' => $this->screenCagedStake($session, $input),
             'caged_confirm' => $this->screenCagedConfirm($session, $input),
+            'fund_nin' => $this->screenFundNin($session, $input),
+            'fund_dob' => $this->screenFundDob($session, $input),
+            'fund_bvn' => $this->screenFundBvn($session, $input),
+            'fund_otp' => $this->screenFundOtp($session, $input),
             'rg_menu' => $this->screenRgMenu($session, $input),
             'rg_break_menu' => $this->screenRgBreakMenu($session, $input),
             default => Screen::end('Session error. Please dial again.'),
@@ -299,22 +303,26 @@ final class MenuEngine
             return $this->errorPrefixed($session, 'blackred_confirm', "Confirm: $picks for NGN $naira\n1. Confirm\n2. Cancel");
         }
 
+        $stakeKobo = (int) $session->data['brStakeKobo'];
+        $funding = $this->resolveFunding($session, 'blackred', $stakeKobo);
+        if ($funding !== null) {
+            return $funding;
+        }
+
+        return $this->completeBlackRedPurchase($session);
+    }
+
+    private function completeBlackRedPurchase(Session $session): Screen
+    {
         /** @var list<string> $picks */
         $picks = $session->data['brPicks'];
         $stakeKobo = (int) $session->data['brStakeKobo'];
         $idempotencyKey = 'ussd-br-' . $session->sessionId;
 
-        $this->ensurePlayBalance($session, $stakeKobo);
-
         $purchase = $this->platform->purchaseBlackRedTicket((string) $session->accessToken, $picks, $stakeKobo, $idempotencyKey);
 
         if (!isset($purchase['reference'])) {
-            $this->platform->directWithdrawFromOpay((string) $session->accessToken, $stakeKobo, 'ussd-fund-retry-' . $session->sessionId);
-            $purchase = $this->platform->purchaseBlackRedTicket((string) $session->accessToken, $picks, $stakeKobo, $idempotencyKey . '-retry');
-        }
-
-        if (!isset($purchase['reference'])) {
-            return Screen::end('Could not place that ticket. Fund your wallet via the Betplus/OPay app and try again.');
+            return Screen::end('Could not place that ticket. Please try again.');
         }
 
         $reveal = $this->platform->revealBlackRedTicket((string) $session->accessToken, (string) $purchase['reference']);
@@ -385,22 +393,26 @@ final class MenuEngine
             return $this->errorPrefixed($session, 'heritage_confirm', "1. Confirm\n2. Cancel");
         }
 
+        $stakeKobo = (int) $session->data['hgStakeKobo'];
+        $funding = $this->resolveFunding($session, 'heritage', $stakeKobo);
+        if ($funding !== null) {
+            return $funding;
+        }
+
+        return $this->completeHeritagePurchase($session);
+    }
+
+    private function completeHeritagePurchase(Session $session): Screen
+    {
         /** @var list<int> $picks */
         $picks = $session->data['heritagePicks'];
         $stakeKobo = (int) $session->data['hgStakeKobo'];
         $idempotencyKey = 'ussd-hg-' . $session->sessionId;
 
-        $this->ensurePlayBalance($session, $stakeKobo);
-
         $purchase = $this->platform->purchaseHeritageTicket((string) $session->accessToken, $picks, $stakeKobo, $idempotencyKey);
 
         if (!isset($purchase['reference'])) {
-            $this->platform->directWithdrawFromOpay((string) $session->accessToken, $stakeKobo, 'ussd-fund-retry-' . $session->sessionId);
-            $purchase = $this->platform->purchaseHeritageTicket((string) $session->accessToken, $picks, $stakeKobo, $idempotencyKey . '-retry');
-        }
-
-        if (!isset($purchase['reference'])) {
-            return Screen::end('Could not place that ticket. Fund your wallet via the Betplus/OPay app and try again.');
+            return Screen::end('Could not place that ticket. Please try again.');
         }
 
         $reveal = $this->platform->revealHeritageTicket((string) $session->accessToken, (string) $purchase['reference']);
@@ -471,21 +483,25 @@ final class MenuEngine
             return $this->errorPrefixed($session, 'caged_confirm', $this->cagedConfirmText($session));
         }
 
+        $stakeKobo = (int) $session->data['cgStakeKobo'];
+        $funding = $this->resolveFunding($session, 'caged', $stakeKobo);
+        if ($funding !== null) {
+            return $funding;
+        }
+
+        return $this->completeCagedPurchase($session);
+    }
+
+    private function completeCagedPurchase(Session $session): Screen
+    {
         $target = (int) $session->data['cagedTarget'];
         $stakeKobo = (int) $session->data['cgStakeKobo'];
         $idempotencyKey = 'ussd-cg-' . $session->sessionId;
 
-        $this->ensurePlayBalance($session, $stakeKobo);
-
         $purchase = $this->platform->purchaseCagedTicket((string) $session->accessToken, $target, $stakeKobo, $idempotencyKey);
 
         if (!isset($purchase['reference'])) {
-            $this->platform->directWithdrawFromOpay((string) $session->accessToken, $stakeKobo, 'ussd-fund-retry-' . $session->sessionId);
-            $purchase = $this->platform->purchaseCagedTicket((string) $session->accessToken, $target, $stakeKobo, $idempotencyKey . '-retry');
-        }
-
-        if (!isset($purchase['reference'])) {
-            return Screen::end('Could not place that ticket. Fund your wallet via the Betplus/OPay app and try again.');
+            return Screen::end('Could not place that ticket. Please try again.');
         }
 
         $reveal = $this->platform->revealCagedTicket((string) $session->accessToken, (string) $purchase['reference']);
@@ -584,33 +600,178 @@ final class MenuEngine
         return $kobo > 0 ? $kobo : null;
     }
 
+    // ── Direct-pay funding (no wallet top-up step — pay per-transaction, straight
+    // from OPay via the existing collection+OTP flow, same one the web deposit
+    // modal uses) ────────────────────────────────────────────────────────────
+
     /**
-     * If play balance is less than or equal to 0, or insufficient for the stake,
-     * execute direct withdrawal from the player's OPay wallet balance.
+     * If the player's existing wallet balance (only ever funded via web, if at
+     * all) already covers the stake, returns null so the caller proceeds straight
+     * to purchase. Otherwise starts the direct-pay OTP flow for the shortfall and
+     * returns the next screen — funding is per-transaction, never a standalone
+     * top-up.
      */
-    private function ensurePlayBalance(Session $session, int $stakeKobo): void
+    private function resolveFunding(Session $session, string $game, int $stakeKobo): ?Screen
     {
         try {
             $wallet = $this->platform->wallet((string) $session->accessToken);
-            if (!isset($wallet['play_balance_kobo'])) {
-                return;
-            }
-
-            $playKobo = (int) ($wallet['play_balance_kobo'] ?? 0);
-            $bonusKobo = (int) ($wallet['bonus_balance_kobo'] ?? 0);
-            $availableKobo = $playKobo + $bonusKobo;
-
-            if ($playKobo <= 0 || $availableKobo < $stakeKobo) {
-                $shortfallKobo = max($stakeKobo - $availableKobo, 0);
-                $withdrawKobo = $shortfallKobo > 0 ? $shortfallKobo : $stakeKobo;
-                $this->platform->directWithdrawFromOpay(
-                    (string) $session->accessToken,
-                    $withdrawKobo,
-                    'ussd-fund-' . $session->sessionId
-                );
-            }
         } catch (\Throwable) {
-            // Never break menu flow on pre-flight check exception
+            // Let the purchase attempt itself fail cleanly rather than breaking the
+            // menu flow on a pre-flight check exception.
+            return null;
         }
+
+        if (!isset($wallet['play_balance_kobo'])) {
+            return null;
+        }
+
+        $playKobo = (int) $wallet['play_balance_kobo'];
+        $bonusKobo = (int) ($wallet['bonus_balance_kobo'] ?? 0);
+        $availableKobo = $playKobo + $bonusKobo;
+
+        if ($playKobo > 0 && $availableKobo >= $stakeKobo) {
+            return null;
+        }
+
+        $shortfallKobo = max($stakeKobo - $availableKobo, 0);
+
+        return $this->beginDirectPay($session, $game, $shortfallKobo > 0 ? $shortfallKobo : $stakeKobo);
+    }
+
+    private function beginDirectPay(Session $session, string $game, int $amountKobo): Screen
+    {
+        $session->data['fundGame'] = $game;
+        $session->data['fundStakeKobo'] = $amountKobo;
+
+        $result = $this->platform->createDeposit((string) $session->accessToken, $amountKobo);
+        $status = (string) ($result['status'] ?? 'error');
+
+        if ($status === 'otp_required') {
+            $session->data['fundCollectionId'] = (int) $result['collection_id'];
+            $session->screen = 'fund_otp';
+
+            return Screen::continue('Enter the OTP sent by OPay to confirm payment:');
+        }
+
+        if ($status === 'bvn_required') {
+            $session->screen = 'fund_nin';
+
+            return Screen::continue("To pay directly via OPay, verify your identity first.\nEnter your NIN:");
+        }
+
+        return Screen::end($this->directPayFailureMessage($status));
+    }
+
+    private function directPayFailureMessage(string $status): string
+    {
+        return match ($status) {
+            'limit_exceeded' => 'This would exceed your deposit limit. Adjust your limits on the Betplus app/website.',
+            'protection_active' => 'Deposits are currently paused on your account.',
+            'registry_unavailable' => 'Could not verify your account right now. Please try again shortly.',
+            default => 'Could not start payment. Please try again shortly.',
+        };
+    }
+
+    private function screenFundNin(Session $session, string $input): Screen
+    {
+        if ($input === '' || !ctype_digit($input) || strlen($input) !== 11) {
+            return $this->errorPrefixed($session, 'fund_nin', 'Enter your 11-digit NIN:');
+        }
+
+        $session->data['fundNin'] = $input;
+        $session->screen = 'fund_dob';
+
+        return Screen::continue('Enter your date of birth (DD-MM-YYYY):');
+    }
+
+    private function screenFundDob(Session $session, string $input): Screen
+    {
+        $dob = $this->parseDob($input);
+        if ($dob === null) {
+            return $this->errorPrefixed($session, 'fund_dob', 'Enter your date of birth (DD-MM-YYYY):');
+        }
+
+        $nin = (string) $session->data['fundNin'];
+        unset($session->data['fundNin']);
+        $result = $this->platform->verifyNin((string) $session->accessToken, $dob, $nin);
+        $status = (string) ($result['status'] ?? 'error');
+
+        if ($status === 'verified_tier_1') {
+            $session->screen = 'fund_bvn';
+
+            return Screen::continue('Enter your BVN:');
+        }
+
+        return Screen::end(match ($status) {
+            'under_age' => 'Sorry, you must be 18 or older to verify your identity.',
+            'nin_not_verified' => 'Your NIN could not be verified. Please try again later.',
+            default => 'Identity verification failed. Please try again later.',
+        });
+    }
+
+    private function screenFundBvn(Session $session, string $input): Screen
+    {
+        if ($input === '' || !ctype_digit($input) || strlen($input) !== 11) {
+            return $this->errorPrefixed($session, 'fund_bvn', 'Enter your 11-digit BVN:');
+        }
+
+        $result = $this->platform->verifyBvn((string) $session->accessToken, $input);
+        $status = (string) ($result['status'] ?? 'error');
+
+        if ($status !== 'verified_tier_2') {
+            return Screen::end(match ($status) {
+                'bvn_not_verified' => 'Your BVN could not be verified. Please try again later.',
+                default => 'Identity verification failed. Please try again later.',
+            });
+        }
+
+        $amountKobo = (int) $session->data['fundStakeKobo'];
+        $result = $this->platform->createDeposit((string) $session->accessToken, $amountKobo);
+
+        if (($result['status'] ?? '') !== 'otp_required') {
+            return Screen::end('Could not start payment. Please try again shortly.');
+        }
+
+        $session->data['fundCollectionId'] = (int) $result['collection_id'];
+        $session->screen = 'fund_otp';
+
+        return Screen::continue('Enter the OTP sent by OPay to confirm payment:');
+    }
+
+    private function screenFundOtp(Session $session, string $input): Screen
+    {
+        if ($input === '' || !ctype_digit($input)) {
+            return $this->errorPrefixed($session, 'fund_otp', 'Enter the OTP sent by OPay to confirm payment:');
+        }
+
+        $collectionId = (int) $session->data['fundCollectionId'];
+        $result = $this->platform->submitDepositOtp((string) $session->accessToken, $collectionId, $input);
+
+        if (($result['status'] ?? '') !== 'paid') {
+            return Screen::end('Payment could not be confirmed. Please try again.');
+        }
+
+        $game = (string) $session->data['fundGame'];
+        unset($session->data['fundStakeKobo'], $session->data['fundCollectionId'], $session->data['fundGame']);
+
+        return match ($game) {
+            'blackred' => $this->completeBlackRedPurchase($session),
+            'heritage' => $this->completeHeritagePurchase($session),
+            'caged' => $this->completeCagedPurchase($session),
+            default => Screen::end('Session error. Please dial again.'),
+        };
+    }
+
+    private function parseDob(string $input): ?string
+    {
+        if (!preg_match('/^(\d{2})-(\d{2})-(\d{4})$/', $input, $m)) {
+            return null;
+        }
+        [, $day, $month, $year] = $m;
+        if (!checkdate((int) $month, (int) $day, (int) $year)) {
+            return null;
+        }
+
+        return "$year-$month-$day";
     }
 }

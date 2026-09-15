@@ -59,18 +59,27 @@ final class PlatformClient implements PlatformClientInterface
     }
 
     /** @return array<string, mixed> */
-    public function directWithdrawFromOpay(string $token, int $amountKobo, string $idempotencyKey): array
-    {
-        return $this->postAuthed('/v1/wallet/direct-withdraw-opay', $token, [
-            'amount_kobo' => $amountKobo,
-            'reference' => $idempotencyKey,
-        ]);
-    }
-
-    /** @return array<string, mixed> */
     public function verifyNin(string $token, string $dateOfBirth, string $nin): array
     {
         return $this->postAuthed('/v1/identity/verify-nin', $token, ['date_of_birth' => $dateOfBirth, 'nin' => $nin]);
+    }
+
+    /** @return array<string, mixed> */
+    public function verifyBvn(string $token, string $bvn): array
+    {
+        return $this->postAuthed('/v1/identity/verify-bvn', $token, ['bvn' => $bvn]);
+    }
+
+    /** @return array<string, mixed> */
+    public function createDeposit(string $token, int $amountKobo): array
+    {
+        return $this->postAuthed('/v1/wallet/deposits', $token, ['quote_id' => (string) $amountKobo]);
+    }
+
+    /** @return array<string, mixed> */
+    public function submitDepositOtp(string $token, int $collectionId, string $otp): array
+    {
+        return $this->postAuthed("/v1/wallet/deposits/$collectionId/otp", $token, ['otp' => $otp]);
     }
 
     /** @return array<string, mixed> */

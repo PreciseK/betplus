@@ -118,17 +118,6 @@ final class CreateTicket
 
         $withholding = $engineResult->won ? $this->tax->withhold($engineResult->grossPrizeKobo, $player) : null;
 
-        // Auto-fund via direct withdrawal from OPay balance for USSD if play balance <= 0 or insufficient
-        if (str_starts_with($idempotencyKey, 'ussd-')) {
-            $walletModel = $this->wallet->walletFor($player);
-            $totalHeadroom = (int) $walletModel->playBalanceKobo + (int) $walletModel->bonusBalanceKobo;
-            if ($walletModel->playBalanceKobo <= 0 || $totalHeadroom < $stakeKobo) {
-                $shortfall = max($stakeKobo - $totalHeadroom, 0);
-                $withdrawKobo = $shortfall > 0 ? $shortfall : $stakeKobo;
-                app(\App\Domain\Wallet\FundingService::class)->directWithdrawFromOpay($player, $withdrawKobo, 'ussd-auto-' . $idempotencyKey);
-            }
-        }
-
         // ── COMMITMENT — single transaction, locks held briefly (REQ-TKT-002 steps 8-11) ──
         $ticket = DB::transaction(function () use ($player, $prediction, $stakeKobo, $idempotencyKey, $attribution, $seed, $engineResult, $withholding, $length, $prizeTable, $economicsStrategy) {
             // REQ-TKT-012 — re-assert KYC tier, protection status and limits inside the

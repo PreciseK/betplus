@@ -9,7 +9,6 @@ use App\Models\Player;
 use App\Models\PlayerWallet;
 use App\Models\SignupSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\Concerns\RefreshesVaultConnection;
@@ -20,47 +19,10 @@ class FundingTest extends TestCase
     use RefreshDatabase;
     use RefreshesVaultConnection;
 
-    // Throwaway test-only key (never used against real OPay) — same one
-    // IdentityConfirmationTest/PayoutTest use. OpayPayoutSigner (which
-    // FundingService::directWithdrawFromOpay's wallet/balance verification calls go
-    // through) needs something valid to sign with; Http::fake() intercepts below it.
-    private const TEST_PRIVATE_KEY_PEM = <<<'PEM'
-    -----BEGIN PRIVATE KEY-----
-    MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDU3Q79BRHGVwj1
-    lbo9nrFPsvydFlVME8cgRCy0BG0Hpw4EPOEpWFlFItdvEoo/sEwiVm/epi4AEud/
-    h5n2iTnM/Z46ZFqESgm4Q+g3UENkAWta2hUWNKHlTPukjWP6L0nkFGGZpnKrfkIQ
-    BgMEpUSyQEyUb6Tk3nEPTS2zilrMFtU0d/lJVAzXGkFLtymNkIZwUS60QQkYbeNr
-    FVJbwI3z0K0miUPdTm5nYu0NtJd60pE2VzoNUxvZ3X4c4RtFSCdyx0xyduuKDuQk
-    R/qHEuO9j07FFqVyR1F4juZmwLxl6DjGkLI56jte/NOckQxief3Kf8NrTmC0fh4j
-    /gIWwqI9AgMBAAECggEAHJBKW9kDjNguh1fvbSfflriHreOqkAIiaRnE3uYuJEX+
-    O0LZGwV0OzME8i5sd0XmvX/YVKn7h76BqosNdbft1exdgGvpepF90uhn345JcMDB
-    AWi8xiVLaTvmk6r2dMLGOVEj1KyxfAI+Bqzr2EJ+IKZAsHV3zM9tn/ZFEO/apcKW
-    6fNiq51o18DKPRUYa5smPBOp5JLzrx/wFfr+cKXX/f381Y0vJTC5GfLWYnjsZO3V
-    VCjDzhi0FhiiPGy0wwjK+tLHbt4eL6TPEUMcME7TKX595vnEU39ESnbqVg462xN7
-    aWXhVLalKPGYDwEeAgaBXk9ZK4mmQql03T168/fSmQKBgQDyJISIoYUuVaRgfdNq
-    LMi0TrONVBFjuwCpN2+Qm9jDKPjprZi7ThuunLkglxxidSNUw5g/IlB+9kkFT09r
-    YPgc/uY5rV1ihC7HTf2UdcRgb9EJb9P3t5TX4avOQxtNl54J+anE4cgyA3KOVvun
-    OzWb0wi/mHqfuwsF7f/IEY/MBQKBgQDhC5cdSN75uABW+s+jyl/yWXOYtWcV6LMX
-    otZ7XW7OpZyf4IqR9yzrMIcpqC5/j/5koJ7bvsybzZ4Nzsk+xzkUeGmtwu/VbcxM
-    FJaFyQa+RWfyxzpqzEFJg9BnfInrVEXf+WU2wby5HulK6LQGlA7NOkIz7HpvlM2P
-    aQyUWZSK2QKBgDErcS49fknWYjal1lRtG6RhhtxgAdf6lTvHYgQ/YVjf7QumkKkY
-    R07BzGXtyXnEx5Pi0/ueADKH2HQXksz/N+LLb/yuU5Q5uzYFhEStVV8v1YbRCn32
-    7WaZEMYlolmzPAhShkLQhlKBmLWGvDtNLqmhxNkDIYNl++sMVTBPQJ/xAoGADrbQ
-    SZTjJ1a1hvpdKytnPJRGr5xkwhT16Ly341cHkLFZXUa0KLkNkc8Zd0rMx4BltLSf
-    zmRaQnGePO7hT559B+6bkkXlooHMUskh0luDeltVYZVPJ351YlYhATMuXVmkO/G1
-    gXAHY982h7RRWQDDOv3tKDH1C2iiTBclQGnfAXkCgYBp6rRXMhdaA/EwiF0EHvfQ
-    roww+6AM1m8ysaot4ujMDOUHBdP7mI2uAVpPx4FbZBHPaCzqRzaPdp0uP9+E5eBM
-    bT2M4K3XNGl/027YXA1G616PBWVyA+Kat2uYt+9nzsqS9zLEg9KfUY/gknzN89YV
-    /y+2JPqGSeGn0LPGFFk79g==
-    -----END PRIVATE KEY-----
-    PEM;
-
     protected function setUp(): void
     {
         parent::setUp();
         $this->refreshVaultConnection();
-        Config::set('opay.payout_private_key', self::TEST_PRIVATE_KEY_PEM);
-        Config::set('opay.merchant_id', 'test-merchant');
         // QUEUE_CONNECTION=sync in phpunit.xml means an unfaked dispatch() runs inline,
         // synchronously, inside the HTTP request that created it — including
         // PollCollectionStatusJob's real (unmocked) OPay call. Fake it everywhere by
@@ -217,75 +179,4 @@ class FundingTest extends TestCase
         $this->assertNull($wallet);
     }
 
-    /** @return array<string, \Illuminate\Http\Client\Response|\Closure> */
-    private function fakeVerifiedOpayWallet(string $firstName = 'Ada', string $lastName = 'Okafor', int $floatKobo = 10_000_000): array
-    {
-        return [
-            '*/opay-wallet-validate' => Http::response(['code' => '00000', 'data' => ['firstName' => $firstName, 'lastName' => $lastName]]),
-            '*/payout/balance' => Http::response(['code' => '00000', 'data' => ['balance' => ['total' => $floatKobo, 'currency' => 'NGN']]]),
-        ];
-    }
-
-    public function test_direct_withdraw_from_opay_credits_play_balance_immediately(): void
-    {
-        [$player, $token] = $this->signedInTier2Player();
-        Http::fake($this->fakeVerifiedOpayWallet());
-
-        $response = $this->withToken($token)->postJson('/v1/wallet/direct-withdraw-opay', [
-            'amount_kobo' => 100_000,
-            'reference' => 'opay-dir-ref-1',
-        ]);
-
-        $response->assertOk()->assertJson([
-            'status' => 'paid',
-            'credited_kobo' => 100_000,
-            'play_balance_kobo' => 100_000,
-            'reference' => 'opay-dir-ref-1',
-        ]);
-
-        $wallet = PlayerWallet::where('playerId', $player->id)->first();
-        $this->assertNotNull($wallet);
-        $this->assertSame(100_000, $wallet->playBalanceKobo);
-    }
-
-    public function test_direct_withdraw_is_rejected_when_the_phone_has_no_opay_wallet(): void
-    {
-        [, $token] = $this->signedInTier2Player();
-        Http::fake(['*/opay-wallet-validate' => Http::response(['code' => '00000', 'data' => []])]);
-
-        $response = $this->withToken($token)->postJson('/v1/wallet/direct-withdraw-opay', [
-            'amount_kobo' => 100_000,
-            'reference' => 'opay-dir-ref-2',
-        ]);
-
-        $response->assertStatus(422)->assertJson(['status' => 'wallet_unverified']);
-        Http::assertNotSent(fn ($request) => str_contains($request->url(), 'payout/balance'));
-        $this->assertNull(PlayerWallet::where('playerId', Player::first()->id)->first());
-    }
-
-    public function test_direct_withdraw_is_rejected_when_the_opay_wallet_name_does_not_match(): void
-    {
-        [, $token] = $this->signedInTier2Player();
-        Http::fake($this->fakeVerifiedOpayWallet(firstName: 'Someone', lastName: 'Else'));
-
-        $response = $this->withToken($token)->postJson('/v1/wallet/direct-withdraw-opay', [
-            'amount_kobo' => 100_000,
-            'reference' => 'opay-dir-ref-3',
-        ]);
-
-        $response->assertStatus(422)->assertJson(['status' => 'wallet_unverified']);
-    }
-
-    public function test_direct_withdraw_is_rejected_when_the_merchant_float_cannot_cover_it(): void
-    {
-        [, $token] = $this->signedInTier2Player();
-        Http::fake($this->fakeVerifiedOpayWallet(floatKobo: 50_000));
-
-        $response = $this->withToken($token)->postJson('/v1/wallet/direct-withdraw-opay', [
-            'amount_kobo' => 100_000,
-            'reference' => 'opay-dir-ref-4',
-        ]);
-
-        $response->assertStatus(422)->assertJson(['status' => 'float_unavailable']);
-    }
 }
