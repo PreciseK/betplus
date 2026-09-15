@@ -66,6 +66,8 @@ class CagedGameSeeder extends Seeder
             // stays exactly 7180/10000 (locked by CagedPrizeTablePublicationGate's
             // EXPECTED_PROBABILITIES check against the documented "Escape Count"
             // frequencies). Interim placeholder pending real product/actuarial sign-off.
+            // apps/ussd/src/MenuEngine.php's CAGED_ODDS constant and menu text were
+            // updated to match this same value in the same recalibration pass.
             ['positions' => 1, 'multiplierHundredths' => 120, 'probabilityNumerator' => 7180, 'probabilityDenominator' => 10_000],
             ['positions' => 2, 'multiplierHundredths' => 190, 'probabilityNumerator' => 4620, 'probabilityDenominator' => 10_000],
             ['positions' => 3, 'multiplierHundredths' => 380, 'probabilityNumerator' => 2310, 'probabilityDenominator' => 10_000],

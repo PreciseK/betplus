@@ -46,12 +46,18 @@ final class FloatService
         return $latest !== null ? $latest->alertState : 'ok';
     }
 
-    /** Model 1's Kelly-style stake/exposure caps read this — the current OPay float, in kobo. */
+    /**
+     * Model 1's Kelly-style stake/exposure caps read this — the current OPay float, in
+     * kobo. A zero result (no snapshot ever taken) makes every Kelly-style cap 0,
+     * failing every stake closed — deliberate fail-closed behaviour for a house-side
+     * risk control, not a bug, but worth knowing if this ever surfaces as "every bet
+     * rejected" in an environment where FloatService::snapshot() has never run.
+     */
     public function currentFloatKobo(): int
     {
         $latest = FloatSnapshot::orderByDesc('polledAt')->first();
 
-        return $latest?->opayBalanceKobo ?? 0;
+        return $latest->opayBalanceKobo ?? 0;
     }
 
     /** REQ-FLOAT-006 — true means automatic disbursement should queue rather than call OPay. */

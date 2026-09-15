@@ -12,9 +12,14 @@ namespace App\Domain\Games\BirdEscape;
  *
  * - "fair" is the zero-margin baseline (0bp house edge, 100% RTP). Exists for
  *   comparison; a real operator would never publish it (there'd be no house revenue).
- * - "good" matches BlackRed's low tier (7.5% edge) — the conservative default.
+ * - "good" was recalibrated 2026-09-14 (750bp -> 1500bp house edge, i.e. 92.50% ->
+ *   85.00% RTP) to clear the tightened 8800bp RTP ceiling (RtpCeiling::BASIS_POINTS) —
+ *   the old 750bp value produced 9250bp RTP, which this same gate now rejects, matching
+ *   BirdEscapeGameSeeder's own already-recalibrated seeded value. Interim placeholder
+ *   pending real Finance/actuarial redesign, same category as BlackRed's and Caged's
+ *   recalibrations.
  * - "best" is a flat 30% house edge — highest house revenue ratio, still inside the
- *   95% ceiling. Same caution as BlackRed's "best": model it against real volume
+ *   88% ceiling. Same caution as BlackRed's "best": model it against real volume
  *   before publishing — a crash game with an aggressive edge burns through the
  *   climbing multiplier faster, which is a retention risk, not a math risk.
  */
@@ -23,7 +28,7 @@ final class CrashConfigPresetLibrary
     /** @var array<string, int> preset key => houseEdgeBasisPoints */
     private const PRESETS = [
         'fair' => 0,
-        'good' => 750,
+        'good' => 1_500,
         'best' => 3_000,
     ];
 

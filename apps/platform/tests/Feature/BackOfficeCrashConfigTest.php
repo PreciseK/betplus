@@ -85,6 +85,23 @@ final class BackOfficeCrashConfigTest extends TestCase
         $this->assertLessThan($rtp('good'), $rtp('best'));
     }
 
+    public function test_the_good_and_best_presets_pass_the_publication_gate(): void
+    {
+        $token = $this->institutionToken('game_ops');
+        $presets = collect($this->withToken($token)->getJson('/backoffice/v1/crash-configs/presets?game_code=BIRDESCAPE')->json('presets'))->keyBy('key');
+
+        foreach (['good', 'best'] as $key) {
+            $response = $this->withToken($token)->postJson('/backoffice/v1/crash-configs', $this->draftPayload(
+                "DRAFT-{$key}-PASSES-1",
+                actuarialCertRef: 'ACT-TEST',
+                houseEdgeBasisPoints: $presets[$key]['house_edge_basis_points'],
+            ));
+
+            $response->assertOk();
+            $this->assertEmpty($response->json('gate_errors'), "Preset '{$key}' should clear the publication gate.");
+        }
+    }
+
     public function test_the_fair_preset_always_fails_the_publication_gate(): void
     {
         $token = $this->institutionToken('game_ops');

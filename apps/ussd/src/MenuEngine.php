@@ -31,7 +31,9 @@ final class MenuEngine
     private const RESUME_WINDOW_SECONDS = 10 * 60;
 
     /** targetBirds => display multiplier, from docs/caged-ussd-complete-flows.md's Escape Count table. */
-    private const CAGED_ODDS = [1 => 1.25, 2 => 1.90, 3 => 3.80, 4 => 7.50, 5 => 18.00];
+    // Tier 1 recalibrated 2026-09-14 (1.25x -> 1.20x) to match CagedGameSeeder's
+    // already-recalibrated tier, which cleared the tightened 8800bp RTP ceiling.
+    private const CAGED_ODDS = [1 => 1.20, 2 => 1.90, 3 => 3.80, 4 => 7.50, 5 => 18.00];
 
     public function __construct(
         private readonly PlatformClientInterface $platform,
@@ -409,7 +411,7 @@ final class MenuEngine
             return $this->screenMainMenu($session, '');
         }
         if ($input === '') {
-            return Screen::continue("Caged: Birds Escaping\n1. 1 Bird  (1.25x)\n2. 2 Birds (1.90x)\n3. 3 Birds (3.80x)\n4. 4 Birds (7.50x)\n5. 5 Birds (18.0x)\n0. Back");
+            return Screen::continue("Caged: Birds Escaping\n1. 1 Bird  (1.20x)\n2. 2 Birds (1.90x)\n3. 3 Birds (3.80x)\n4. 4 Birds (7.50x)\n5. 5 Birds (18.0x)\n0. Back");
         }
         if (!in_array($input, ['1', '2', '3', '4', '5'], true)) {
             return $this->errorPrefixed($session, 'caged_pick', 'Pick 1-5 birds, or 0 to go back.');

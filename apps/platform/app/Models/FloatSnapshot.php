@@ -17,5 +17,6 @@ class FloatSnapshot extends Model
 
     protected $casts = [
         'polledAt' => 'datetime',
+        'opayBalanceKobo' => 'integer',
     ];
 }

@@ -11,15 +11,16 @@ namespace App\Domain\Games\PrizeTable;
  * PrizeTablePublicationGate -> maker-checker -> publish pipeline as a hand-typed table).
  *
  * - "fair" is the zero-margin baseline (multiplier = 2^positions, gross RTP 100%). It
- *   exists for comparison and will always fail the 95% ceiling in
+ *   exists for comparison and will always fail the 88% ceiling in
  *   PrizeTablePublicationGate — that failure is the point, not a bug.
  * - "good" is the approved Betplus design target (Betplus_PRD.md §8.4): margin rises
- *   with variance, 7.5%-18.7% house edge.
+ *   with variance, 12.5%-18.75% house edge (tier 3's 12.5% is now the low end, since
+ *   tiers 1-2 were recalibrated to a flatter 15% each — see below).
  *   Tiers 1-2 were recalibrated 2026-09-14 (was 92.50%/90.00% RTP, now 85.00%/85.00%)
  *   to clear the tightened 88% RTP ceiling (RtpCeiling::BASIS_POINTS) — an interim
  *   placeholder pending real Finance/actuarial redesign, matching BlackRedGameSeeder's
  *   own seeded values. Tiers 3-5 (87.5%, 84.375%, 81.25%) are unaffected.
- * - "best" is a flat 30% house edge across every tier — still inside the 95% ceiling,
+ * - "best" is a flat 30% house edge across every tier — still inside the 88% ceiling,
  *   but roughly double "good"'s steepest tier. Model it against real volume before
  *   publishing: smaller headline payouts are a retention risk, not a math risk.
  */
