@@ -14,7 +14,7 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException
 
 from engine_heritage import engine as enginemod
-from engine_heritage.models import DescribeResponse, ResolveRequest, ResolveResponse
+from engine_heritage.models import DescribeResponse, DrawPoolRequest, DrawPoolResponse, ResolveRequest, ResolveResponse
 
 app = FastAPI(title="engine-heritage", version=enginemod.ENGINE_VERSION)
 
@@ -35,6 +35,14 @@ def replay(request: ResolveRequest) -> ResolveResponse:
         return enginemod.replay(
             request.ticket_id, request.seed, request.stake_kobo, request.prize_table, request.player_input
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/engine/v1/draw-pool", response_model=DrawPoolResponse)
+def draw_pool(request: DrawPoolRequest) -> DrawPoolResponse:
+    try:
+        return enginemod.draw_pool(request.seed)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 

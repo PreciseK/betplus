@@ -33,6 +33,13 @@ export function GameEconomicsConfigConsole() {
   const [draftVersion, setDraftVersion] = useState("");
   const [draftModel, setDraftModel] = useState<EconomicsModel>("FIXED_RTP");
   const [draftKellyFactor, setDraftKellyFactor] = useState("300");
+  const [draftDailyLossCap, setDraftDailyLossCap] = useState("50000000");
+  const [draftRakeBps, setDraftRakeBps] = useState("1500");
+  const [draftPoolWindowMinutes, setDraftPoolWindowMinutes] = useState("60");
+  const [draftTier5Bps, setDraftTier5Bps] = useState("5000");
+  const [draftTier4Bps, setDraftTier4Bps] = useState("3000");
+  const [draftTier3Bps, setDraftTier3Bps] = useState("1500");
+  const [draftTier2Bps, setDraftTier2Bps] = useState("500");
   const [draftEffectiveAt, setDraftEffectiveAt] = useState("");
   const [draftResult, setDraftResult] = useState<DraftResult>();
   const [draftError, setDraftError] = useState("");
@@ -69,6 +76,13 @@ export function GameEconomicsConfigConsole() {
     setDraftVersion("");
     setDraftModel("FIXED_RTP");
     setDraftKellyFactor("300");
+    setDraftDailyLossCap("50000000");
+    setDraftRakeBps("1500");
+    setDraftPoolWindowMinutes("60");
+    setDraftTier5Bps("5000");
+    setDraftTier4Bps("3000");
+    setDraftTier3Bps("1500");
+    setDraftTier2Bps("500");
     setDraftEffectiveAt("");
     setDraftResult(undefined);
     setDraftError("");
@@ -79,6 +93,14 @@ export function GameEconomicsConfigConsole() {
     setDraftVersion(config.version);
     setDraftModel(config.active_model);
     setDraftKellyFactor(String(config.params.kelly_factor_basis_points ?? 300));
+    setDraftDailyLossCap(String(config.params.daily_loss_cap_kobo ?? 50_000_00));
+    setDraftRakeBps(String(config.params.rake_bps ?? 1500));
+    setDraftPoolWindowMinutes(String(config.params.pool_window_minutes ?? 60));
+    const tiers = (config.params.tier_allocation_bps ?? {}) as Record<string, number>;
+    setDraftTier5Bps(String(tiers["5"] ?? 5000));
+    setDraftTier4Bps(String(tiers["4"] ?? 3000));
+    setDraftTier3Bps(String(tiers["3"] ?? 1500));
+    setDraftTier2Bps(String(tiers["2"] ?? 500));
     setDraftEffectiveAt(toDatetimeLocalInput(config.effective_at));
     setDraftResult(undefined);
     setDraftError("");
@@ -89,7 +111,21 @@ export function GameEconomicsConfigConsole() {
       setDraftError("Choose a game, version and effective date.");
       return;
     }
-    const params = draftModel === "BALANCED_HYBRID" ? { kelly_factor_basis_points: Number.parseInt(draftKellyFactor, 10) || 0 } : {};
+    const params: Record<string, unknown> =
+      draftModel === "BALANCED_HYBRID" ? { kelly_factor_basis_points: Number.parseInt(draftKellyFactor, 10) || 0 } :
+      draftModel === "DAILY_LOSS_STOP" ? { daily_loss_cap_kobo: Number.parseInt(draftDailyLossCap, 10) || 0 } :
+      draftModel === "PARI_MUTUEL_POOL" ? {
+        rake_bps: Number.parseInt(draftRakeBps, 10) || 0,
+        pool_window_minutes: Number.parseInt(draftPoolWindowMinutes, 10) || 0,
+        ...(selectedGameCode === "HERITAGE" ? {
+          tier_allocation_bps: {
+            "5": Number.parseInt(draftTier5Bps, 10) || 0,
+            "4": Number.parseInt(draftTier4Bps, 10) || 0,
+            "3": Number.parseInt(draftTier3Bps, 10) || 0,
+            "2": Number.parseInt(draftTier2Bps, 10) || 0,
+          },
+        } : {}),
+      } : {};
     setDraftError("");
     try {
       const result = draftId === null
@@ -224,6 +260,24 @@ export function GameEconomicsConfigConsole() {
           <label className={styles.formField} htmlFor="draft-model">Model<select id="draft-model" value={draftModel} onChange={(event) => setDraftModel(event.target.value as EconomicsModel)}>{MODELS.map((model) => <option key={model} value={model}>{model}</option>)}</select></label>
           {draftModel === "BALANCED_HYBRID" && (
             <label className={styles.formField} htmlFor="draft-kelly">Kelly factor (basis points)<input id="draft-kelly" type="number" min="1" max="2000" value={draftKellyFactor} onChange={(event) => setDraftKellyFactor(event.target.value)} /></label>
+          )}
+          {draftModel === "DAILY_LOSS_STOP" && (
+            <label className={styles.formField} htmlFor="draft-daily-loss-cap">Daily loss cap (kobo)<input id="draft-daily-loss-cap" type="number" min="1" value={draftDailyLossCap} onChange={(event) => setDraftDailyLossCap(event.target.value)} /></label>
+          )}
+          {draftModel === "PARI_MUTUEL_POOL" && (
+            <>
+              <label className={styles.formField} htmlFor="draft-rake-bps">Rake (basis points, min 1200)<input id="draft-rake-bps" type="number" min="1200" max="10000" value={draftRakeBps} onChange={(event) => setDraftRakeBps(event.target.value)} /></label>
+              <label className={styles.formField} htmlFor="draft-pool-window">Pool window (minutes)<input id="draft-pool-window" type="number" min="1" value={draftPoolWindowMinutes} onChange={(event) => setDraftPoolWindowMinutes(event.target.value)} /></label>
+              {selectedGameCode === "HERITAGE" && (
+                <>
+                  <label className={styles.formField} htmlFor="draft-tier-5">5/5 tier share (bps)<input id="draft-tier-5" type="number" min="0" max="10000" value={draftTier5Bps} onChange={(event) => setDraftTier5Bps(event.target.value)} /></label>
+                  <label className={styles.formField} htmlFor="draft-tier-4">4/5 tier share (bps)<input id="draft-tier-4" type="number" min="0" max="10000" value={draftTier4Bps} onChange={(event) => setDraftTier4Bps(event.target.value)} /></label>
+                  <label className={styles.formField} htmlFor="draft-tier-3">3/5 tier share (bps)<input id="draft-tier-3" type="number" min="0" max="10000" value={draftTier3Bps} onChange={(event) => setDraftTier3Bps(event.target.value)} /></label>
+                  <label className={styles.formField} htmlFor="draft-tier-2">2/5 tier share (bps)<input id="draft-tier-2" type="number" min="0" max="10000" value={draftTier2Bps} onChange={(event) => setDraftTier2Bps(event.target.value)} /></label>
+                  <p className={styles.muted}>The four tier shares must sum to 10000.</p>
+                </>
+              )}
+            </>
           )}
           <label className={styles.formField} htmlFor="draft-effective">Effective at <span aria-hidden="true">*</span><input id="draft-effective" type="datetime-local" value={draftEffectiveAt} onChange={(event) => setDraftEffectiveAt(event.target.value)} /></label>
         </div>

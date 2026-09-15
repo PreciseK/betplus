@@ -88,6 +88,27 @@ class ResolveResponse(BaseModel):
     digest: str
 
 
+class DrawPoolRequest(BaseModel):
+    """Model 4 (pari-mutuel pool) — no ticket_id, stake, prize_table, or
+    player_input; a pool draw has no single ticket or player to be about."""
+
+    seed: str
+
+    @field_validator("seed")
+    @classmethod
+    def seed_is_hex(cls, v: str) -> str:
+        try:
+            bytes.fromhex(v)
+        except ValueError as exc:
+            raise ValueError("seed must be hex-encoded.") from exc
+        return v
+
+
+class DrawPoolResponse(BaseModel):
+    winning_positions: list[int]
+    engine_version: str
+
+
 class DescribeResponse(BaseModel):
     engine: str
     engine_version: str

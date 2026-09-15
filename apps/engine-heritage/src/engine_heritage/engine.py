@@ -9,7 +9,7 @@ from __future__ import annotations
 from engine_heritage import board as boardmod
 from engine_heritage import digest as digestmod
 from engine_heritage import tiers as tiersmod
-from engine_heritage.models import EngineState, PlayerInput, PrizeTierIn, ResolveResponse
+from engine_heritage.models import DrawPoolResponse, EngineState, PlayerInput, PrizeTierIn, ResolveResponse
 
 ENGINE_VERSION = "heritage-1.0.0"
 
@@ -19,6 +19,7 @@ _TIER_COUNTER = 0
 _MATCH_COUNTER = 1
 _BOARD_COUNTER_START = 100  # reserves 100-108 (9 draws)
 _WINNER_COUNTER_START = 200  # reserves 200-204 (up to 5 draws)
+_POOL_COUNTER_START = 300  # reserves 300-304 (5 draws) — Model 4's shared pool draw, never composed with a resolve() call in the same request
 
 SECOND_CHANCE_STAKE_RATIO_BASIS_POINTS = 1_000  # REQ-HG-030 — 10% of stake, sc_stake_ratio default 0.10
 
@@ -86,6 +87,17 @@ def replay(
     deterministic (REQ-GEC-001), so replay just names the intent at the call site,
     exactly like BlackRedEngine::replay()."""
     return resolve(ticket_id, seed_hex, stake_kobo, prize_table, player_input)
+
+
+def draw_pool(seed_hex: str) -> DrawPoolResponse:
+    """Model 4 (pari-mutuel pool) — the shared draw a pool's settlement compares
+    every pooled ticket's own selected_positions against. See board.draw_pool_
+    winning_positions()'s doc comment for why this is a genuinely different draw
+    from resolve()'s per-ticket assign_winning_positions(), not a variant of it."""
+    seed = bytes.fromhex(seed_hex)
+    winning_positions = boardmod.draw_pool_winning_positions(seed, _POOL_COUNTER_START)
+
+    return DrawPoolResponse(winning_positions=winning_positions, engine_version=ENGINE_VERSION)
 
 
 def describe() -> dict:

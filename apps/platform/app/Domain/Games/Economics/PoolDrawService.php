@@ -60,7 +60,7 @@ final class PoolDrawService
      * the next pool in the normal case. Upgrade path: a per-(gameCode, poolKey)
      * advisory lock around this method, if real duplicate-pool opens ever show up.
      */
-    /** @param array<string, int>|null $tierRolloverJson */
+    /** @param array<int, int>|null $tierRolloverJson */
     public function openPool(string $gameCode, ?int $poolKey, int $windowMinutes, int $rolloverInKobo, ?array $tierRolloverJson, ?CarbonInterface $opensAt = null): PoolDraw
     {
         $now = $opensAt ?? now();

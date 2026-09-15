@@ -62,6 +62,31 @@ final class HeritageEngineClient
         return $this->call('/engine/v1/replay', $ticketId, $seedHex, $stakeKobo, $prizeTable, $selectedPositions, $tradition, $leaderType);
     }
 
+    /**
+     * Model 4 (pari-mutuel pool) — the one shared winning combination a pool's
+     * settlement compares every pooled entry's own selected_positions against.
+     * Genuinely different request/response shape from resolve/replay (no ticket,
+     * stake, prize table or player input — a pool draw has no single ticket or
+     * player to be about), so it doesn't go through call()'s per-ticket signature.
+     *
+     * @return list<int>
+     */
+    public function drawPoolOutcome(string $seedHex): array
+    {
+        try {
+            $response = Http::timeout($this->timeoutSeconds)
+                ->post($this->baseUrl . '/engine/v1/draw-pool', ['seed' => $seedHex]);
+        } catch (ConnectionException $e) {
+            throw new HeritageEngineException("engine-heritage unreachable at {$this->baseUrl}/engine/v1/draw-pool: {$e->getMessage()}", previous: $e);
+        }
+
+        if (!$response->successful()) {
+            throw new HeritageEngineException("engine-heritage rejected the request ({$response->status()}): {$response->body()}");
+        }
+
+        return $response->json('winning_positions');
+    }
+
     /** @param list<int> $selectedPositions */
     private function call(
         string $path,

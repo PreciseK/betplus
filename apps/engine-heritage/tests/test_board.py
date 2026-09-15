@@ -56,3 +56,26 @@ def test_zero_matches_is_structurally_unreachable() -> None:
     seed = os.urandom(32)
     with pytest.raises(ValueError):
         boardmod.assign_winning_positions(seed, 200, [0, 1, 2, 3, 4], 0)
+
+
+def test_draw_pool_winning_positions_returns_5_distinct_positions_in_range() -> None:
+    seed = os.urandom(32)
+    winners = boardmod.draw_pool_winning_positions(seed, 300)
+
+    assert len(winners) == 5
+    assert len(set(winners)) == 5
+    assert all(0 <= p <= 8 for p in winners)
+    assert winners == sorted(winners)
+
+
+def test_draw_pool_winning_positions_is_deterministic() -> None:
+    seed = os.urandom(32)
+    assert boardmod.draw_pool_winning_positions(seed, 300) == boardmod.draw_pool_winning_positions(seed, 300)
+
+
+def test_draw_pool_winning_positions_can_land_anywhere_unlike_assign_winning_positions() -> None:
+    # Model 4's shared draw is genuinely independent of any player's pick — unlike
+    # assign_winning_positions(), it carries no guarantee about matching a specific
+    # selection. Sampling many seeds should produce more than one distinct outcome.
+    outcomes = {tuple(boardmod.draw_pool_winning_positions(os.urandom(32), 300)) for _ in range(20)}
+    assert len(outcomes) > 1

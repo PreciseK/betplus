@@ -32,6 +32,16 @@ def draw_board(seed: bytes, start_counter: int) -> list[int]:
     return seedmod.draw_without_replacement(seed, start_counter, list(range(1, 91)), BOARD_SIZE)
 
 
+def draw_pool_winning_positions(seed: bytes, start_counter: int) -> list[int]:
+    """Model 4 (pari-mutuel pool) — the one shared 5-of-9 winning combination every
+    pooled ticket in a draw window is compared against, drawn independent of any
+    player's own pick. Unlike assign_winning_positions() (used by the instant-settle
+    resolve() path), this never manufactures a guaranteed-match winning set from a
+    specific selection — a real shared draw can legitimately leave some, or all,
+    pooled tickets with zero matches, which is exactly the pari-mutuel shape."""
+    return sorted(seedmod.draw_without_replacement(seed, start_counter, list(range(BOARD_SIZE)), PICK_SIZE))
+
+
 def assign_winning_positions(
     seed: bytes, start_counter: int, selected_positions: list[int], match_count: int
 ) -> list[int]:

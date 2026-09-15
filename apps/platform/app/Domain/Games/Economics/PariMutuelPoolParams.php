@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Domain\Games\Economics;
 
 /**
- * Model 4's params. `tierAllocationBps` is Heritage-only (keyed "2".."5", must sum to
- * 10000 when present) — BlackRed/Caged have no tiers and ignore it.
+ * Model 4's params. `tierAllocationBps` is Heritage-only (keyed 2..5, must sum to
+ * 10000 when present) — BlackRed/Caged have no tiers and ignore it. Keyed by int,
+ * not string: PHP itself coerces a numeric-string array key ("5") to an int key
+ * (5) on both read and write, so that's the type that's actually there once this
+ * round-trips through JSON — matching that instead of fighting it.
  */
 final class PariMutuelPoolParams
 {
+    /** @param array<int, int> $tierAllocationBps */
     private function __construct(
         public readonly int $rakeBps,
         public readonly int $poolWindowMinutes,
-        /** @var array<string, int> */
         public readonly array $tierAllocationBps,
     ) {
     }
@@ -21,7 +24,7 @@ final class PariMutuelPoolParams
     /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
-        /** @var array<string, int> $tiers */
+        /** @var array<int, int> $tiers */
         $tiers = is_array($data['tier_allocation_bps'] ?? null) ? $data['tier_allocation_bps'] : [];
 
         return new self(

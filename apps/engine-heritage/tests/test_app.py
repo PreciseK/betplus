@@ -71,3 +71,19 @@ def test_resolve_rejects_a_non_hex_seed() -> None:
     body["seed"] = "not-hex"
     response = client.post("/engine/v1/resolve", json=body)
     assert response.status_code == 422
+
+
+def test_draw_pool_returns_5_distinct_positions() -> None:
+    response = client.post("/engine/v1/draw-pool", json={"seed": os.urandom(32).hex()})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["winning_positions"]) == 5
+    assert len(set(body["winning_positions"])) == 5
+    assert all(0 <= p <= 8 for p in body["winning_positions"])
+    assert body["engine_version"] == "heritage-1.0.0"
+
+
+def test_draw_pool_rejects_a_non_hex_seed() -> None:
+    response = client.post("/engine/v1/draw-pool", json={"seed": "not-hex"})
+    assert response.status_code == 422
