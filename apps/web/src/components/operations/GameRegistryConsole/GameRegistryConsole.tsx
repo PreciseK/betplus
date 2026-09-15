@@ -19,7 +19,7 @@ type DraftResult = BackOfficePrizeTable & { gate_errors: string[] };
 
 const GOOD_PRESET_FALLBACK: BackOfficePrizeTableTier[] = [1, 2, 3, 4, 5].map((positions) => ({
   positions,
-  multiplier_hundredths: [185, 360, 700, 1350, 2600][positions - 1],
+  multiplier_hundredths: [170, 340, 700, 1350, 2600][positions - 1],
   probability_numerator: 1,
   probability_denominator: 2 ** positions,
 }));

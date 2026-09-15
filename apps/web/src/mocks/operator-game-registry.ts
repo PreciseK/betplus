@@ -72,8 +72,8 @@ export const PRIZE_TABLE_DRAFTS: readonly PrizeTableDraft[] = [
     actuarialCertification: "",
     validation: "Valid · certification required",
     tiers: [
-      { label: "1 card", chance: "1 in 2", multiplier: "1.85×", modelledRtp: "92.50%" },
-      { label: "2 cards", chance: "1 in 4", multiplier: "3.60×", modelledRtp: "90.00%" },
+      { label: "1 card", chance: "1 in 2", multiplier: "1.70×", modelledRtp: "85.00%" },
+      { label: "2 cards", chance: "1 in 4", multiplier: "3.40×", modelledRtp: "85.00%" },
       { label: "3 cards", chance: "1 in 8", multiplier: "7.00×", modelledRtp: "87.50%" },
       { label: "4 cards", chance: "1 in 16", multiplier: "13.50×", modelledRtp: "84.38%" },
       { label: "5 cards", chance: "1 in 32", multiplier: "26.00×", modelledRtp: "81.25%" },

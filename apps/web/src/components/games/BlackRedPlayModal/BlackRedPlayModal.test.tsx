@@ -21,7 +21,7 @@ vi.mock("@betplus/api-client", async () => {
 
 const LIVE_TIERS = [1, 2, 3, 4, 5].map((positions) => ({
   positions,
-  multiplierHundredths: [185, 360, 700, 1350, 2600][positions - 1],
+  multiplierHundredths: [170, 340, 700, 1350, 2600][positions - 1],
   probabilityNumerator: 1,
   probabilityDenominator: 2 ** positions,
 }));
