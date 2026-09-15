@@ -18,10 +18,21 @@ final class RevealTicket
     {
         $ticket = Ticket::where('reference', $reference)
             ->where('playerId', $player->id)
-            ->with('outcome')
+            ->with('outcome', 'poolEntry.poolDraw')
             ->first();
 
-        if ($ticket === null || $ticket->outcome === null) {
+        if ($ticket === null) {
+            return null;
+        }
+
+        // Model 4 — the ticket exists and is real, it just has no outcome yet
+        // because its pool hasn't drawn. The controller shapes this differently
+        // from "not found"; it never falls through to the outcome check below.
+        if ($ticket->status === 'PENDING_DRAW') {
+            return $ticket;
+        }
+
+        if ($ticket->outcome === null) {
             return null;
         }
 

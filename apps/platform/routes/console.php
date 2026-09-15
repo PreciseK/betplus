@@ -43,3 +43,11 @@ Schedule::job(new \App\Domain\Promotions\Jobs\MonthlyDrawTicketAggregationJob())
 
 // BetPlus Promotions: Daily sweep to expire unclaimed or aged promotional bonus balances
 Schedule::job(new \App\Domain\Promotions\Jobs\ExpireBonusBalancesJob())->dailyAt('00:05');
+
+// Admin gaming economics Phase 3 (Model 4) — sweeps every 5 minutes regardless of a
+// pool's configured window length, so a pool never sits closed-but-unsettled for
+// longer than that scheduler-granularity approximation, same category as
+// SnapshotFloatCommand's own doc comment.
+Schedule::command('economics:draw-blackred-pool')->everyFiveMinutes();
+Schedule::command('economics:draw-heritage-pool')->everyFiveMinutes();
+Schedule::command('economics:draw-caged-pool')->everyFiveMinutes();

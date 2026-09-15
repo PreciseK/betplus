@@ -28,4 +28,14 @@ class Ticket extends Model
     {
         return $this->hasOne(TicketOutcome::class, 'ticketId');
     }
+
+    /**
+     * Model 4 only — a PENDING_DRAW ticket's row in the pool it joined.
+     *
+     * @return HasOne<PoolEntry, $this>
+     */
+    public function poolEntry(): HasOne
+    {
+        return $this->hasOne(PoolEntry::class, 'ticketId');
+    }
 }

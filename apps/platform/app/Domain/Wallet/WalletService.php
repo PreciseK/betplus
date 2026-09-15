@@ -507,6 +507,80 @@ final class WalletService
         ], $referenceType, $referenceId);
     }
 
+    /**
+     * Model 4 (pari-mutuel pool), step 1 of settlement — releases an ENTIRE pool's
+     * stakes from SUSPENSE in one aggregate posting (winners' and losers' stakes
+     * alike; individual entries are never settled one-by-one the way an instant
+     * ticket is, because a pooled stake's fate was never tied to only its own
+     * ticket). The rake goes straight to HOUSE_REVENUE; everything else becomes a
+     * PRIZE_LIABILITY the house owes to whichever entries end up matching the draw
+     * — same "money set aside for a future payout" shape as PROMO_DRAW_POOL, except
+     * this liability can roll forward across draws when nobody wins (see
+     * PoolPayoutCalculator/PoolDraw.rolloverInKobo).
+     *
+     * ponytail: does not split bonus-vs-play stake per entry the way settleLoss/
+     * settleWin do — every pooled stake is treated as real cash for ledger
+     * purposes. Bonus-funded stakes losing into a pool with dozens of other
+     * players' money has no clean "give the bonus principal back to BONUS_EXPENSE"
+     * story once it's merged; revisit if pari-mutuel pools ever need to accept
+     * bonus balance at all.
+     */
+    public function closePariMutuelPool(int $grossStakedKobo, int $rakeKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    {
+        $lines = [new LedgerLine('SUSPENSE', null, 'debit', $grossStakedKobo, $stateCode)];
+
+        if ($rakeKobo > 0) {
+            $lines[] = new LedgerLine('HOUSE_REVENUE', null, 'credit', $rakeKobo, $stateCode);
+        }
+
+        $liabilityKobo = $grossStakedKobo - $rakeKobo;
+        if ($liabilityKobo > 0) {
+            $lines[] = new LedgerLine('PRIZE_LIABILITY', null, 'credit', $liabilityKobo, $stateCode);
+        }
+
+        return $this->post($lines, $referenceType, $referenceId);
+    }
+
+    /**
+     * Model 4, step 2 — pays one winning pool entry's share out of PRIZE_LIABILITY
+     * (already funded by closePariMutuelPool, possibly across several rolled-over
+     * draws). Unlike settleWin, there is no per-ticket stake-release line here —
+     * that already happened in aggregate — and no bonus reclaim, for the same
+     * reason closePariMutuelPool doesn't split bonus-vs-play.
+     */
+    public function settlePariMutuelWin(Player $player, int $grossPayoutKobo, int $taxWithheldKobo, int $netCreditKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    {
+        $lines = [new LedgerLine('PRIZE_LIABILITY', null, 'debit', $grossPayoutKobo, $stateCode)];
+
+        if ($taxWithheldKobo > 0) {
+            $lines[] = new LedgerLine('WHT_PAYABLE', $stateCode, 'credit', $taxWithheldKobo, $stateCode);
+        }
+        if ($netCreditKobo > 0) {
+            $lines[] = new LedgerLine('PLAYER_WINNINGS', (string) $player->id, 'credit', $netCreditKobo, $stateCode);
+        }
+
+        $group = $this->post($lines, $referenceType, $referenceId);
+
+        if ($netCreditKobo > 0) {
+            $this->adjustCachedBalance($player, playDeltaKobo: 0, winningsDeltaKobo: $netCreditKobo);
+        }
+
+        return $group;
+    }
+
+    /**
+     * Model 4, step 3 — the few kobo PoolPayoutCalculator's integer-division split
+     * leaves in PRIZE_LIABILITY after every winner is paid sweep to HOUSE_REVENUE,
+     * so the liability account never carries a permanent, unexplained dust balance.
+     */
+    public function sweepPariMutuelRemainder(int $remainderKobo, string $referenceType, int $referenceId, ?string $stateCode = null): string
+    {
+        return $this->post([
+            new LedgerLine('PRIZE_LIABILITY', null, 'debit', $remainderKobo, $stateCode),
+            new LedgerLine('HOUSE_REVENUE', null, 'credit', $remainderKobo, $stateCode),
+        ], $referenceType, $referenceId);
+    }
+
     private function adjustCachedBalance(Player $player, int $playDeltaKobo, int $winningsDeltaKobo, int $bonusDeltaKobo = 0): void
     {
         $wallet = $this->provisionWallet($player);

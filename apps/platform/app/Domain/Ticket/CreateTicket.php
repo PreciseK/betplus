@@ -8,8 +8,11 @@ use App\Domain\Analytics\AnalyticsEventRecorder;
 use App\Domain\Fairness\SeedIssuer;
 use App\Domain\Games\Economics\EconomicsConfigResolver;
 use App\Domain\Games\Economics\EconomicsContext;
+use App\Domain\Games\Economics\EconomicsModelStrategy;
 use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
 use App\Domain\Games\Economics\GameDailyLedgerService;
+use App\Domain\Games\Economics\PariMutuelPoolParams;
+use App\Domain\Games\Economics\PoolDrawService;
 use App\Domain\Games\Engine\BlackRed\BlackRedEngine;
 use App\Domain\Games\Engine\BlackRed\EngineTier;
 use App\Domain\Games\PrizeTable\PrizeTableResolver;
@@ -24,6 +27,8 @@ use App\Domain\Wallet\WalletService;
 use App\Jobs\DispatchPrizePayoutJob;
 use App\Models\GameRegistry;
 use App\Models\Player;
+use App\Models\PoolEntry;
+use App\Models\PrizeTable;
 use App\Models\Ticket;
 use App\Models\TicketOutcome;
 use Illuminate\Support\Facades\DB;
@@ -60,6 +65,7 @@ final class CreateTicket
         private readonly EconomicsConfigResolver $economicsConfigResolver,
         private readonly EconomicsModelStrategyFactory $economicsStrategyFactory,
         private readonly GameDailyLedgerService $dailyLedger,
+        private readonly PoolDrawService $poolDraws,
         private readonly ProtectionService $protection,
         private readonly RegistryCheckService $registry,
         private readonly VelocityService $velocity,
@@ -99,12 +105,19 @@ final class CreateTicket
         }
         $this->limits->assertStakeWithinLimits($player, $stakeKobo);
 
-        $economicsStrategy = $this->economicsStrategyFactory->forTicketGame($this->economicsConfigResolver->resolveFor('BLACKRED'));
+        $economicsConfig = $this->economicsConfigResolver->resolveFor('BLACKRED');
+        $economicsStrategy = $this->economicsStrategyFactory->forTicketGame($economicsConfig);
         $economicsStrategy->assertAcceptable('BLACKRED', $stakeKobo, EconomicsContext::forTicket());
 
         $prizeTable = $this->prizeTableResolver->resolveFor('BLACKRED', $attribution['stateCode']);
         if ($prizeTable === null || $prizeTable->tiers->firstWhere('positions', $length) === null) {
             throw new TicketEligibilityException('GAME_UNAVAILABLE', 'BlackRed has no published prize table for this state.');
+        }
+
+        // Model 4 — no per-ticket RNG roll happens at all; the ticket joins a shared
+        // pool and its fate is decided later, all at once, when the pool draws.
+        if ($economicsConfig?->activeModel === 'PARI_MUTUEL_POOL') {
+            return $this->joinPool($player, $prediction, $stakeKobo, $idempotencyKey, $attribution, $prizeTable, $economicsStrategy, PariMutuelPoolParams::fromArray($economicsConfig->paramsJson));
         }
 
         $seed = $this->seedIssuer->issue();
@@ -234,6 +247,78 @@ final class CreateTicket
         ]);
 
         return $ticket;
+    }
+
+    /**
+     * ponytail: skips turnover/velocity/analytics tracking a pool-joining purchase
+     * would otherwise fire — those are all about a resolved wager, and this one
+     * isn't resolved yet. Add them at settlement time (PoolDrawSettlementService)
+     * if pari-mutuel play needs to count toward the same promos/milestones instant
+     * play does; genuinely unclear from the spec whether it should.
+     *
+     * @param list<'B'|'R'> $prediction
+     * @param array{stateCode: string, confidence: float, rulesetVersion: string} $attribution
+     */
+    private function joinPool(
+        Player $player,
+        array $prediction,
+        int $stakeKobo,
+        string $idempotencyKey,
+        array $attribution,
+        PrizeTable $prizeTable,
+        EconomicsModelStrategy $economicsStrategy,
+        PariMutuelPoolParams $poolParams,
+    ): Ticket {
+        $length = count($prediction);
+
+        // A ticket still gets its own provenance seed (existing NOT NULL rngSeedRef
+        // column, unchanged schema) even though it isn't what decides this ticket's
+        // outcome — the pool's own shared seed (poolDraw.fairnessSeedId, issued once
+        // at settlement) is. Keeping every ticket's own seed column populated avoids
+        // a migration for a value that's harmless, if unused, here.
+        $seed = $this->seedIssuer->issue();
+
+        return DB::transaction(function () use ($player, $prediction, $stakeKobo, $idempotencyKey, $attribution, $prizeTable, $economicsStrategy, $poolParams, $length, $seed) {
+            $player->refresh();
+            $this->assertKycTier($player);
+            $this->protection->assertPlayAndDepositAllowed($player);
+            $this->limits->assertStakeWithinLimits($player, $stakeKobo);
+            $economicsStrategy->assertAcceptable('BLACKRED', $stakeKobo, EconomicsContext::forTicket());
+
+            $pool = $this->poolDraws->currentOrNextPool('BLACKRED', $length, $poolParams->poolWindowMinutes);
+
+            $ticket = Ticket::create([
+                'reference' => (string) Str::ulid(),
+                'playerId' => $player->id,
+                'gameCode' => 'BLACKRED',
+                'idempotencyKey' => $idempotencyKey,
+                'stateCode' => $attribution['stateCode'],
+                'attributionConfidence' => $attribution['confidence'],
+                'jurisdictionRulesetVersion' => $attribution['rulesetVersion'],
+                'stakeKobo' => $stakeKobo,
+                'predictionJson' => $prediction,
+                'positions' => $length,
+                'prizeTableVersion' => $prizeTable->version,
+                'rngSeedRef' => $seed->id,
+                'rngAlgorithm' => $seed->algorithm,
+                'engineVersion' => BlackRedEngine::VERSION,
+                'status' => 'PENDING_DRAW',
+            ]);
+
+            $this->wallet->reserveStake($player, $stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
+
+            PoolEntry::create([
+                'poolDrawId' => $pool->id,
+                'ticketId' => $ticket->id,
+                'playerId' => $player->id,
+                'predictionJson' => $prediction,
+                'stakeKobo' => $stakeKobo,
+            ]);
+
+            $pool->increment('grossStakedKobo', $stakeKobo);
+
+            return $ticket;
+        });
     }
 
     private function assertKycTier(Player $player): void

@@ -95,6 +95,19 @@ class BlackRedController extends Controller
 
         $wallet = $this->wallet->walletFor($player);
 
+        // Model 4 — no outcome to withhold; there isn't one yet.
+        if ($ticket->status === 'PENDING_DRAW') {
+            return response()->json([
+                'reference' => $ticket->reference,
+                'purchased_at' => $ticket->createdAt->toIso8601String(),
+                'prediction' => $ticket->predictionJson,
+                'stake_kobo' => $ticket->stakeKobo,
+                'play_balance_after_kobo' => $wallet->playBalanceKobo,
+                'status' => 'pending_draw',
+                'draw_at' => $ticket->poolEntry?->poolDraw?->closesAt?->toIso8601String(),
+            ]);
+        }
+
         return response()->json([
             'reference' => $ticket->reference,
             'purchased_at' => $ticket->createdAt->toIso8601String(),
@@ -113,6 +126,14 @@ class BlackRedController extends Controller
         $ticket = $this->revealTicket->reveal($player, $reference);
         if ($ticket === null) {
             return response()->json(['message' => 'Ticket not found or not yet settled.'], 404);
+        }
+
+        if ($ticket->status === 'PENDING_DRAW') {
+            return response()->json([
+                'reference' => $ticket->reference,
+                'status' => 'pending_draw',
+                'draw_at' => $ticket->poolEntry?->poolDraw?->closesAt?->toIso8601String(),
+            ]);
         }
 
         $outcome = $ticket->outcome;

@@ -24,6 +24,12 @@ final class GameEconomicsModelGate
     // 50% of a day's net GGR — a hard ceiling on the reserve siphon so a misconfigured
     // value can't starve HOUSE_REVENUE.
     private const MAX_RESERVE_SIPHON_BPS = 5_000;
+    // A pari-mutuel pool pays out exactly pool x (1 - rake%) every draw, with no
+    // per-draw variance in the aggregate — so the 8800bp RTP ceiling is enforced as a
+    // floor on the rake instead of a ceiling on a designed multiplier.
+    private const MIN_PARI_MUTUEL_RAKE_BPS = 10_000 - RtpCeiling::BASIS_POINTS;
+    private const MIN_POOL_WINDOW_MINUTES = 1;
+    private const TIER_ALLOCATION_TOTAL_BPS = 10_000;
 
     /** @return list<string> validation errors; empty means the config may publish */
     public function validate(GameEconomicsConfig $config): array
@@ -40,11 +46,10 @@ final class GameEconomicsModelGate
             return $this->validateDailyLossStop($config);
         }
 
-        // PARI_MUTUEL_POOL params are not validated yet, deliberately — its real
-        // param shape and enforcement land in Phase 3 of
-        // docs/superpowers/specs/2026-09-13-admin-gaming-economics-models-design.md.
-        // Selecting it today is allowed; EconomicsModelStrategyFactory resolves it
-        // to a no-op strategy until then.
+        if ($config->activeModel === 'PARI_MUTUEL_POOL') {
+            return $this->validatePariMutuelPool($config);
+        }
+
         return [];
     }
 
@@ -89,6 +94,47 @@ final class GameEconomicsModelGate
 
         if ($dailyLossCapKobo < self::MIN_DAILY_LOSS_CAP_KOBO) {
             return ["daily_loss_cap_kobo {$dailyLossCapKobo} must be at least " . self::MIN_DAILY_LOSS_CAP_KOBO . '.'];
+        }
+
+        return [];
+    }
+
+    /** @return list<string> */
+    private function validatePariMutuelPool(GameEconomicsConfig $config): array
+    {
+        $rakeBps = $config->paramsJson['rake_bps'] ?? null;
+        if (!is_int($rakeBps)) {
+            return ['PARI_MUTUEL_POOL requires an integer rake_bps param.'];
+        }
+        if ($rakeBps < self::MIN_PARI_MUTUEL_RAKE_BPS || $rakeBps > 10_000) {
+            return ["rake_bps {$rakeBps} must be at least " . self::MIN_PARI_MUTUEL_RAKE_BPS . " (the RTP ceiling's floor) and at most 10000."];
+        }
+
+        $poolWindowMinutes = $config->paramsJson['pool_window_minutes'] ?? null;
+        if (!is_int($poolWindowMinutes) || $poolWindowMinutes < self::MIN_POOL_WINDOW_MINUTES) {
+            return ['pool_window_minutes must be an integer of at least ' . self::MIN_POOL_WINDOW_MINUTES . '.'];
+        }
+
+        // Heritage keeps its tiered payout structure as pool sub-allocations; BlackRed
+        // and Caged have no tiers and never validate this key.
+        if ($config->gameCode === 'HERITAGE') {
+            $tiers = $config->paramsJson['tier_allocation_bps'] ?? null;
+            if (!is_array($tiers)) {
+                return ['HERITAGE PARI_MUTUEL_POOL requires a tier_allocation_bps object (keys "2".."5").'];
+            }
+
+            $sum = 0;
+            foreach (['2', '3', '4', '5'] as $tierKey) {
+                $value = $tiers[$tierKey] ?? null;
+                if (!is_int($value) || $value < 0) {
+                    return ["tier_allocation_bps.{$tierKey} must be a non-negative integer."];
+                }
+                $sum += $value;
+            }
+
+            if ($sum !== self::TIER_ALLOCATION_TOTAL_BPS) {
+                return ["tier_allocation_bps must sum to " . self::TIER_ALLOCATION_TOTAL_BPS . ", got {$sum}."];
+            }
         }
 
         return [];

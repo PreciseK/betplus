@@ -10,11 +10,12 @@ use Tests\TestCase;
 
 final class GameEconomicsModelGateTest extends TestCase
 {
-    private function config(string $activeModel, array $params = []): GameEconomicsConfig
+    private function config(string $activeModel, array $params = [], string $gameCode = 'BLACKRED'): GameEconomicsConfig
     {
         $config = new GameEconomicsConfig();
         $config->activeModel = $activeModel;
         $config->paramsJson = $params;
+        $config->gameCode = $gameCode;
 
         return $config;
     }
@@ -55,9 +56,62 @@ final class GameEconomicsModelGateTest extends TestCase
         $this->assertNotEmpty($errors);
     }
 
-    public function test_pari_mutuel_pool_is_selectable_with_no_params_validated_yet(): void
+    public function test_pari_mutuel_pool_requires_a_rake_at_or_above_the_rtp_ceiling_floor(): void
     {
-        $this->assertEmpty(app(GameEconomicsModelGate::class)->validate($this->config('PARI_MUTUEL_POOL')));
+        $errors = app(GameEconomicsModelGate::class)->validate($this->config('PARI_MUTUEL_POOL', ['rake_bps' => 1500, 'pool_window_minutes' => 60], 'BLACKRED'));
+
+        $this->assertEmpty($errors);
+    }
+
+    public function test_pari_mutuel_pool_with_a_rake_below_the_floor_fails(): void
+    {
+        $errors = app(GameEconomicsModelGate::class)->validate($this->config('PARI_MUTUEL_POOL', ['rake_bps' => 1199, 'pool_window_minutes' => 60], 'BLACKRED'));
+
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('rake_bps', $errors[0]);
+    }
+
+    public function test_pari_mutuel_pool_without_a_pool_window_fails(): void
+    {
+        $errors = app(GameEconomicsModelGate::class)->validate($this->config('PARI_MUTUEL_POOL', ['rake_bps' => 1500], 'BLACKRED'));
+
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('pool_window_minutes', $errors[0]);
+    }
+
+    public function test_heritage_pari_mutuel_pool_requires_tier_allocation_summing_to_10000(): void
+    {
+        $errors = app(GameEconomicsModelGate::class)->validate($this->config('PARI_MUTUEL_POOL', [
+            'rake_bps' => 1500, 'pool_window_minutes' => 60,
+            'tier_allocation_bps' => ['5' => 5000, '4' => 3000, '3' => 1500, '2' => 500],
+        ], 'HERITAGE'));
+
+        $this->assertEmpty($errors);
+    }
+
+    public function test_heritage_pari_mutuel_pool_with_a_tier_allocation_not_summing_to_10000_fails(): void
+    {
+        $errors = app(GameEconomicsModelGate::class)->validate($this->config('PARI_MUTUEL_POOL', [
+            'rake_bps' => 1500, 'pool_window_minutes' => 60,
+            'tier_allocation_bps' => ['5' => 5000, '4' => 3000, '3' => 1500, '2' => 400],
+        ], 'HERITAGE'));
+
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('tier_allocation_bps', $errors[0]);
+    }
+
+    public function test_heritage_pari_mutuel_pool_without_tier_allocation_fails(): void
+    {
+        $errors = app(GameEconomicsModelGate::class)->validate($this->config('PARI_MUTUEL_POOL', ['rake_bps' => 1500, 'pool_window_minutes' => 60], 'HERITAGE'));
+
+        $this->assertNotEmpty($errors);
+    }
+
+    public function test_blackred_pari_mutuel_pool_does_not_require_tier_allocation(): void
+    {
+        $errors = app(GameEconomicsModelGate::class)->validate($this->config('PARI_MUTUEL_POOL', ['rake_bps' => 1500, 'pool_window_minutes' => 60], 'BLACKRED'));
+
+        $this->assertEmpty($errors);
     }
 
     public function test_daily_loss_stop_requires_a_daily_loss_cap_within_range(): void
