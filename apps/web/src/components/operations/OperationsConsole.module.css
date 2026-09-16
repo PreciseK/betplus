@@ -383,6 +383,12 @@
   color: var(--action-primary);
 }
 
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ops-micro-gap);
+}
+
 .workspace {
   min-width: 0;
   display: grid;

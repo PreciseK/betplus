@@ -468,6 +468,16 @@ export const backOfficeGateway = {
     return request<{ deposits: BackOfficeDeposit[] }>("/deposits", { query: { status } });
   },
 
+  /** A pending_review deposit was flagged by FundingService's own threshold, not
+   *  proposed by an institutionUser — this applies immediately, no maker-checker. */
+  approveDeposit(id: number) {
+    return request<BackOfficeDeposit>(`/deposits/${id}/approve`, { method: "POST" });
+  },
+
+  rejectDeposit(id: number, reason: string) {
+    return request<BackOfficeDeposit>(`/deposits/${id}/reject`, { method: "POST", body: { reason } });
+  },
+
   payouts(filters?: { provider_status?: string; manual_review_required?: boolean }) {
     return request<{ payouts: BackOfficePayout[] }>("/payouts", { query: filters as Record<string, QueryValue> });
   },

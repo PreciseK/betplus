@@ -558,6 +558,57 @@ final class BackOfficeOperationsTest extends TestCase
         $this->assertSame('PO-TEST-1', $payouts[0]['reference']);
     }
 
+    public function test_approving_a_pending_review_deposit_credits_the_wallet_and_logs_the_decision(): void
+    {
+        $player = $this->player();
+        $collection = \App\Models\Collection::create([
+            'playerId' => $player->id, 'reference' => 'DEP-REVIEW-1', 'amountKobo' => 6_000_000, 'status' => 'pending_review',
+        ]);
+        $token = $this->institutionToken('finance');
+
+        $response = $this->withToken($token)->postJson("/backoffice/v1/deposits/{$collection->id}/approve");
+
+        $response->assertOk()->assertJson(['status' => 'paid']);
+        $wallet = PlayerWallet::where('playerId', $player->id)->first();
+        $this->assertSame(6_000_000, $wallet->playBalanceKobo);
+        $this->assertDatabaseHas('collection', ['id' => $collection->id, 'status' => 'paid']);
+        $this->assertDatabaseHas('auditLog', ['action' => 'deposit_approved', 'targetTable' => 'collection', 'targetId' => $collection->id]);
+    }
+
+    public function test_approving_a_deposit_twice_is_rejected_and_does_not_double_credit(): void
+    {
+        $player = $this->player();
+        $collection = \App\Models\Collection::create([
+            'playerId' => $player->id, 'reference' => 'DEP-REVIEW-2', 'amountKobo' => 6_000_000, 'status' => 'pending_review',
+        ]);
+        $token = $this->institutionToken('finance');
+        $this->withToken($token)->postJson("/backoffice/v1/deposits/{$collection->id}/approve");
+
+        $second = $this->withToken($token)->postJson("/backoffice/v1/deposits/{$collection->id}/approve");
+
+        $second->assertStatus(422);
+        $wallet = PlayerWallet::where('playerId', $player->id)->first();
+        $this->assertSame(6_000_000, $wallet->playBalanceKobo);
+    }
+
+    public function test_rejecting_a_pending_review_deposit_never_credits_and_requires_a_reason(): void
+    {
+        $player = $this->player();
+        $collection = \App\Models\Collection::create([
+            'playerId' => $player->id, 'reference' => 'DEP-REVIEW-3', 'amountKobo' => 6_000_000, 'status' => 'pending_review',
+        ]);
+        $token = $this->institutionToken('finance');
+
+        $missingReason = $this->withToken($token)->postJson("/backoffice/v1/deposits/{$collection->id}/reject", []);
+        $missingReason->assertStatus(422);
+
+        $response = $this->withToken($token)->postJson("/backoffice/v1/deposits/{$collection->id}/reject", ['reason' => 'Could not confirm this transfer.']);
+
+        $response->assertOk()->assertJson(['status' => 'failed']);
+        $this->assertNull(PlayerWallet::where('playerId', $player->id)->first());
+        $this->assertDatabaseHas('auditLog', ['action' => 'deposit_rejected', 'targetTable' => 'collection', 'targetId' => $collection->id, 'reason' => 'Could not confirm this transfer.']);
+    }
+
     public function test_the_changes_endpoint_filters_by_change_type_for_the_adjustments_view(): void
     {
         $maker = $this->institutionToken('game_ops');

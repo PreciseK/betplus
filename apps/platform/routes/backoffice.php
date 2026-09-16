@@ -141,6 +141,12 @@ Route::prefix('backoffice/v1')->group(function () {
         // FocusedManagementConsole's real subset — Deposits/Payouts (Finance/Compliance).
         Route::middleware('institution.role:finance,compliance,system_admin')->group(function () {
             Route::get('/deposits', [CollectionController::class, 'index']);
+            // A pending_review deposit was flagged by the system's own threshold
+            // (FundingService::collect()), not proposed by an institutionUser, so this
+            // applies immediately like /velocity-flags/{id}/resolve — no maker-checker
+            // gate, since there is no "maker" to require a distinct checker from.
+            Route::post('/deposits/{id}/approve', [CollectionController::class, 'approve']);
+            Route::post('/deposits/{id}/reject', [CollectionController::class, 'reject']);
             Route::get('/payouts', [PayoutManagementController::class, 'index']);
         });
 
