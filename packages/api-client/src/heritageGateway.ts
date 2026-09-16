@@ -199,10 +199,16 @@ export const heritageGateway = {
 
 function toHeritageError(error: unknown): Error {
   if (error instanceof ApiError && error.status === 422) {
-    if (typeof error.body?.code === "string") {
-      return new HeritageGatewayError(error.body.code as HeritageGatewayErrorCode);
+    const body = error.body as { errors?: Record<string, unknown>; message?: unknown; code?: unknown } | undefined;
+    if (typeof body?.code === "string") {
+      return new HeritageGatewayError(body.code as HeritageGatewayErrorCode);
     }
-    if (error.body?.errors?.selected_positions || (typeof error.body?.message === "string" && error.body.message.includes("selected_positions"))) {
+    const hasSelectedPositionsError = Boolean(
+      body?.errors && typeof body.errors === "object" && "selected_positions" in body.errors
+    );
+    const hasSelectedPositionsMessage =
+      typeof body?.message === "string" && body.message.includes("selected_positions");
+    if (hasSelectedPositionsError || hasSelectedPositionsMessage) {
       return new HeritageGatewayError("INVALID_SELECTION");
     }
   }

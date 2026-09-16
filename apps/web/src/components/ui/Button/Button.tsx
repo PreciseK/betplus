@@ -2,7 +2,7 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "reac
 import { Icon } from "@/components/ui/Icon/Icon";
 import styles from "./Button.module.css";
 
-export type ButtonVariant = "primary" | "secondary" | "quiet" | "dark";
+export type ButtonVariant = "primary" | "secondary" | "quiet" | "dark" | "danger";
 export type ButtonStatus = "idle" | "loading" | "success" | "error";
 
 interface ButtonOwnProps {

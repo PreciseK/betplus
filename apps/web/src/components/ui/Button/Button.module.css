@@ -82,6 +82,18 @@
   background: #292524;
 }
 
+.danger {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #b91c1c;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+}
+
+.danger:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
 .success {
   background: #16a34a;
   color: #ffffff;
