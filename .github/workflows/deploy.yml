@@ -1,0 +1,123 @@
+name: Deploy to Production (cPanel)
+
+on:
+  workflow_dispatch: # Manual trigger from GitHub Actions tab
+  # Uncomment the lines below when ready for automatic deploys on push to main:
+  # push:
+  #   branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build & Atomic Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install Frontend Dependencies & Build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.betplus.com.ng/v1
+        run: |
+          pnpm install --frozen-lockfile
+          cd apps/web
+          pnpm build
+
+      - name: Prepare SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.CPANEL_SSH_PORT || '22' }} -H "${{ secrets.CPANEL_SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy Release via SSH & Rsync
+        env:
+          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+          SSH_USER: ${{ secrets.CPANEL_SSH_USER }}
+          SSH_PORT: ${{ secrets.CPANEL_SSH_PORT || '22' }}
+        run: |
+          RELEASE_NAME=$(date +%Y%m%d%H%M%S)
+          REMOTE_BASE="/home/$SSH_USER/betplus"
+          REMOTE_RELEASE="$REMOTE_BASE/releases/$RELEASE_NAME"
+
+          echo "Deploying release: $RELEASE_NAME"
+
+          # 1. Ensure remote directories exist
+          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_BASE/releases $REMOTE_BASE/shared/storage $REMOTE_BASE/shared/storage/framework/{sessions,views,cache} $REMOTE_BASE/shared/storage/logs"
+
+          # 2. Rsync repository files excluding heavy build artifacts and caches
+          rsync -avz --delete \
+            -e "ssh -p $SSH_PORT" \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude 'apps/*/node_modules' \
+            --exclude 'apps/platform/vendor' \
+            --exclude 'apps/platform/storage' \
+            --exclude '.env' \
+            --exclude 'apps/*/.env' \
+            ./ $SSH_USER@$SSH_HOST:$REMOTE_RELEASE/
+
+          # 3. Rsync pre-built frontend static export into the release
+          rsync -avz \
+            -e "ssh -p $SSH_PORT" \
+            ./apps/web/out/ $SSH_USER@$SSH_HOST:$REMOTE_RELEASE/apps/web/out/
+
+          # 4. Execute atomic switch, dependencies, migrations, and cache warming on server
+          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+            set -e
+
+            REMOTE_BASE="/home/$USER/betplus"
+            RELEASE_NAME=$(ls -1 $REMOTE_BASE/releases | tail -n 1)
+            CURRENT_RELEASE="$REMOTE_BASE/releases/$RELEASE_NAME"
+
+            echo "Configuring release at $CURRENT_RELEASE"
+
+            # Symlink shared .env into platform
+            if [ -f "$REMOTE_BASE/shared/.env" ]; then
+              ln -sfn "$REMOTE_BASE/shared/.env" "$CURRENT_RELEASE/apps/platform/.env"
+            else
+              echo "WARNING: $REMOTE_BASE/shared/.env does not exist yet. Please create it on the server."
+            fi
+
+            # Symlink shared storage
+            ln -sfn "$REMOTE_BASE/shared/storage" "$CURRENT_RELEASE/apps/platform/storage"
+
+            # Install production PHP dependencies
+            cd "$CURRENT_RELEASE/apps/platform"
+            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+            # Run database migrations
+            php artisan migrate --force
+
+            # Warm caches
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            # ATOMIC SWITCH: Point current to new release
+            ln -sfn "$CURRENT_RELEASE" "$REMOTE_BASE/current"
+
+            # Restart queue workers gracefully
+            php artisan queue:restart || true
+
+            # Clean up old releases (keep latest 5)
+            cd "$REMOTE_BASE/releases"
+            ls -1t | tail -n +6 | xargs -r rm -rf
+
+            echo "Deployment completed successfully!"
+          EOF

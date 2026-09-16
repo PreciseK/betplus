@@ -1,8 +1,8 @@
 const STEPS = [
-  ["Create one account", "Confirm your OPay-linked phone number and complete the checks required for adults to play."],
-  ["Fund your Play Balance", "Add money through OPay and see the status in Activity—even if the network takes longer than expected."],
-  ["Choose, review, confirm", "See your selection, stake, odds, and possible return before any ticket is created."],
-  ["Keep the receipt", "Every result records the gross prize, tax withheld, net credit, time, and ticket reference."],
+  ["Create one account", "Confirm your OPay-linked phone number online, or dial *7006# for instant gateway authentication without OTP typing."],
+  ["Seamless funding", "Top up your Play Balance online, or on USSD let direct withdrawal automatically fund your stake straight from your OPay balance."],
+  ["Choose, review, confirm", "Select your BlackRed cards, Heritage regalia, or Caged bird escape count (1-5 birds). Always see your odds and return before committing."],
+  ["Keep the receipt", "Every result records the gross prize, tax withheld, net credit, and reference—shown on screen and sent immediately via SMS."],
 ] as const;
 
 export function HowItWorks() {

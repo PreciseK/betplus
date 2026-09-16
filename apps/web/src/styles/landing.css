@@ -103,7 +103,11 @@ body.nav-open { overflow: hidden; }
 .orbit small { color: rgb(250 248 244 / 56%); font-size: .55rem; letter-spacing: .14em; }
 .orbit-blackred { inset: 18% auto auto 0; animation: orbit-drift 7.2s ease-in-out infinite; }
 .orbit-heritage { inset: auto 0 17% auto; animation: orbit-drift 8.2s 1s ease-in-out infinite reverse; }
-.orbit-opay { inset: auto auto 7% 12%; animation: orbit-drift 6.8s 1.5s ease-in-out infinite; }
+.orbit-caged { inset: 12% 2% auto auto; animation: orbit-drift 7.6s 1.2s ease-in-out infinite; border-color: rgba(0, 229, 255, 0.4); }
+.orbit-caged span { color: #00e5ff; }
+.orbit-ussd { inset: auto auto 8% 35%; animation: orbit-drift 6.8s 0.8s ease-in-out infinite reverse; border-color: rgba(255, 179, 0, 0.5); }
+.orbit-ussd span { color: var(--amber); }
+.orbit-opay { inset: auto auto 7% 10%; animation: orbit-drift 6.8s 1.5s ease-in-out infinite; }
 .scroll-cue { position: absolute; z-index: 5; inset: auto auto 1.65rem var(--page-gutter); display: flex; align-items: center; gap: .55rem; color: rgb(250 248 244 / 55%); font-size: .68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .scroll-cue svg { width: 1rem; fill: none; stroke: currentColor; stroke-width: 1.8; animation: nudge 2.8s ease-in-out infinite; }
 
@@ -117,12 +121,20 @@ body.nav-open { overflow: hidden; }
 .games-section .section-heading .eyebrow { margin-bottom: .85rem; }
 .games-section .section-heading h2 { max-width: 20ch; font-size: clamp(2.9rem, 4vw, 4.75rem); line-height: .94; }
 .games-section .section-heading > p:last-child { margin-bottom: .25rem; }
-.game-choice-grid { max-width: var(--max-width); margin-inline: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 1.6vw, 1.5rem); }
-.game-band { max-width: var(--max-width); min-height: 41rem; margin: 0 auto 2rem; overflow: hidden; display: grid; grid-template-columns: .86fr 1.14fr; align-items: stretch; color: var(--paper); background: var(--ink); }
+.game-choice-grid { max-width: var(--max-width); margin-inline: auto; display: flex; flex-direction: column; gap: clamp(1.75rem, 3vw, 2.5rem); }
+.game-band { max-width: var(--max-width); min-height: 41rem; margin: 0 auto 2rem; overflow: hidden; display: grid; grid-template-columns: .86fr 1.14fr; align-items: stretch; color: var(--paper); background: var(--ink); border-radius: 14px; }
 .game-band:last-child { margin-bottom: 0; }
-.game-choice-grid .game-band { max-width: none; min-height: 28rem; margin: 0; grid-template-columns: minmax(15rem, .88fr) minmax(0, 1.12fr); }
+.game-choice-grid .game-band { max-width: none; min-height: 28rem; margin: 0; grid-template-columns: minmax(18rem, .86fr) minmax(0, 1.14fr); }
 .game-band-heritage { color: var(--paper); background: #140a05; border: 1px solid rgba(21, 0, 97, 0.2); }
 .game-band-heritage .game-copy { order: 2; }
+.game-band-caged { color: var(--paper); background: #031114; border: 1px solid rgba(0, 229, 255, 0.25); }
+.game-band-caged .game-index { color: #00e5ff; }
+.game-band-caged .game-copy > p:not(.game-index) { color: rgb(250 248 244 / 78%); }
+.game-band-caged .plain-list { border-color: rgba(255, 255, 255, 0.15); }
+.game-band-caged .plain-list li { border-color: rgba(255, 255, 255, 0.15); }
+.game-band-caged .plain-list li::before { background: #00e5ff; }
+.game-band-caged .arrow-link { border-color: rgba(0, 229, 255, 0.4); }
+.game-band-caged .arrow-link:hover { color: #00e5ff; }
 .game-copy { position: relative; z-index: 2; padding: clamp(2rem, 5vw, 5.5rem); align-self: center; transition: transform 720ms var(--tilt-ease); }
 .game-choice-grid .game-copy { padding: clamp(1.65rem, 2.25vw, 2.65rem); }
 .game-index { margin: 0 0 1.5rem; color: var(--amber); font-size: .67rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
@@ -167,6 +179,47 @@ body.nav-open { overflow: hidden; }
 .heritage-visual .game-tilt-card > p { position: relative; z-index: 2; margin: 0; display: grid; gap: .2rem; text-align: center; }
 .heritage-visual .game-tilt-card > p strong { font: 700 1.1rem/1 var(--font-display); color: #fff; }
 .heritage-visual .game-tilt-card > p span { color: rgba(255, 255, 255, 0.8); font-size: .72rem; }
+
+.channel-badges-row { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.1rem 0 1.25rem; }
+.channel-pill { display: inline-flex; align-items: center; gap: .35rem; padding: .28rem .65rem; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 999px; font-size: .68rem; font-weight: 700; letter-spacing: .04em; color: #fff; }
+.channel-pill-ussd { background: rgba(255, 179, 0, 0.14); border-color: rgba(255, 179, 0, 0.5); color: var(--amber); }
+
+.caged-visual, .caged-visual > .game-tilt-card { background: #020c0e; }
+.caged-visual > .game-tilt-card { width: 100%; min-height: inherit; padding: clamp(2rem, 5vw, 4.5rem); display: grid; align-content: center; justify-items: center; gap: 1.8rem; background: radial-gradient(circle at 50% 36%, #004d40 0%, #03161a 65%, #010a0c 100%); position: relative; }
+.caged-visual > .game-tilt-card::before { content: ""; position: absolute; inset: 1.2rem; border: 1px solid rgba(0, 229, 255, 0.2); }
+
+.caged-trap-status { position: relative; z-index: 2; display: flex; align-items: center; gap: .85rem; }
+.caged-live-tag { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; background: rgba(0, 229, 255, 0.15); border: 1px solid #00e5ff; border-radius: 999px; color: #00e5ff; font-size: .62rem; font-weight: 800; letter-spacing: .12em; }
+.caged-live-tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #00e5ff; box-shadow: 0 0 8px #00e5ff; }
+.caged-multiplier-preview { font: 800 .85rem/1 var(--font-display); color: #ffd600; letter-spacing: .06em; }
+
+.caged-birds-grid { position: relative; z-index: 2; width: min(100%, 28rem); display: grid; grid-template-columns: repeat(5, 1fr); gap: .45rem; }
+.caged-bird-pill { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: .75rem .25rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 6px; transition: transform 300ms var(--tilt-ease); }
+.caged-bird-pill.active { background: rgba(0, 229, 255, 0.18); border-color: #00e5ff; transform: translateY(-3px); box-shadow: 0 4px 14px rgba(0, 229, 255, 0.25); }
+.caged-bird-pill.jackpot { background: rgba(255, 214, 0, 0.15); border-color: #ffd600; }
+.bird-num { font: 800 1.25rem/1 var(--font-display); color: #fff; }
+.caged-bird-pill.active .bird-num { color: #00e5ff; }
+.caged-bird-pill.jackpot .bird-num { color: #ffd600; }
+.bird-name { font-size: .55rem; font-weight: 700; text-transform: uppercase; color: rgba(255, 255, 255, 0.65); margin-top: .2rem; }
+.bird-mult { font-size: .62rem; font-weight: 700; color: #fff; margin-top: .3rem; }
+.caged-bird-pill.active .bird-mult { color: #00e5ff; }
+.caged-bird-pill.jackpot .bird-mult { color: #ffd600; }
+
+.caged-visual .game-tilt-card > p { position: relative; z-index: 2; margin: 0; display: grid; gap: .2rem; text-align: center; }
+.caged-visual .game-tilt-card > p strong { font: 700 1.1rem/1 var(--font-display); color: #fff; }
+.caged-visual .game-tilt-card > p span { color: rgba(255, 255, 255, 0.8); font-size: .72rem; }
+
+.ussd-featured-card { margin-top: 2rem; padding: clamp(1.25rem, 2vw, 1.75rem); background: linear-gradient(135deg, rgba(255, 179, 0, 0.08) 0%, rgba(21, 0, 97, 0.35) 100%); border: 1px solid rgba(255, 179, 0, 0.35); border-radius: 12px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
+.ussd-card-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+.ussd-card-badge { padding: .25rem .55rem; background: var(--amber); color: #111; font-size: .62rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; border-radius: 4px; }
+.ussd-network-tags { color: rgb(250 248 244 / 65%); font-size: .65rem; font-weight: 600; letter-spacing: .06em; }
+.ussd-dial-highlight { font: 800 clamp(2.5rem, 4vw, 3.4rem)/1 var(--font-display); color: var(--amber); letter-spacing: .03em; margin: .85rem 0 .5rem; }
+.ussd-card-summary { font-size: .82rem; line-height: 1.5; color: rgb(250 248 244 / 82%); margin: 0 0 1.25rem; }
+.ussd-perks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.ussd-perk { padding: .75rem; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; }
+.ussd-perk strong { display: block; font-size: .78rem; font-weight: 700; color: #fff; margin-bottom: .25rem; }
+.ussd-perk p { font-size: .7rem; color: rgb(250 248 244 / 65%); margin: 0; line-height: 1.4; }
+.availability-live { background: #00b341 !important; color: #fff !important; }
 
 .how-section { color: var(--paper); background: var(--ink); }
 .section-heading-light { color: var(--paper); }
@@ -260,7 +313,8 @@ body.nav-open { overflow: hidden; }
   .game-choice-grid { grid-template-columns: 1fr; }
   .game-choice-grid .game-band { min-height: 27rem; grid-template-columns: minmax(18rem, .8fr) minmax(0, 1.2fr); }
   .game-choice-grid .blackred-visual,
-  .game-choice-grid .heritage-visual { min-height: 27rem; }
+  .game-choice-grid .heritage-visual,
+  .game-choice-grid .caged-visual { min-height: 27rem; }
 }
 
 @media (max-width: 1100px) {
@@ -315,9 +369,10 @@ body.nav-open { overflow: hidden; }
   .game-band-heritage .game-copy { order: 0; }
   .game-copy { padding: 2.3rem 1.4rem 2.6rem; }
   .game-copy h3 { font-size: clamp(3.8rem, 19vw, 6rem); }
-  .blackred-visual, .heritage-visual { min-height: 28rem; }
+  .blackred-visual, .heritage-visual, .caged-visual { min-height: 28rem; }
   .game-choice-grid .blackred-visual { min-height: 19rem; }
   .game-choice-grid .heritage-visual { min-height: 22rem; }
+  .game-choice-grid .caged-visual { min-height: 20rem; }
   .prediction span { font-size: clamp(6rem, 30vw, 9rem); }
   .heritage-visual > .game-tilt-card { padding: 2.4rem 1.4rem; }
   .steps-list li { grid-template-columns: 4rem 1fr; min-height: 10rem; gap: 1rem; }
@@ -341,6 +396,7 @@ body.nav-open { overflow: hidden; }
   .hero-promise { max-width: 8.5ch; }
   .blackred-visual { min-height: 23rem; }
   .heritage-visual { min-height: 27rem; }
+  .caged-visual { min-height: 25rem; }
   .steps-list li { grid-template-columns: 1fr; }
   .access-list article { grid-template-columns: 2.3rem 1fr; gap: .8rem; }
   .safe-tools > div { grid-template-columns: 2.5rem 1fr; }

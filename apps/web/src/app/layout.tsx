@@ -25,9 +25,9 @@ import "@fontsource/poppins/latin-900.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Betplus — Two games. One wallet.",
+  title: "Betplus — Your Move. Your Moment. Your Naira.",
   description:
-    "Betplus is one account and one wallet for BlackRed and Heritage—built for clear play, transparent results, and OPay settlement in Nigeria.",
+    "No waiting, no wondering, and no lost tickets. Play BlackRed, Heritage, and Caged with instant OPay direct settlement and zero-data USSD access (*7006#) in Nigeria.",
   icons: {
     icon: [
       { url: "/assets/betplus-favicon.png" },

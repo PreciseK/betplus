@@ -8,10 +8,10 @@ export function Hero() {
         <p className="eyebrow t-stagger-line t-stagger-line--1">Web, Android &amp; USSD *7006#</p>
         <h1 id="hero-title" className="t-stagger-line t-stagger-line--2">
           <span className="hero-brand">Betplus</span>
-          <span className="hero-promise">Three games.<br />One wallet.</span>
+          <span className="hero-promise">Your Move.<br />Your Moment.<br />Your Naira.</span>
         </h1>
         <p className="hero-summary t-stagger-line t-stagger-line--3">
-          Predict BlackRed cards, discover Heritage regalia, or test your nerve with Caged birds. Play on the web or dial <strong>*7006#</strong> with seamless OPay direct withdrawal.
+          No waiting, no wondering, and no lost tickets. From instant OPay direct funding to certified payouts, play BlackRed, Heritage, or Caged online or dial <strong>*7006#</strong> with zero data.
         </p>
         <div className="hero-actions t-stagger-line t-stagger-line--4">
           <a className="button button-primary" href="#games">Explore the games</a>
@@ -32,7 +32,7 @@ export function Hero() {
         <div className="orbit orbit-heritage"><span>05 / 90</span><small>HERITAGE</small></div>
         <div className="orbit orbit-caged"><span>1-5 BIRDS</span><small>CAGED CRASH</small></div>
         <div className="orbit orbit-ussd"><span>*7006#</span><small>USSD PLAY</small></div>
-        <div className="orbit orbit-opay"><span>₦</span><small>ONE WALLET</small></div>
+        <div className="orbit orbit-opay"><span>₦</span><small>DIRECT OPAY</small></div>
       </div>
 
       <a className="scroll-cue" href="#games" aria-label="Scroll to games">
