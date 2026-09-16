@@ -75,7 +75,7 @@ export function PromotionsConsole() {
     setKillSubmitting(true);
     setKillError("");
     try {
-      const res = await backOfficeGateway.emergencyKillPromotion(killTarget.campaign_key, {
+      await backOfficeGateway.emergencyKillPromotion(killTarget.campaign_key, {
         justification: killJustification.trim(),
       });
       setReceipt(`Promotion "${killTarget.name}" immediately disabled. Audit record committed.`);

@@ -35,9 +35,14 @@ describe("OperationsOverview", () => {
     expect(screen.queryByText(/Heritage catalogue item published/)).not.toBeInTheDocument();
     expect(screen.getAllByText(/BlackRed only/).length).toBeGreaterThan(0);
 
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayIso = yesterday.toISOString().slice(0, 10);
+    const yesterdayLabel = new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short" }).format(yesterday);
+
     fireEvent.click(screen.getByRole("button", { name: /Previous/ }));
-    expect(screen.getByRole("heading", { name: "19 Aug at a Glance" })).toBeInTheDocument();
-    expect(window.location.search).toContain("date=2026-08-19");
+    expect(screen.getByRole("heading", { name: `${yesterdayLabel} at a Glance` })).toBeInTheDocument();
+    expect(window.location.search).toContain(`date=${yesterdayIso}`);
   });
 
   it("updates the dashboard from the global header game selector", () => {

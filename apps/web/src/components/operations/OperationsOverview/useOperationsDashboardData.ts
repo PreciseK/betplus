@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   backOfficeGateway,
+  type BackOfficeAuditEvent,
   type BackOfficeChange,
   type BackOfficeGame,
   type BackOfficeJurisdiction,
@@ -13,13 +14,35 @@ import { OPERATOR_DASHBOARDS, type DashboardAnalytics, type DashboardMetric, typ
 import type { OperatorRole } from "@/mocks/operator-session";
 import type { OperationsGameScope } from "@/components/operations/operations-games";
 
+export interface DashboardActivityItem { action: string; detail: string; }
+
 export interface OperationsDashboardData {
   metrics: readonly DashboardMetric[];
   analytics: DashboardAnalytics;
   queue: readonly DashboardQueueItem[];
   rail: readonly { label: string; value: string }[];
+  recentActivity: readonly DashboardActivityItem[];
+  /** true only when recentActivity is empty because this role can't read the audit log, not because nothing happened. */
+  recentActivityRestricted: boolean;
   source: "live" | "preview";
   partial: boolean;
+}
+
+// AuditLogController is gated to compliance/system_admin — matches
+// /backoffice/v1/audit-log's own institution.role middleware.
+const AUDIT_LOG_ROLES: readonly OperatorRole[] = ["compliance", "system-admin", "super-admin"];
+
+const PREVIEW_RECENT_ACTIVITY: readonly DashboardActivityItem[] = [
+  { action: "BlackRed prize table approved", detail: "Illustrative preview · sign in for real activity" },
+  { action: "OPay reconciliation export completed", detail: "Illustrative preview · sign in for real activity" },
+  { action: "Player welfare case assigned", detail: "Illustrative preview · sign in for real activity" },
+];
+
+function activityFromAuditEvents(events: readonly BackOfficeAuditEvent[]): DashboardActivityItem[] {
+  return events.slice(0, 3).map((event) => ({
+    action: titleCase(event.action),
+    detail: `Actor #${event.actor_id ?? "system"} · ${relativeAge(event.created_at)} ago`,
+  }));
 }
 
 function shiftDate(value: string, days: number) {
@@ -149,6 +172,8 @@ function previewData(role: OperatorRole): OperationsDashboardData {
       { label: "Data scope", value: "Role preview" },
       { label: "Service status", value: "API sign-in required" },
     ],
+    recentActivity: PREVIEW_RECENT_ACTIVITY,
+    recentActivityRestricted: false,
     source: "preview",
     partial: false,
   };
@@ -171,6 +196,7 @@ export function useOperationsDashboardData(role: OperatorRole, game: OperationsG
     const from = shiftDate(date, -6);
     const gameCode = game === "all" ? undefined : game.toUpperCase();
     const canReadReconciliation = ["finance", "compliance", "system-admin", "super-admin"].includes(role);
+    const canReadAuditLog = (AUDIT_LOG_ROLES as readonly string[]).includes(role);
     let active = true;
 
     Promise.resolve().then(() => {
@@ -182,11 +208,12 @@ export function useOperationsDashboardData(role: OperatorRole, game: OperationsG
         backOfficeGateway.games(),
         backOfficeGateway.jurisdictions(),
         canReadReconciliation ? backOfficeGateway.reconciliation() : Promise.resolve({ exceptions: [] }),
+        canReadAuditLog ? backOfficeGateway.auditLog({ date_from: from }) : Promise.resolve({ events: [] }),
       ]);
     }).then((results) => {
       if (!results || !active) return;
       if (!active) return;
-      const [rollupsResult, changesResult, gamesResult, jurisdictionsResult, reconciliationResult] = results;
+      const [rollupsResult, changesResult, gamesResult, jurisdictionsResult, reconciliationResult, auditLogResult] = results;
       const successful = results.filter((result) => result.status === "fulfilled").length;
       if (rollupsResult.status === "rejected" || successful === 0) {
         setLiveState({ key: requestKey, loading: false, error: "Live operations data could not be loaded. Preview data remains visible." });
@@ -198,6 +225,7 @@ export function useOperationsDashboardData(role: OperatorRole, game: OperationsG
       const games = gamesResult.status === "fulfilled" ? gamesResult.value.games : [];
       const jurisdictions = jurisdictionsResult.status === "fulfilled" ? jurisdictionsResult.value.states : [];
       const exceptions = reconciliationResult.status === "fulfilled" ? reconciliationResult.value.exceptions : [];
+      const auditEvents = auditLogResult.status === "fulfilled" ? auditLogResult.value.events : [];
       const queue = queueFromLiveData(changes, exceptions, jurisdictions, games);
       setLiveState({
         key: requestKey,
@@ -212,6 +240,8 @@ export function useOperationsDashboardData(role: OperatorRole, game: OperationsG
             { label: "Reconciliation exceptions", value: String(exceptions.length) },
             { label: "Licence alerts", value: String(jurisdictions.filter((item) => item.is_expired || item.expiry_alert).length) },
           ],
+          recentActivity: activityFromAuditEvents(auditEvents),
+          recentActivityRestricted: !canReadAuditLog,
           source: "live",
           partial: successful < results.length,
         },

@@ -101,7 +101,7 @@ export function AnalyticsConsole() {
         <header className={styles.sectionHeader}><div><h2 id="analytics-scope-title">Analytics scope</h2><p>The default view is bounded to 30 days; every segmentation control persists in the URL. App-version and locale segmentation aren't available yet — the rollup table isn't keyed on either dimension (see the note below the funnel view).</p></div></header>
         <div className={styles.controls}>
           <SelectFilter id="analytics-channel" label="Channel" value={filters.channel} options={["ALL", "web"]} onChange={(value) => updateFilter("channel", value)} />
-          <SelectFilter id="analytics-game" label="Game" value={filters.game} options={["ALL", "BLACKRED", "HERITAGE"]} onChange={(value) => updateFilter("game", value)} />
+          <SelectFilter id="analytics-game" label="Game" value={filters.game} options={["ALL", "BLACKRED", "HERITAGE", "CAGED", "BIRDESCAPE"]} onChange={(value) => updateFilter("game", value)} />
           <SelectFilter id="analytics-state" label="State" value={filters.state} options={["ALL", "LAG"]} onChange={(value) => updateFilter("state", value)} />
           <label className={styles.formField} htmlFor="analytics-from">From<input id="analytics-from" type="date" value={filters.from} onChange={(event) => updateFilter("from", event.target.value)} /></label>
           <label className={styles.formField} htmlFor="analytics-to">To<input id="analytics-to" type="date" value={filters.to} onChange={(event) => updateFilter("to", event.target.value)} /></label>

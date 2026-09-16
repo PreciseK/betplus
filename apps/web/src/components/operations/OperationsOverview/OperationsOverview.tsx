@@ -1,28 +1,23 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon/Icon";
 import { OPERATOR_ROLE_LABELS } from "@/components/operations/operations-navigation";
 import { useOperationsUrlFilters } from "@/components/operations/useOperationsUrlFilters";
 import { OPERATOR_DASHBOARDS, type DashboardAnalytics } from "@/mocks/operator-dashboards";
 import { OPERATOR_ROLES, type OperatorRole } from "@/mocks/operator-session";
-import { isOperationsGameScope, operationsGameLabel, type OperationsGameScope } from "@/components/operations/operations-games";
+import { isOperationsGameScope, operationsGameLabel, OPERATIONS_GAME_OPTIONS, type OperationsGameScope } from "@/components/operations/operations-games";
 import { useOperationsDashboardData } from "./useOperationsDashboardData";
 import styles from "./OperationsOverview.module.css";
 
 interface OperationsOverviewProps { role: OperatorRole; }
 
-const DASHBOARD_TODAY = "2026-08-20";
-const PREVIEW_DEFAULTS = { viewRole: "super-admin", game: "all", date: DASHBOARD_TODAY };
+function today() { return new Date().toISOString().slice(0, 10); }
+
 const chartWidth = 720;
 const chartHeight = 210;
 const chartPadding = 28;
-
-const recentActivity = [
-  { action: "BlackRed prize table approved", detail: "Tobi Akinwale · 12 minutes ago" },
-  { action: "OPay reconciliation export completed", detail: "Chiamaka Obi · 28 minutes ago" },
-  { action: "Player welfare case assigned", detail: "Nkiru Eze · 41 minutes ago" },
-] as const;
 
 function isOperatorRole(value: string): value is OperatorRole {
   return (OPERATOR_ROLES as readonly string[]).includes(value);
@@ -48,8 +43,8 @@ function shiftDate(value: string, amount: number) {
 
 function belongsToGame(text: string, game: OperationsGameScope) {
   if (game === "all") return true;
-  const otherGame = game === "blackred" ? "heritage" : "blackred";
-  return !text.toLowerCase().includes(otherGame);
+  const lower = text.toLowerCase();
+  return !OPERATIONS_GAME_OPTIONS.some((option) => option.id !== "all" && option.id !== game && lower.includes(option.id));
 }
 
 function scopedHref(href: string, game: OperationsGameScope) {
@@ -106,14 +101,16 @@ function contextualTitle(role: OperatorRole) {
 }
 
 export function OperationsOverview({ role }: OperationsOverviewProps) {
-  const { filters, updateFilter } = useOperationsUrlFilters(PREVIEW_DEFAULTS);
+  const todayIso = useMemo(() => today(), []);
+  const previewDefaults = useMemo(() => ({ viewRole: "super-admin", game: "all", date: todayIso }), [todayIso]);
+  const { filters, updateFilter } = useOperationsUrlFilters(previewDefaults);
   const previewRole = isOperatorRole(filters.viewRole) ? filters.viewRole : "super-admin";
   const selectedGame = isOperationsGameScope(filters.game) ? filters.game : "all";
-  const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(filters.date) ? filters.date : DASHBOARD_TODAY;
+  const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(filters.date) ? filters.date : todayIso;
   const dashboardRole = role === "super-admin" ? previewRole : role;
   const dashboard = OPERATOR_DASHBOARDS[dashboardRole];
   const selectedGameLabel = operationsGameLabel(selectedGame);
-  const isToday = selectedDate === DASHBOARD_TODAY;
+  const isToday = selectedDate === todayIso;
   const { data, loading, error, refresh } = useOperationsDashboardData(dashboardRole, selectedGame, selectedDate);
   const visibleQueue = data.queue.filter((item) => belongsToGame(`${item.task} ${item.detail}`, selectedGame));
 
@@ -130,8 +127,8 @@ export function OperationsOverview({ role }: OperationsOverviewProps) {
             <label htmlFor="dashboard-date">Data date</label>
             <div>
               <button type="button" onClick={() => updateFilter("date", shiftDate(selectedDate, -1))}><Icon name="arrow-left" /> Previous</button>
-              <input id="dashboard-date" type="date" max={DASHBOARD_TODAY} value={selectedDate} onChange={(event) => updateFilter("date", event.target.value)} />
-              {!isToday && <button type="button" onClick={() => updateFilter("date", DASHBOARD_TODAY)}>Today</button>}
+              <input id="dashboard-date" type="date" max={todayIso} value={selectedDate} onChange={(event) => updateFilter("date", event.target.value)} />
+              {!isToday && <button type="button" onClick={() => updateFilter("date", todayIso)}>Today</button>}
             </div>
           </div>
           {role === "super-admin" && (
@@ -192,7 +189,13 @@ export function OperationsOverview({ role }: OperationsOverviewProps) {
 
           <section className={styles.activity} aria-labelledby="activity-title">
             <div className={styles.sectionHeader}><div><h2 id="activity-title">Recent activity</h2><p>Latest recorded changes</p></div></div>
-            <ul>{recentActivity.filter((item) => belongsToGame(`${item.action} ${item.detail}`, selectedGame)).map((item) => <li key={item.action}><span aria-hidden="true" /><div><strong>{item.action}</strong><p>{item.detail}</p></div></li>)}</ul>
+            {data.recentActivityRestricted ? (
+              <p className={styles.emptyQueue}>Recent activity is visible to Compliance and System Admin. Open the audit log if your role has access.</p>
+            ) : data.recentActivity.length > 0 ? (
+              <ul>{data.recentActivity.map((item) => <li key={item.action}><span aria-hidden="true" /><div><strong>{item.action}</strong><p>{item.detail}</p></div></li>)}</ul>
+            ) : (
+              <p className={styles.emptyQueue}>No recent operator actions.</p>
+            )}
             <Link className={styles.viewAll} href={scopedHref("/back-office/audit-log", selectedGame)}>View audit log</Link>
           </section>
         </aside>
