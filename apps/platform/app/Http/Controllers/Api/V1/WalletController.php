@@ -58,7 +58,9 @@ class WalletController extends Controller
         $amountKobo = (int) $request->string('quote_id')->toString();
         $result = $this->funding->collect($this->player(), $amountKobo, $request->string('reference')->toString());
 
-        return response()->json($result, $result['status'] === 'paid' ? 200 : 422);
+        $accepted = in_array($result['status'], ['paid', 'pending_review'], true);
+
+        return response()->json($result, $accepted ? 200 : 422);
     }
 
     /** @return array<string, mixed> */
@@ -71,6 +73,8 @@ class WalletController extends Controller
             $history[] = ['status' => 'Payment confirmed', 'at' => $collection->paidAt->toIso8601String(), 'detail' => 'Play Balance credited immediately.'];
         } elseif ($collection->status === 'failed') {
             $history[] = ['status' => 'Payment failed', 'at' => $collection->updatedAt->toIso8601String(), 'detail' => 'Could not be verified against OPay.'];
+        } elseif ($collection->status === 'pending_review') {
+            $history[] = ['status' => 'Under review', 'at' => $collection->updatedAt->toIso8601String(), 'detail' => 'Amount exceeds the auto-credit threshold; awaiting back-office approval.'];
         }
 
         return [

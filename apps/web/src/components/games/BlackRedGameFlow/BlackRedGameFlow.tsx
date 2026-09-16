@@ -266,8 +266,12 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
       setPlayBalanceKobo((current) => current + transaction.amountKobo);
       setStakeError(undefined);
       setDepositStage("done");
-    } catch {
-      setDepositError("Could not verify your OPay wallet and balance for this deposit. Please try again.");
+    } catch (error) {
+      setDepositError(
+        error instanceof Error && error.message === "PENDING_REVIEW"
+          ? "This amount needs manual review before it can be credited — try a smaller top-up."
+          : "Could not verify your OPay wallet and balance for this deposit. Please try again.",
+      );
     } finally {
       setIsSubmittingDeposit(false);
     }

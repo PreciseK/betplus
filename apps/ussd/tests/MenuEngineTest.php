@@ -193,6 +193,24 @@ final class MenuEngineTest extends TestCase
         $this->assertCount(0, array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseBlackRedTicket'));
     }
 
+    public function test_blackred_confirm_ends_the_session_when_deposit_needs_manual_review(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+
+        $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
+        $this->platform->programResponse('collectFromOpay', ['status' => 'pending_review']);
+
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $this->assertFalse($result->continues);
+        $this->assertStringContainsString('needs manual review', $result->render());
+        $this->assertCount(0, array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseBlackRedTicket'));
+    }
+
     public function test_cancelling_at_blackred_confirm_returns_to_the_main_menu(): void
     {
         $this->signIn('sess-1', '+2348031234567');

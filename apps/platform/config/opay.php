@@ -6,14 +6,7 @@ return [
     'base_url' => env('OPAY_BASE_URL', 'https://testapi.opaycheckout.com'),
     'merchant_id' => env('OPAY_MERCHANT_ID'),
 
-    // Payouts (RSA-SHA256) and Collections (HMAC-SHA512) use separate key material,
-    // separate signer classes (REQ-PAY-010).
     'payout_private_key' => env('OPAY_PAYOUT_PRIVATE_KEY'), // PEM, PKCS8
-    'collection_secret_key' => env('OPAY_COLLECTION_SECRET_KEY'),
-    // OPay's constant bank code for BankAccount collections (REQ-PAY-003) — not
-    // confirmed against a real OPay Collections doc; fill in from the merchant
-    // dashboard/onboarding pack before this goes near a real sandbox.
-    'collection_bank_code' => env('OPAY_COLLECTION_BANK_CODE'),
     // Comma-separated. Empty = no IP restriction (dev only — production must set this
     // from OPay's published callback source ranges before going live, REQ-PAY-014).
     'callback_ip_allowlist' => env('OPAY_CALLBACK_IP_ALLOWLIST', ''),

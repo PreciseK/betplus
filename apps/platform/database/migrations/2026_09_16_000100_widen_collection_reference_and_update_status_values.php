@@ -14,8 +14,16 @@ return new class extends Migration
         // client-generated idempotency key — crypto.randomUUID() alone is 36), but
         // this column was left at 32 from the original OTP-based Collection design.
         // Every real web/app deposit would have failed to insert.
+        //
+        // Also refreshes `status`'s comment: FundingService::collect() no longer uses
+        // pending_otp/processing/unknown (the OTP Collection flow they described is
+        // gone) and now writes pending_review for a deposit held above
+        // config('funding.manual_review_threshold_kobo').
         Schema::table('collection', function (Blueprint $table) {
             $table->string('reference', 64)->change();
+            $table->string('status', 20)->default('paid')
+                ->comment('paid | pending_review | failed')
+                ->change();
         });
     }
 
@@ -23,6 +31,9 @@ return new class extends Migration
     {
         Schema::table('collection', function (Blueprint $table) {
             $table->string('reference', 32)->change();
+            $table->string('status', 20)->default('pending_otp')
+                ->comment('pending_otp | processing | paid | failed | unknown')
+                ->change();
         });
     }
 };

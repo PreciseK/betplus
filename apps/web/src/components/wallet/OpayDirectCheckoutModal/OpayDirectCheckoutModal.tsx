@@ -36,8 +36,12 @@ export function OpayDirectCheckoutModal({
       await walletGateway.collectDeposit(quote.quoteId);
       await onPaymentSuccess();
       onClose();
-    } catch {
-      setError("Could not verify your OPay wallet and balance for this payment. Please try again.");
+    } catch (error) {
+      setError(
+        error instanceof Error && error.message === "PENDING_REVIEW"
+          ? "This stake needs manual review before it can be funded — please try a smaller amount or use your Play Balance instead."
+          : "Could not verify your OPay wallet and balance for this payment. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }

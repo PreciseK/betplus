@@ -29,6 +29,14 @@ use Illuminate\Support\Str;
  * merchant balance can cover the amount (§2.4 "Merchant balance query"), and credit
  * Play Balance bounded by both checks — synchronously, no OTP, no callback, no
  * polling job, because nothing is left pending after the request returns.
+ *
+ * That combination is a trust check, not proof of a payment — §2.4's balance query
+ * returns one aggregate total with no transaction list or sender info, so nothing
+ * documented here can attribute a specific inbound transfer to this specific
+ * request. Above config('funding.manual_review_threshold_kobo'), collect() holds
+ * the deposit for back-office review instead of crediting immediately, the same
+ * compensating control DispatchPayout applies on the payout side above
+ * config('payout.manual_review_threshold_kobo').
  */
 final class FundingService
 {
@@ -62,6 +70,10 @@ final class FundingService
     }
 
     /**
+     * status is one of: paid, pending_review, invalid_amount, limit_exceeded,
+     * protection_active, registry_unavailable, reference_conflict,
+     * wallet_unverified, float_unavailable.
+     *
      * @return array{status: string, credited_kobo?: int, play_balance_kobo?: int, reference?: string, message?: string}
      */
     public function collect(Player $player, int $amountKobo, ?string $reference = null): array
@@ -110,6 +122,13 @@ final class FundingService
                 'reference' => $existing->reference,
             ];
         }
+        if ($existing !== null && $existing->status === 'pending_review') {
+            return [
+                'status' => 'pending_review',
+                'message' => 'This deposit is under review and will be credited to your Play Balance once approved.',
+                'reference' => $existing->reference,
+            ];
+        }
 
         $walletCheck = $this->opay->nameLookup($player->msisdn);
         if ($walletCheck['status'] !== 'found') {
@@ -122,6 +141,26 @@ final class FundingService
         $floatKobo = $this->opay->floatBalanceKobo();
         if ($floatKobo === null || $floatKobo < $amountKobo) {
             return ['status' => 'float_unavailable', 'message' => 'Unable to verify sufficient OPay merchant balance for this deposit.'];
+        }
+
+        // The wallet+float checks above only bound how much the house is willing to
+        // advance on trust — they are not proof any money moved (see class doc
+        // comment). Above the threshold, hold for back-office review rather than
+        // credit immediately.
+        if ($amountKobo >= (int) config('funding.manual_review_threshold_kobo')) {
+            $collection = Collection::create([
+                'playerId' => $player->id,
+                'reference' => $ref,
+                'amountKobo' => $amountKobo,
+                'status' => 'pending_review',
+                'paidAt' => null,
+            ]);
+
+            return [
+                'status' => 'pending_review',
+                'message' => 'This deposit is under review and will be credited to your Play Balance once approved.',
+                'reference' => $collection->reference,
+            ];
         }
 
         $collection = Collection::create([

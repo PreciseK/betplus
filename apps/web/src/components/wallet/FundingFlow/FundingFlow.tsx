@@ -64,8 +64,14 @@ export function FundingFlow({ gateway, sourceLabel, onComplete, onCancel }: Fund
       setConfirmedTransaction(transaction);
       onComplete(transaction);
       setStep("confirmed");
-    } catch {
-      setProviderError("We couldn't verify your OPay wallet and balance for this deposit. Please try again.");
+    } catch (error) {
+      // Large deposits are held for back-office review rather than auto-credited
+      // (see FundingService::collect()'s doc comment) — nothing to retry here.
+      setProviderError(
+        error instanceof Error && error.message === "PENDING_REVIEW"
+          ? "This deposit needs manual review before it can be credited. We'll update your Play Balance once it's approved."
+          : "We couldn't verify your OPay wallet and balance for this deposit. Please try again.",
+      );
     } finally {
       setPending(false);
     }

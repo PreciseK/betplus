@@ -149,6 +149,46 @@ class FundingTest extends TestCase
         $this->assertNull(PlayerWallet::where('playerId', $player->id)->first());
     }
 
+    /** Sets deposit-daily's currently-effective limit directly — updateLimit()'s own
+     *  API only raises a limit after REQ-RG-003's delay, which real players can't
+     *  skip and this test isn't exercising. */
+    private function raiseDepositDailyLimit(Player $player, int $kobo): void
+    {
+        \App\Models\PlayerLimit::updateOrCreate(
+            ['playerId' => $player->id, 'limitKey' => 'deposit-daily'],
+            ['unit' => 'kobo', 'currentValue' => $kobo, 'pendingValue' => null, 'pendingEffectiveAt' => null],
+        );
+    }
+
+    public function test_deposit_above_the_manual_review_threshold_is_held_and_not_credited(): void
+    {
+        config(['funding.manual_review_threshold_kobo' => 5_000_000]);
+        [$player, $token] = $this->signedInPlayer();
+        $this->raiseDepositDailyLimit($player, 20_000_000);
+        $this->fakeVerifiedWallet(floatKobo: 100_000_000);
+
+        $response = $this->withToken($token)->postJson('/v1/wallet/deposits', ['quote_id' => '6000000', 'reference' => 'ref-review-001']);
+
+        $response->assertOk()->assertJson(['status' => 'pending_review']);
+        $this->assertArrayNotHasKey('credited_kobo', $response->json());
+        $this->assertNull(PlayerWallet::where('playerId', $player->id)->first());
+        $this->assertDatabaseHas('collection', ['reference' => 'ref-review-001', 'status' => 'pending_review', 'paidAt' => null]);
+    }
+
+    public function test_replayed_deposit_above_the_threshold_reports_pending_without_re_verifying(): void
+    {
+        config(['funding.manual_review_threshold_kobo' => 5_000_000]);
+        [$player, $token] = $this->signedInPlayer();
+        $this->raiseDepositDailyLimit($player, 20_000_000);
+        $this->fakeVerifiedWallet(floatKobo: 100_000_000);
+        $this->withToken($token)->postJson('/v1/wallet/deposits', ['quote_id' => '6000000', 'reference' => 'ref-review-002']);
+
+        $second = $this->withToken($token)->postJson('/v1/wallet/deposits', ['quote_id' => '6000000', 'reference' => 'ref-review-002']);
+
+        $second->assertOk()->assertJson(['status' => 'pending_review']);
+        $this->assertNull(PlayerWallet::where('playerId', $player->id)->first());
+    }
+
     public function test_replayed_deposit_with_same_reference_does_not_double_credit(): void
     {
         [$player, $token] = $this->signedInPlayer();

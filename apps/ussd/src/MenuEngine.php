@@ -650,6 +650,7 @@ final class MenuEngine
             'registry_unavailable' => 'Could not verify your account right now. Please try again shortly.',
             'wallet_unverified' => 'Could not verify an OPay wallet for this phone number. Please try again later.',
             'float_unavailable' => 'Could not process payment right now. Please try again shortly.',
+            'pending_review' => 'This amount needs manual review before it can be credited. Try a smaller amount or check back shortly.',
             default => 'Could not process payment. Please try again shortly.',
         };
     }

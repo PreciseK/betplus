@@ -87,10 +87,12 @@ export const walletGateway = {
     );
     if (result.status !== "paid") {
       // limit_exceeded/protection_active/registry_unavailable (Epic 5 — REQ-RG-002/
-      // 004/005/015 all block deposit, not just play) fall through to the generic
+      // 004/005/015 all block deposit, not just play) and pending_review (large
+      // deposits are held for back-office approval, not auto-credited — see
+      // FundingService::collect()'s doc comment) all fall through to a
       // status-derived message; FundingFlow's catch blocks don't discriminate by
-      // error message today, so a distinct thrown value costs nothing and documents
-      // intent for whenever that copy is added.
+      // error message today beyond PENDING_REVIEW, but a distinct thrown value
+      // costs nothing and documents intent for whenever more copy is added.
       throw new Error(result.status.toUpperCase());
     }
 
