@@ -26,10 +26,10 @@ function toMoneyTransaction(t: ApiTransaction) {
 
 /**
  * Real Story 2.3/2.6 implementation of apps/web's WalletGateway
- * (apps/web/src/mocks/wallet.ts). Endpoint field names beyond what REQ-PAY specifies
- * are unconfirmed against a real OPay Collections doc — same caveat as the backend
- * (see FundingService) — but the /v1/wallet* surface itself is Betplus's own and is
- * fully tested.
+ * (apps/web/src/mocks/wallet.ts). There is no Collections API doc — deposits are
+ * verified synchronously against the OPay Payout API (wallet validate + merchant
+ * balance query) using the player's own registered phone number, not one entered
+ * here — see FundingService::collect()'s doc comment on the backend. No OTP step.
  */
 export const walletGateway = {
   async loadWallet() {
@@ -74,34 +74,39 @@ export const walletGateway = {
     };
   },
 
-  async createCollection(quoteId: string, idempotencyKey?: string) {
-    const key = idempotencyKey ?? (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : undefined);
-    const result = await post<{ status: string; collection_id?: number }>(
+  /**
+   * Single step: verify the player's OPay wallet + BetPlus's merchant balance and
+   * credit Play Balance, or reject — no OTP, nothing left pending after this call.
+   */
+  async collectDeposit(quoteId: string, idempotencyKey?: string) {
+    const reference = idempotencyKey ?? (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `dep-${Date.now()}`);
+    const result = await post<{ status: string; credited_kobo?: number; reference?: string }>(
       "/wallet/deposits",
-      { quote_id: quoteId },
-      { idempotencyKey: key },
+      { quote_id: quoteId, reference },
+      { idempotencyKey: reference },
     );
-    if (result.status !== "otp_required" || result.collection_id === undefined) {
+    if (result.status !== "paid") {
       // limit_exceeded/protection_active/registry_unavailable (Epic 5 — REQ-RG-002/
       // 004/005/015 all block deposit, not just play) fall through to the generic
-      // COLLECTION_FAILED message; FundingFlow's catch blocks don't discriminate by
+      // status-derived message; FundingFlow's catch blocks don't discriminate by
       // error message today, so a distinct thrown value costs nothing and documents
       // intent for whenever that copy is added.
-      throw new Error(result.status === "bvn_required" ? "BVN_REQUIRED" : result.status.toUpperCase());
+      throw new Error(result.status.toUpperCase());
     }
 
-    return { collectionId: String(result.collection_id), otpRequired: true as const };
-  },
-
-  async submitCollectionOtp(collectionId: string, code: string) {
-    const result = await post<{ status: string } & Partial<ApiTransaction>>(
-      `/wallet/deposits/${collectionId}/otp`,
-      { otp: code },
-    );
-    if (result.status !== "paid" || result.reference === undefined) {
-      throw new Error("OTP_INVALID_OR_EXPIRED");
-    }
-
-    return toMoneyTransaction(result as ApiTransaction);
+    const now = new Date().toISOString();
+    return toMoneyTransaction({
+      reference: result.reference ?? reference,
+      type: "OPay deposit",
+      provider: "OPay",
+      occurred_at: now,
+      amount_kobo: result.credited_kobo ?? Number(quoteId),
+      fee_kobo: 0,
+      status: "paid",
+      status_history: [
+        { status: "Deposit requested", at: now, detail: "OPay wallet and merchant balance verified." },
+        { status: "Payment confirmed", at: now, detail: "Play Balance credited immediately." },
+      ],
+    });
   },
 };

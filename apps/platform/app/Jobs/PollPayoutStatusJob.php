@@ -18,8 +18,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Mirrors PollCollectionStatusJob's shape (Story 2.4) for the payout side (Story 4.3).
- * Also the mechanism that re-attempts a FLOAT_HALTED or QUEUED/MANUAL_REVIEW payout
+ * Polls a payout's provider status until it resolves (Story 4.3). Also the
+ * mechanism that re-attempts a FLOAT_HALTED or QUEUED/MANUAL_REVIEW payout
  * once conditions change, since this job re-checks float/manual-review state on
  * every run rather than assuming a payout was dispatched.
  */

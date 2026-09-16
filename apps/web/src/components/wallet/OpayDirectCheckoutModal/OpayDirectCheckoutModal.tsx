@@ -22,49 +22,22 @@ export function OpayDirectCheckoutModal({
   gameName,
   onPaymentSuccess,
 }: OpayDirectCheckoutModalProps) {
-  const [step, setStep] = useState<"phone" | "otp">("phone");
-  const [phone, setPhone] = useState("0803 123 4567");
-  const [otp, setOtp] = useState("");
-  const [collectionId, setCollectionId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
 
   if (!isOpen) return null;
 
-  const handleSendCode = async (e: FormEvent) => {
+  const handlePay = async (e: FormEvent) => {
     e.preventDefault();
-    if (!phone || phone.length < 10) {
-      setError("Please enter a valid Nigerian phone number.");
-      return;
-    }
     setError(undefined);
     setIsLoading(true);
     try {
       const quote = await walletGateway.quoteFunding(stakeKobo);
-      const collection = await walletGateway.createCollection(quote.quoteId);
-      setCollectionId(collection.collectionId);
-      setStep("otp");
-    } catch {
-      setError("Could not initiate OPay payment. Please check your network and try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!otp || otp.length < 4) {
-      setError("Please enter the 6-digit OTP code.");
-      return;
-    }
-    setError(undefined);
-    setIsLoading(true);
-    try {
-      await walletGateway.submitCollectionOtp(collectionId, otp);
+      await walletGateway.collectDeposit(quote.quoteId);
       await onPaymentSuccess();
       onClose();
     } catch {
-      setError("Invalid or expired OTP. Please try again.");
+      setError("Could not verify your OPay wallet and balance for this payment. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -105,60 +78,18 @@ export function OpayDirectCheckoutModal({
 
           {error && <div className={styles.errorText} role="alert">{error}</div>}
 
-          {step === "phone" ? (
-            <form onSubmit={handleSendCode}>
-              <div className={styles.field}>
-                <label className={styles.label} htmlFor="opay-phone">OPay Account / Phone Number</label>
-                <input
-                  id="opay-phone"
-                  className={styles.input}
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="080... or +234..."
-                  required
-                />
-                <div className={styles.hint}>Funds will be charged directly from this OPay account.</div>
-              </div>
+          <form onSubmit={handlePay}>
+            <div className={styles.hint}>Funds will be verified and charged directly from your registered OPay wallet.</div>
 
-              <div className={styles.actions}>
-                <button type="button" className={styles.btnSecondary} onClick={onClose} disabled={isLoading}>
-                  Cancel
-                </button>
-                <button type="submit" className={styles.btnPrimary} disabled={isLoading}>
-                  {isLoading ? "Connecting OPay..." : "Pay via OPay ▶"}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp}>
-              <div className={styles.field}>
-                <label className={styles.label} htmlFor="opay-otp">Enter 6-Digit OPay OTP</label>
-                <input
-                  id="opay-otp"
-                  className={`${styles.input} ${styles.otpInput}`}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  placeholder="••••••"
-                  autoFocus
-                  required
-                />
-                <div className={styles.hint}>Enter the confirmation code sent to {phone}.</div>
-              </div>
-
-              <div className={styles.actions}>
-                <button type="button" className={styles.btnSecondary} onClick={() => setStep("phone")} disabled={isLoading}>
-                  Back
-                </button>
-                <button type="submit" className={styles.btnPrimary} disabled={isLoading}>
-                  {isLoading ? "Authorizing..." : "Confirm & Launch ▶"}
-                </button>
-              </div>
-            </form>
-          )}
+            <div className={styles.actions}>
+              <button type="button" className={styles.btnSecondary} onClick={onClose} disabled={isLoading}>
+                Cancel
+              </button>
+              <button type="submit" className={styles.btnPrimary} disabled={isLoading}>
+                {isLoading ? "Verifying OPay..." : "Pay via OPay ▶"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

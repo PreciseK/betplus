@@ -6,10 +6,6 @@ use App\Http\Controllers\Internal\OpayCallbackController;
 use App\Http\Controllers\Internal\UssdGatewayController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('opay.callback')->group(function () {
-    Route::post('/internal/opay/callback/payin', [OpayCallbackController::class, 'payin']);
-});
-
 Route::middleware('opay.payout-callback')->group(function () {
     Route::post('/internal/opay/callback/payout', [OpayCallbackController::class, 'payout']);
 });

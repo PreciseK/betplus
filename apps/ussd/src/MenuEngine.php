@@ -107,10 +107,6 @@ final class MenuEngine
             'caged_pick' => $this->screenCagedPick($session, $input),
             'caged_stake' => $this->screenCagedStake($session, $input),
             'caged_confirm' => $this->screenCagedConfirm($session, $input),
-            'fund_nin' => $this->screenFundNin($session, $input),
-            'fund_dob' => $this->screenFundDob($session, $input),
-            'fund_bvn' => $this->screenFundBvn($session, $input),
-            'fund_otp' => $this->screenFundOtp($session, $input),
             'rg_menu' => $this->screenRgMenu($session, $input),
             'rg_break_menu' => $this->screenRgBreakMenu($session, $input),
             default => Screen::end('Session error. Please dial again.'),
@@ -304,7 +300,7 @@ final class MenuEngine
         }
 
         $stakeKobo = (int) $session->data['brStakeKobo'];
-        $funding = $this->resolveFunding($session, 'blackred', $stakeKobo);
+        $funding = $this->resolveFunding($session, $stakeKobo);
         if ($funding !== null) {
             return $funding;
         }
@@ -394,7 +390,7 @@ final class MenuEngine
         }
 
         $stakeKobo = (int) $session->data['hgStakeKobo'];
-        $funding = $this->resolveFunding($session, 'heritage', $stakeKobo);
+        $funding = $this->resolveFunding($session, $stakeKobo);
         if ($funding !== null) {
             return $funding;
         }
@@ -484,7 +480,7 @@ final class MenuEngine
         }
 
         $stakeKobo = (int) $session->data['cgStakeKobo'];
-        $funding = $this->resolveFunding($session, 'caged', $stakeKobo);
+        $funding = $this->resolveFunding($session, $stakeKobo);
         if ($funding !== null) {
             return $funding;
         }
@@ -601,17 +597,18 @@ final class MenuEngine
     }
 
     // ── Direct-pay funding (no wallet top-up step — pay per-transaction, straight
-    // from OPay via the existing collection+OTP flow, same one the web deposit
-    // modal uses) ────────────────────────────────────────────────────────────
+    // from OPay) ─────────────────────────────────────────────────────────────
 
     /**
      * If the player's existing wallet balance (only ever funded via web, if at
      * all) already covers the stake, returns null so the caller proceeds straight
-     * to purchase. Otherwise starts the direct-pay OTP flow for the shortfall and
-     * returns the next screen — funding is per-transaction, never a standalone
-     * top-up.
+     * to purchase. Otherwise verifies the player's OPay wallet and BetPlus's own
+     * merchant balance (the only mechanism the OPay Payout API doc actually
+     * supports — see FundingService::collect()'s doc comment) and credits the
+     * shortfall synchronously — no OTP, no identity walk, no extra screen. Either
+     * the purchase proceeds this same turn, or the session ends with why not.
      */
-    private function resolveFunding(Session $session, string $game, int $stakeKobo): ?Screen
+    private function resolveFunding(Session $session, int $stakeKobo): ?Screen
     {
         try {
             $wallet = $this->platform->wallet((string) $session->accessToken);
@@ -634,144 +631,26 @@ final class MenuEngine
         }
 
         $shortfallKobo = max($stakeKobo - $availableKobo, 0);
+        $amountKobo = $shortfallKobo > 0 ? $shortfallKobo : $stakeKobo;
 
-        return $this->beginDirectPay($session, $game, $shortfallKobo > 0 ? $shortfallKobo : $stakeKobo);
-    }
+        $result = $this->platform->collectFromOpay((string) $session->accessToken, $amountKobo, 'ussd-fund-' . $session->sessionId);
 
-    private function beginDirectPay(Session $session, string $game, int $amountKobo): Screen
-    {
-        $session->data['fundGame'] = $game;
-        $session->data['fundStakeKobo'] = $amountKobo;
-
-        $result = $this->platform->createDeposit((string) $session->accessToken, $amountKobo);
-        $status = (string) ($result['status'] ?? 'error');
-
-        if ($status === 'otp_required') {
-            $session->data['fundCollectionId'] = (int) $result['collection_id'];
-            $session->screen = 'fund_otp';
-
-            return Screen::continue('Enter the OTP sent by OPay to confirm payment:');
+        if (($result['status'] ?? 'error') === 'paid') {
+            return null;
         }
 
-        if ($status === 'bvn_required') {
-            $session->screen = 'fund_nin';
-
-            return Screen::continue("To pay directly via OPay, verify your identity first.\nEnter your NIN:");
-        }
-
-        return Screen::end($this->directPayFailureMessage($status));
+        return Screen::end($this->fundingFailureMessage((string) ($result['status'] ?? 'error')));
     }
 
-    private function directPayFailureMessage(string $status): string
+    private function fundingFailureMessage(string $status): string
     {
         return match ($status) {
             'limit_exceeded' => 'This would exceed your deposit limit. Adjust your limits on the Betplus app/website.',
             'protection_active' => 'Deposits are currently paused on your account.',
             'registry_unavailable' => 'Could not verify your account right now. Please try again shortly.',
-            default => 'Could not start payment. Please try again shortly.',
+            'wallet_unverified' => 'Could not verify an OPay wallet for this phone number. Please try again later.',
+            'float_unavailable' => 'Could not process payment right now. Please try again shortly.',
+            default => 'Could not process payment. Please try again shortly.',
         };
-    }
-
-    private function screenFundNin(Session $session, string $input): Screen
-    {
-        if ($input === '' || !ctype_digit($input) || strlen($input) !== 11) {
-            return $this->errorPrefixed($session, 'fund_nin', 'Enter your 11-digit NIN:');
-        }
-
-        $session->data['fundNin'] = $input;
-        $session->screen = 'fund_dob';
-
-        return Screen::continue('Enter your date of birth (DD-MM-YYYY):');
-    }
-
-    private function screenFundDob(Session $session, string $input): Screen
-    {
-        $dob = $this->parseDob($input);
-        if ($dob === null) {
-            return $this->errorPrefixed($session, 'fund_dob', 'Enter your date of birth (DD-MM-YYYY):');
-        }
-
-        $nin = (string) $session->data['fundNin'];
-        unset($session->data['fundNin']);
-        $result = $this->platform->verifyNin((string) $session->accessToken, $dob, $nin);
-        $status = (string) ($result['status'] ?? 'error');
-
-        if ($status === 'verified_tier_1') {
-            $session->screen = 'fund_bvn';
-
-            return Screen::continue('Enter your BVN:');
-        }
-
-        return Screen::end(match ($status) {
-            'under_age' => 'Sorry, you must be 18 or older to verify your identity.',
-            'nin_not_verified' => 'Your NIN could not be verified. Please try again later.',
-            default => 'Identity verification failed. Please try again later.',
-        });
-    }
-
-    private function screenFundBvn(Session $session, string $input): Screen
-    {
-        if ($input === '' || !ctype_digit($input) || strlen($input) !== 11) {
-            return $this->errorPrefixed($session, 'fund_bvn', 'Enter your 11-digit BVN:');
-        }
-
-        $result = $this->platform->verifyBvn((string) $session->accessToken, $input);
-        $status = (string) ($result['status'] ?? 'error');
-
-        if ($status !== 'verified_tier_2') {
-            return Screen::end(match ($status) {
-                'bvn_not_verified' => 'Your BVN could not be verified. Please try again later.',
-                default => 'Identity verification failed. Please try again later.',
-            });
-        }
-
-        $amountKobo = (int) $session->data['fundStakeKobo'];
-        $result = $this->platform->createDeposit((string) $session->accessToken, $amountKobo);
-
-        if (($result['status'] ?? '') !== 'otp_required') {
-            return Screen::end('Could not start payment. Please try again shortly.');
-        }
-
-        $session->data['fundCollectionId'] = (int) $result['collection_id'];
-        $session->screen = 'fund_otp';
-
-        return Screen::continue('Enter the OTP sent by OPay to confirm payment:');
-    }
-
-    private function screenFundOtp(Session $session, string $input): Screen
-    {
-        if ($input === '' || !ctype_digit($input)) {
-            return $this->errorPrefixed($session, 'fund_otp', 'Enter the OTP sent by OPay to confirm payment:');
-        }
-
-        $collectionId = (int) $session->data['fundCollectionId'];
-        $result = $this->platform->submitDepositOtp((string) $session->accessToken, $collectionId, $input);
-
-        if (($result['status'] ?? '') !== 'paid') {
-            return Screen::end('Payment could not be confirmed. Please try again.');
-        }
-
-        $game = (string) $session->data['fundGame'];
-        unset($session->data['fundStakeKobo'], $session->data['fundCollectionId'], $session->data['fundGame']);
-
-        return match ($game) {
-            'blackred' => $this->completeBlackRedPurchase($session),
-            'heritage' => $this->completeHeritagePurchase($session),
-            'caged' => $this->completeCagedPurchase($session),
-            default => Screen::end('Session error. Please dial again.'),
-        };
-    }
-
-    private function parseDob(string $input): ?string
-    {
-        if (!preg_match('/^(\d{2})-(\d{2})-(\d{4})$/', $input, $m)) {
-            return null;
-        }
-        [, $day, $month, $year] = $m;
-        if (!checkdate((int) $month, (int) $day, (int) $year)) {
-            return null;
-        }
-
-        return "$year-$month-$day";
     }
 }

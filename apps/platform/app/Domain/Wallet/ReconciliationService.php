@@ -77,8 +77,8 @@ final class ReconciliationService
             'status' => 'open',
         ]);
 
-        // No paging pipeline exists yet — see PollCollectionStatusJob's same caveat.
-        // This is the record a real one would consume; Finance needs it in an
+        // No paging pipeline exists yet. This is the record a real one would
+        // consume; Finance needs it in an
         // exception queue (Epic 6), not just logged where nobody looks.
         AuditLog::create([
             'actorType' => 'system',

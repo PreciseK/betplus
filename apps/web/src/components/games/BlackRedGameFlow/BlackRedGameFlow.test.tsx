@@ -10,8 +10,7 @@ import { BlackRedGameFlow } from "./BlackRedGameFlow";
 vi.mock("@betplus/api-client", () => ({
   walletGateway: {
     quoteFunding: vi.fn().mockResolvedValue({ quoteId: "quote-1", amountKobo: 800_000 }),
-    createCollection: vi.fn().mockResolvedValue({ collectionId: "collection-1", otpRequired: true as const }),
-    submitCollectionOtp: vi.fn().mockResolvedValue({ reference: "dep-ref-1", amountKobo: 800_000 }),
+    collectDeposit: vi.fn().mockResolvedValue({ reference: "dep-ref-1", amountKobo: 800_000 }),
   },
   payoutGateway: {
     quoteWithdrawal: vi.fn().mockResolvedValue({ quoteId: "wd-quote-1", amountKobo: 500_000 }),
@@ -65,7 +64,7 @@ describe("BlackRedGameFlow Dashboard", () => {
     expect(screen.getByRole("button", { name: /Begin shuffle/i })).toBeInTheDocument();
   }, 35000);
 
-  it("opens inline top-up and preserves the configured game through amount, OTP, and done", async () => {
+  it("opens inline top-up and preserves the configured game through amount and done", async () => {
     render(<BlackRedGameFlow />);
     await configureRound(["B"], "20000");
 
@@ -73,9 +72,7 @@ describe("BlackRedGameFlow Dashboard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Top up here" }));
     await screen.findByRole("dialog", { name: "Top up" });
     fireEvent.change(screen.getByPlaceholderText("1,000"), { target: { value: "8000" } });
-    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    fireEvent.change(await screen.findByLabelText("One-time password"), { target: { value: "123456" } });
-    fireEvent.click(screen.getByRole("button", { name: "Verify and top up" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pay via OPay" }));
     expect(await screen.findByRole("heading", { name: "Top-up complete" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Back to game" }));
 

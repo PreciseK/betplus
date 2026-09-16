@@ -22,22 +22,14 @@ interface PlatformClientInterface
     /** @return array<string, mixed> */
     public function wallet(string $token): array;
 
-    /** @return array<string, mixed> */
-    public function verifyNin(string $token, string $dateOfBirth, string $nin): array;
-
-    /** @return array<string, mixed> */
-    public function verifyBvn(string $token, string $bvn): array;
-
     /**
-     * Direct-pay per-transaction funding: the same web deposit flow, driven from
-     * USSD instead of a modal.
+     * Direct-pay per-transaction funding: the same web deposit endpoint
+     * (verify OPay wallet + merchant balance, credit synchronously — no OTP),
+     * driven from USSD instead of a modal.
      *
      * @return array<string, mixed>
      */
-    public function createDeposit(string $token, int $amountKobo): array;
-
-    /** @return array<string, mixed> */
-    public function submitDepositOtp(string $token, int $collectionId, string $otp): array;
+    public function collectFromOpay(string $token, int $amountKobo, string $reference): array;
 
     /** @return array<string, mixed> */
     public function blackRedDescriptor(string $token): array;

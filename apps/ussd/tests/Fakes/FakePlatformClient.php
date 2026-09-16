@@ -64,24 +64,9 @@ final class FakePlatformClient implements PlatformClientInterface
         return $this->respond(__FUNCTION__, [$token]);
     }
 
-    public function verifyNin(string $token, string $dateOfBirth, string $nin): array
+    public function collectFromOpay(string $token, int $amountKobo, string $reference): array
     {
-        return $this->respond(__FUNCTION__, [$token, $dateOfBirth, $nin]);
-    }
-
-    public function verifyBvn(string $token, string $bvn): array
-    {
-        return $this->respond(__FUNCTION__, [$token, $bvn]);
-    }
-
-    public function createDeposit(string $token, int $amountKobo): array
-    {
-        return $this->respond(__FUNCTION__, [$token, $amountKobo]);
-    }
-
-    public function submitDepositOtp(string $token, int $collectionId, string $otp): array
-    {
-        return $this->respond(__FUNCTION__, [$token, $collectionId, $otp]);
+        return $this->respond(__FUNCTION__, [$token, $amountKobo, $reference]);
     }
 
     public function blackRedDescriptor(string $token): array

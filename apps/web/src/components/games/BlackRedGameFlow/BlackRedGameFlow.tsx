@@ -35,7 +35,7 @@ interface RoundRecord {
   amountKobo: number;
 }
 
-type DepositStage = "amount" | "otp" | "done";
+type DepositStage = "amount" | "done";
 type WithdrawStage = "amount" | "otp" | "done";
 
 export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: BlackRedGateway }) {
@@ -68,9 +68,7 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositStage, setDepositStage] = useState<DepositStage>("amount");
   const [depositAmount, setDepositAmount] = useState("");
-  const [depositOtp, setDepositOtp] = useState("");
   const [depositError, setDepositError] = useState<string>();
-  const [pendingCollectionId, setPendingCollectionId] = useState<string>();
   const [isSubmittingDeposit, setIsSubmittingDeposit] = useState(false);
   const depositTriggerRef = useRef<HTMLElement | null>(null);
 
@@ -235,8 +233,6 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
     depositTriggerRef.current = el;
     setDepositStage("amount");
     setDepositAmount("");
-    setDepositOtp("");
-    setPendingCollectionId(undefined);
     setDepositError(undefined);
     setDepositOpen(true);
   };
@@ -266,31 +262,12 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
     setIsSubmittingDeposit(true);
     try {
       const quote = await walletGateway.quoteFunding(Math.round(amount * 100));
-      const collection = await walletGateway.createCollection(quote.quoteId);
-      setPendingCollectionId(collection.collectionId);
-      setDepositStage("otp");
-    } catch {
-      setDepositError("Could not start that deposit. Please try again.");
-    } finally {
-      setIsSubmittingDeposit(false);
-    }
-  };
-
-  const verifyDeposit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!/^\d{6}$/.test(depositOtp) || !pendingCollectionId) {
-      setDepositError("Enter the six-digit OTP.");
-      return;
-    }
-    setIsSubmittingDeposit(true);
-    try {
-      const transaction = await walletGateway.submitCollectionOtp(pendingCollectionId, depositOtp);
+      const transaction = await walletGateway.collectDeposit(quote.quoteId);
       setPlayBalanceKobo((current) => current + transaction.amountKobo);
       setStakeError(undefined);
-      setDepositError(undefined);
       setDepositStage("done");
     } catch {
-      setDepositError("That code didn't work — check it and try again.");
+      setDepositError("Could not verify your OPay wallet and balance for this deposit. Please try again.");
     } finally {
       setIsSubmittingDeposit(false);
     }
@@ -703,13 +680,10 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
         <DepositSheet
           stage={depositStage}
           amount={depositAmount}
-          otp={depositOtp}
           error={depositError}
           isSubmitting={isSubmittingDeposit}
           onAmountChange={setDepositAmount}
-          onOtpChange={setDepositOtp}
           onAmountSubmit={submitDepositAmount}
-          onOtpSubmit={verifyDeposit}
           onClose={closeDeposit}
         />
       )}
@@ -800,24 +774,18 @@ function containDialogFocus(event: React.KeyboardEvent<HTMLElement>, container: 
 function DepositSheet({
   stage,
   amount,
-  otp,
   error,
   isSubmitting,
   onAmountChange,
-  onOtpChange,
   onAmountSubmit,
-  onOtpSubmit,
   onClose,
 }: {
   stage: DepositStage;
   amount: string;
-  otp: string;
   error?: string;
   isSubmitting: boolean;
   onAmountChange: (value: string) => void;
-  onOtpChange: (value: string) => void;
   onAmountSubmit: (event: FormEvent) => void;
-  onOtpSubmit: (event: FormEvent) => void;
   onClose: () => void;
 }) {
   const sheetRef = useRef<HTMLElement>(null);
@@ -843,7 +811,7 @@ function DepositSheet({
           <div>
             <span className={styles.modalEyebrow}>Play Balance</span>
             <h2 id="deposit-title" className={styles.modalHeadingTitle}>
-              {stage === "amount" ? "Top Up Account" : stage === "otp" ? "Enter OTP" : "Top-up complete"}
+              {stage === "amount" ? "Top Up Account" : "Top-up complete"}
             </h2>
           </div>
           <button className={styles.modalCloseBtn} type="button" onClick={onClose} aria-label="Close top-up sheet">✕</button>
@@ -889,34 +857,7 @@ function DepositSheet({
 
             {error && <p className={styles.fieldError} role="alert">{error}</p>}
             <button className={styles.primaryAction} type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Starting…" : "Continue"}
-            </button>
-          </form>
-        )}
-
-        {stage === "otp" && (
-          <form className={styles.modalForm} onSubmit={onOtpSubmit}>
-            <p className={styles.modalInstructions}>Enter the six-digit code sent to your registered phone.</p>
-            <div className={styles.modalInputGroup}>
-              <label htmlFor="deposit-otp-input" className={styles.modalInputLabel}>
-                One-time password
-              </label>
-              <div className={styles.modalInputWrapper}>
-                <input
-                  id="deposit-otp-input"
-                  autoFocus
-                  className={styles.modalInputField}
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(event) => onOtpChange(event.target.value.replace(/\D/g, ""))}
-                  placeholder="000000"
-                />
-              </div>
-            </div>
-            {error && <p className={styles.fieldError} role="alert">{error}</p>}
-            <button className={styles.primaryAction} type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Verifying…" : "Verify and top up"}
+              {isSubmitting ? "Verifying…" : "Pay via OPay"}
             </button>
           </form>
         )}

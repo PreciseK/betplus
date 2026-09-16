@@ -30,7 +30,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.token' => \App\Http\Middleware\EnsureAccessToken::class,
             'idempotent' => \App\Http\Middleware\EnsureIdempotency::class,
-            'opay.callback' => \App\Http\Middleware\VerifyOpayCallback::class,
             'opay.payout-callback' => \App\Http\Middleware\VerifyOpayPayoutCallback::class,
             'institution.auth' => \App\Http\Middleware\EnsureInstitutionUser::class,
             'institution.role' => \App\Http\Middleware\EnsureInstitutionRole::class,

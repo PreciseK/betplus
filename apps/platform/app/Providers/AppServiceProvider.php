@@ -11,7 +11,6 @@ use App\Domain\Games\Draw\StubDrawPartnerAdapter;
 use App\Domain\Games\Heritage\HeritageEngineClient;
 use App\Domain\Jurisdiction\Signals\LocationSignalProvider;
 use App\Domain\Jurisdiction\Signals\StubLocationSignalProvider;
-use App\Domain\Payments\Providers\Opay\OpayCollectionSigner;
 use App\Domain\Payments\Providers\Opay\OpayGateway;
 use App\Domain\Payments\Providers\Opay\OpayPayoutCallbackVerifier;
 use App\Domain\Payments\Providers\Opay\OpayPayoutSigner;
@@ -27,16 +26,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Bound independently, not just inline inside OpayGateway's factory — the
-        // callback verification middleware also needs to resolve OpayCollectionSigner
-        // on its own.
         $this->app->singleton(OpayPayoutSigner::class, fn () => new OpayPayoutSigner((string) config('opay.payout_private_key')));
-        $this->app->singleton(OpayCollectionSigner::class, fn () => new OpayCollectionSigner((string) config('opay.collection_secret_key')));
         $this->app->singleton(OpayPayoutCallbackVerifier::class, fn () => new OpayPayoutCallbackVerifier((string) config('opay.payout_callback_secret')));
 
         $this->app->singleton(OpayGateway::class, fn ($app) => new OpayGateway(
             $app->make(OpayPayoutSigner::class),
-            $app->make(OpayCollectionSigner::class),
             (string) config('opay.base_url'),
             (string) config('opay.merchant_id'),
         ));

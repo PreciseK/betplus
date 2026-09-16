@@ -27,30 +27,35 @@ function gateway(): WalletGateway {
       expectedTiming: "Usually within 2 minutes after OPay confirms payment",
       reversible: false,
     }),
-    createCollection: vi.fn().mockResolvedValue({ collectionId: "collection-1", otpRequired: true }),
-    submitCollectionOtp: vi.fn().mockResolvedValue(transaction),
+    collectDeposit: vi.fn().mockResolvedValue(transaction),
   };
 }
 
 describe("FundingFlow", () => {
-  it("waits for OTP confirmation before reporting a balance-changing transaction", async () => {
+  it("verifies the OPay wallet and merchant balance synchronously before reporting a balance-changing transaction", async () => {
     const walletGateway = gateway();
     const onComplete = vi.fn();
     render(<FundingFlow gateway={walletGateway} sourceLabel="OPay wallet ending 5678" onComplete={onComplete} onCancel={vi.fn()} />);
 
     fireEvent.change(screen.getByLabelText("Amount to add"), { target: { value: "2500" } });
-    fireEvent.submit(screen.getByRole("button", { name: "Continue" }));
-
-    // Should go straight to entering OTP
-    await screen.findByRole("heading", { name: /Check your phone & enter OTP/i });
-    expect(walletGateway.createCollection).toHaveBeenCalledWith("quote-1");
-    expect(onComplete).not.toHaveBeenCalled();
-
-    fireEvent.change(screen.getByLabelText("Verification code"), { target: { value: "123456" } });
-    fireEvent.submit(screen.getByRole("button", { name: "Confirm Deposit" }));
+    fireEvent.submit(screen.getByRole("button", { name: "Pay via OPay" }));
 
     await screen.findByText("Deposit confirmed");
-    expect(walletGateway.submitCollectionOtp).toHaveBeenCalledWith("collection-1", "123456");
+    expect(walletGateway.quoteFunding).toHaveBeenCalledWith(250_000);
+    expect(walletGateway.collectDeposit).toHaveBeenCalledWith("quote-1");
     expect(onComplete).toHaveBeenCalledWith(transaction);
+  });
+
+  it("shows a provider error and does not confirm when verification fails", async () => {
+    const walletGateway = gateway();
+    (walletGateway.collectDeposit as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("WALLET_UNVERIFIED"));
+    const onComplete = vi.fn();
+    render(<FundingFlow gateway={walletGateway} sourceLabel="OPay wallet ending 5678" onComplete={onComplete} onCancel={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText("Amount to add"), { target: { value: "2500" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Pay via OPay" }));
+
+    await screen.findByText(/couldn't verify your OPay wallet/i);
+    expect(onComplete).not.toHaveBeenCalled();
   });
 });

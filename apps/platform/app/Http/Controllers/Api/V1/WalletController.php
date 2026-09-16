@@ -9,7 +9,6 @@ use App\Domain\Wallet\WalletService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CreateDepositRequest;
 use App\Http\Requests\Api\V1\FundingQuoteRequest;
-use App\Http\Requests\Api\V1\SubmitDepositOtpRequest;
 use App\Models\Collection;
 use App\Models\Player;
 use Illuminate\Http\JsonResponse;
@@ -53,36 +52,25 @@ class WalletController extends Controller
         return response()->json($this->funding->quote($this->player(), (int) $request->input('amount_kobo')));
     }
 
-    /** POST /v1/wallet/deposits */
+    /** POST /v1/wallet/deposits — single step: verify + credit, or reject. No OTP. */
     public function deposit(CreateDepositRequest $request): JsonResponse
     {
-        return response()->json($this->funding->createCollection($this->player(), $request->string('quote_id')->toString()));
-    }
+        $amountKobo = (int) $request->string('quote_id')->toString();
+        $result = $this->funding->collect($this->player(), $amountKobo, $request->string('reference')->toString());
 
-    /** POST /v1/wallet/deposits/{id}/otp */
-    public function depositOtp(SubmitDepositOtpRequest $request, int $id): JsonResponse
-    {
-        $result = $this->funding->submitCollectionOtp($this->player(), $id, $request->string('otp')->toString());
-
-        if ($result['status'] !== 'paid') {
-            return response()->json($result);
-        }
-
-        $collection = Collection::findOrFail($id);
-
-        return response()->json($this->transactionShape($collection));
+        return response()->json($result, $result['status'] === 'paid' ? 200 : 422);
     }
 
     /** @return array<string, mixed> */
     private function transactionShape(Collection $collection): array
     {
         $history = [
-            ['status' => 'Collection requested', 'at' => $collection->createdAt->toIso8601String(), 'detail' => 'OPay collection created.'],
+            ['status' => 'Deposit requested', 'at' => $collection->createdAt->toIso8601String(), 'detail' => 'OPay wallet and merchant balance verified.'],
         ];
         if ($collection->status === 'paid') {
-            $history[] = ['status' => 'Payment confirmed', 'at' => $collection->paidAt->toIso8601String(), 'detail' => 'Play Balance credited after server confirmation.'];
+            $history[] = ['status' => 'Payment confirmed', 'at' => $collection->paidAt->toIso8601String(), 'detail' => 'Play Balance credited immediately.'];
         } elseif ($collection->status === 'failed') {
-            $history[] = ['status' => 'Payment failed', 'at' => $collection->updatedAt->toIso8601String(), 'detail' => 'OPay declined or the code was not confirmed in time.'];
+            $history[] = ['status' => 'Payment failed', 'at' => $collection->updatedAt->toIso8601String(), 'detail' => 'Could not be verified against OPay.'];
         }
 
         return [

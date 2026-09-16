@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
  * REQ-SEC-009 — everything under /internal/ussd is machine-to-machine (apps/ussd,
  * not the telco aggregator directly — see UssdGatewayController's doc comment) and
  * still gets a real signature check, not a bare network-position trust. Mirrors
- * VerifyOpayCallback's shape exactly.
+ * VerifyOpayPayoutCallback's shape exactly.
  */
 class VerifyUssdGatewaySignature
 {

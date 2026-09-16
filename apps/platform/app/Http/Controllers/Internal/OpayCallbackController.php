@@ -5,40 +5,25 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Internal;
 
 use App\Domain\Payout\SettlePayoutStatus;
-use App\Domain\Wallet\FundingService;
 use App\Http\Controllers\Controller;
 use App\Models\Payout;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * POST /internal/opay/callback/payin and .../payout (Betplus_PRD.md §12.4). Signature/
- * IP verification happens in the route's middleware before either action runs.
+ * POST /internal/opay/callback/payout (Betplus_PRD.md §12.4 / OPay Payout API
+ * Developer Guide §2.3). Signature/IP verification happens in the route's
+ * middleware before this runs.
+ *
+ * There used to be a .../payin sibling for a Collections callback — removed along
+ * with FundingService's invented Collections mechanism (see that class's doc
+ * comment). Nothing calls this controller for deposits any more.
  */
 class OpayCallbackController extends Controller
 {
     public function __construct(
-        private readonly FundingService $funding,
         private readonly SettlePayoutStatus $settlePayout,
     ) {
-    }
-
-    /** Payload field names are unconfirmed (no Collections API doc) — see OpayGateway's doc comment. */
-    public function payin(Request $request): JsonResponse
-    {
-        $reference = $request->string('reference')->toString();
-        $providerStatus = $request->string('status')->toString();
-
-        if ($reference === '') {
-            return response()->json(['message' => 'reference is required'], 422);
-        }
-
-        // "Payment reference already exists" style provider errors are handled by
-        // resolveByReference's own idempotency (REQ-PAY-013) — a replayed callback for
-        // an already-paid reference just reports 'paid' again, not a failure.
-        $result = $this->funding->resolveByReference($reference, $this->mapCallbackStatus($providerStatus));
-
-        return response()->json(['received' => true, 'status' => $result['status']]);
     }
 
     /**
@@ -72,14 +57,5 @@ class OpayCallbackController extends Controller
         $this->settlePayout->apply($payout, $providerStatus !== '' ? $providerStatus : 'RETURN');
 
         return response()->json(['received' => true]);
-    }
-
-    private function mapCallbackStatus(string $providerStatus): string
-    {
-        return match ($providerStatus) {
-            'SUCCESS' => 'paid',
-            'FAILED', 'CLOSE' => 'failed',
-            default => 'processing',
-        };
     }
 }

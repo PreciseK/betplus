@@ -153,7 +153,7 @@ final class MenuEngineTest extends TestCase
         $this->assertSame(50_000, $purchaseCall['args'][2]);
     }
 
-    public function test_blackred_confirm_starts_direct_pay_via_opay_otp_if_play_balance_is_zero_or_insufficient(): void
+    public function test_blackred_confirm_funds_from_opay_and_purchases_when_play_balance_is_insufficient(): void
     {
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
@@ -162,30 +162,20 @@ final class MenuEngineTest extends TestCase
         $this->engine->handleTurn('sess-1', '+2348031234567', '500');
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
-        $this->platform->programResponse('createDeposit', ['status' => 'otp_required', 'collection_id' => 77]);
-
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-
-        $this->assertTrue($screen->continues);
-        $this->assertStringContainsString('OTP', $screen->render());
-        $depositCalls = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'createDeposit'));
-        $this->assertCount(1, $depositCalls);
-        $this->assertSame(50_000, $depositCalls[0]['args'][1]);
-
-        $this->platform->programResponse('submitDepositOtp', ['status' => 'paid']);
+        $this->platform->programResponse('collectFromOpay', ['status' => 'paid']);
         $this->platform->programResponse('purchaseBlackRedTicket', ['reference' => 'tkt-direct-paid']);
         $this->platform->programResponse('revealBlackRedTicket', ['won' => false, 'net_credit_kobo' => 0]);
 
-        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '123456');
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
 
         $this->assertFalse($result->continues);
         $this->assertStringContainsString('tkt-direct-paid', $result->render());
-        $otpCalls = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'submitDepositOtp'));
-        $this->assertSame(77, $otpCalls[0]['args'][1]);
-        $this->assertSame('123456', $otpCalls[0]['args'][2]);
+        $fundingCalls = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'collectFromOpay'));
+        $this->assertCount(1, $fundingCalls);
+        $this->assertSame(50_000, $fundingCalls[0]['args'][1]);
     }
 
-    public function test_direct_pay_requiring_identity_walks_through_nin_dob_and_bvn_before_otp(): void
+    public function test_blackred_confirm_ends_the_session_when_opay_wallet_cannot_be_verified(): void
     {
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
@@ -194,34 +184,13 @@ final class MenuEngineTest extends TestCase
         $this->engine->handleTurn('sess-1', '+2348031234567', '500');
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
-        $this->platform->programResponse('createDeposit', ['status' => 'bvn_required']);
+        $this->platform->programResponse('collectFromOpay', ['status' => 'wallet_unverified']);
 
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->assertTrue($screen->continues);
-        $this->assertStringContainsString('NIN', $screen->render());
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
 
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '12345678901');
-        $this->assertStringContainsString('date of birth', $screen->render());
-
-        $this->platform->programResponse('verifyNin', ['status' => 'verified_tier_1']);
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '20-05-1990');
-        $this->assertStringContainsString('BVN', $screen->render());
-        $ninCall = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'verifyNin'))[0];
-        $this->assertSame('1990-05-20', $ninCall['args'][1]);
-        $this->assertSame('12345678901', $ninCall['args'][2]);
-
-        $this->platform->programResponse('verifyBvn', ['status' => 'verified_tier_2']);
-        $this->platform->programResponse('createDeposit', ['status' => 'otp_required', 'collection_id' => 88]);
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '10987654321');
-        $this->assertStringContainsString('OTP', $screen->render());
-
-        $this->platform->programResponse('submitDepositOtp', ['status' => 'paid']);
-        $this->platform->programResponse('purchaseBlackRedTicket', ['reference' => 'tkt-verified-paid']);
-        $this->platform->programResponse('revealBlackRedTicket', ['won' => true, 'net_credit_kobo' => 92_500]);
-
-        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '654321');
         $this->assertFalse($result->continues);
-        $this->assertStringContainsString('tkt-verified-paid', $result->render());
+        $this->assertStringContainsString('Could not verify an OPay wallet', $result->render());
+        $this->assertCount(0, array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseBlackRedTicket'));
     }
 
     public function test_cancelling_at_blackred_confirm_returns_to_the_main_menu(): void
@@ -310,7 +279,7 @@ final class MenuEngineTest extends TestCase
         $this->assertSame(20_000, $purchaseCall['args'][2]); // stake_kobo
     }
 
-    public function test_caged_confirm_starts_direct_pay_via_opay_otp_if_play_balance_is_zero_or_insufficient(): void
+    public function test_caged_confirm_funds_from_opay_and_purchases_when_play_balance_is_insufficient(): void
     {
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '3'); // Caged
@@ -318,26 +287,20 @@ final class MenuEngineTest extends TestCase
         $this->engine->handleTurn('sess-1', '+2348031234567', '200'); // stake 20,000 kobo
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
-        $this->platform->programResponse('createDeposit', ['status' => 'otp_required', 'collection_id' => 99]);
-
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->assertTrue($screen->continues);
-        $this->assertStringContainsString('OTP', $screen->render());
-        $depositCalls = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'createDeposit'));
-        $this->assertSame(20_000, $depositCalls[0]['args'][1]);
-
-        $this->platform->programResponse('submitDepositOtp', ['status' => 'paid']);
+        $this->platform->programResponse('collectFromOpay', ['status' => 'paid']);
         $this->platform->programResponse('purchaseCagedTicket', ['reference' => 'tkt-cg-funded']);
         $this->platform->programResponse('revealCagedTicket', ['won' => true, 'escaped_birds' => 3, 'net_credit_kobo' => 38_000]);
 
-        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '111111');
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
 
         $this->assertFalse($result->continues);
         $this->assertStringContainsString('CAGED WIN!', $result->render());
         $this->assertStringContainsString('tkt-cg-funded', $result->render());
+        $fundingCalls = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'collectFromOpay'));
+        $this->assertSame(20_000, $fundingCalls[0]['args'][1]);
     }
 
-    public function test_direct_pay_otp_failure_ends_the_session_without_purchasing(): void
+    public function test_caged_confirm_ends_the_session_when_opay_merchant_balance_is_unavailable(): void
     {
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '3');
@@ -345,14 +308,11 @@ final class MenuEngineTest extends TestCase
         $this->engine->handleTurn('sess-1', '+2348031234567', '200');
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
-        $this->platform->programResponse('createDeposit', ['status' => 'otp_required', 'collection_id' => 5]);
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-
-        $this->platform->programResponse('submitDepositOtp', ['status' => 'failed']);
-        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '000000');
+        $this->platform->programResponse('collectFromOpay', ['status' => 'float_unavailable']);
+        $result = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
 
         $this->assertFalse($result->continues);
-        $this->assertStringContainsString('could not be confirmed', $result->render());
+        $this->assertStringContainsString('Could not process payment', $result->render());
         $this->assertCount(0, array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseCagedTicket'));
     }
 
@@ -425,7 +385,7 @@ final class MenuEngineTest extends TestCase
 
         $this->assertFalse($result->continues);
         $this->assertStringContainsString('Could not place that ticket', $result->render());
-        $this->assertCount(0, array_filter($this->platform->calls, fn ($c) => $c['method'] === 'createDeposit'));
+        $this->assertCount(0, array_filter($this->platform->calls, fn ($c) => $c['method'] === 'collectFromOpay'));
     }
 
     // ── Responsible gambling (REQ-USSD-020: within 2 screens of main menu) ──────

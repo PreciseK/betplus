@@ -6,32 +6,29 @@ namespace App\Domain\Payments\Providers\Opay;
 
 use App\Domain\Identity\PhoneNumber;
 use App\Models\OpayApiCallLog;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Wraps OPay's payout- and payment-namespace endpoints (REQ-PAY-016 — OPay is the only
- * provider implementation; nothing outside this class should know OPay's request shape).
- * Endpoint paths are from Betplus_PRD.md §12.6. Collection request/response field names
- * beyond what REQ-PAY-002..004 specify (payMethod, bankAccountNumber, bankCode, bvn,
- * dob, customerName) are a best-effort construction, not confirmed against a real OPay
- * Collections API doc (none exists in this repo, unlike the Payout one) — verify against
- * sandbox before this goes near real money.
+ * Wraps OPay's Payout API endpoints exclusively (REQ-PAY-016 — OPay is the only
+ * provider implementation; nothing outside this class should know OPay's request
+ * shape). Every endpoint here is documented in the OPay Payout API Developer Guide
+ * (repo root) — there is no Collections API doc in this repo, and no Collections
+ * endpoint is called from here: that document has no way to pull money from a
+ * customer at all (every endpoint in it is merchant-to-customer). A prior build
+ * called invented `/payment/*` endpoints for that; they weren't in any doc
+ * available here and have been removed — see FundingService::collect()'s doc
+ * comment for what replaced them.
  */
 final class OpayGateway
 {
     private const NAME_LOOKUP_PATH = '/api/v1/international/payout/opay-wallet-validate';
-    private const COLLECTION_CREATE_PATH = '/api/v1/international/payment/create';
-    private const COLLECTION_OTP_PATH = '/api/v1/international/payment/input-otp';
-    private const COLLECTION_STATUS_PATH = '/api/v1/international/payment/status';
     private const PAYOUT_CREATE_PATH = '/api/v1/international/payout/createSingleOrder';
     private const PAYOUT_STATUS_PATH = '/api/v1/international/payout/queryorder';
     private const PAYOUT_BALANCE_PATH = '/api/v1/international/payout/balance';
 
     public function __construct(
         private readonly OpayPayoutSigner $payoutSigner,
-        private readonly OpayCollectionSigner $collectionSigner,
         private readonly string $baseUrl,
         private readonly string $merchantId,
     ) {
@@ -57,73 +54,6 @@ final class OpayGateway
         return $found
             ? ['status' => 'found', 'firstName' => $data['firstName'], 'lastName' => $data['lastName']]
             : ['status' => 'no_wallet'];
-    }
-
-    /**
-     * @return array{status: 'otp_required', providerCollectionId: ?string}|array{status: 'error'}
-     */
-    public function createCollection(
-        string $reference,
-        string $phoneE164,
-        int $amountKobo,
-        string $bankCode,
-        string $bvn,
-        string $dateOfBirth,
-        string $customerName,
-    ): array {
-        $dob = CarbonImmutable::parse($dateOfBirth);
-        $body = [
-            'reference' => $reference,
-            'country' => 'NG',
-            'payAmount' => ['currency' => 'NGN', 'total' => $amountKobo],
-            'payMethod' => 'BankAccount',
-            'bankAccount' => [
-                'bankAccountNumber' => PhoneNumber::toLocalDigits($phoneE164),
-                'bankCode' => $bankCode,
-                'bvn' => $bvn,
-                'dobDay' => $dob->format('d'),
-                'dobMonth' => $dob->format('m'),
-                'dobYear' => $dob->format('Y'),
-                'customerName' => $customerName,
-            ],
-        ];
-
-        $payload = $this->call(self::COLLECTION_CREATE_PATH, $body, $this->collectionSigner, 'hmac_sha512', $reference);
-        if ($payload === null || !$payload['_successful']) {
-            return ['status' => 'error'];
-        }
-
-        return ['status' => 'otp_required', 'providerCollectionId' => $payload['data']['orderNo'] ?? null];
-    }
-
-    /** @return array{status: 'paid'|'processing'|'failed'|'error'} */
-    public function submitCollectionOtp(string $reference, string $otp): array
-    {
-        $payload = $this->call(
-            self::COLLECTION_OTP_PATH,
-            ['reference' => $reference, 'otp' => $otp],
-            $this->collectionSigner,
-            'hmac_sha512',
-            $reference,
-        );
-
-        if ($payload === null || !$payload['_successful']) {
-            return ['status' => 'error'];
-        }
-
-        return ['status' => $this->mapCollectionStatus($payload['data']['status'] ?? null)];
-    }
-
-    /** @return array{status: 'paid'|'processing'|'failed'|'error'} */
-    public function queryCollectionStatus(string $reference): array
-    {
-        $payload = $this->call(self::COLLECTION_STATUS_PATH, ['reference' => $reference], $this->collectionSigner, 'hmac_sha512', $reference);
-
-        if ($payload === null || !$payload['_successful']) {
-            return ['status' => 'error'];
-        }
-
-        return ['status' => $this->mapCollectionStatus($payload['data']['status'] ?? null)];
     }
 
     /**
@@ -186,18 +116,6 @@ final class OpayGateway
         return $payload['data']['balance']['total'] ?? null;
     }
 
-    /** @return 'paid'|'processing'|'failed' */
-    private function mapCollectionStatus(?string $providerStatus): string
-    {
-        // Field name and values unconfirmed (no Collections API doc) — SUCCESS/PENDING/
-        // FAILED is a reasonable guess pending sandbox confirmation.
-        return match ($providerStatus) {
-            'SUCCESS' => 'paid',
-            'FAILED', 'CLOSE' => 'failed',
-            default => 'processing',
-        };
-    }
-
     /**
      * @param array<string, mixed> $body
      * @return array<string, mixed>|null Null only on transport failure (unreachable).
@@ -205,7 +123,7 @@ final class OpayGateway
     private function call(
         string $path,
         array $body,
-        OpayPayoutSigner|OpayCollectionSigner $signer,
+        OpayPayoutSigner $signer,
         string $scheme,
         ?string $reference = null,
     ): ?array {

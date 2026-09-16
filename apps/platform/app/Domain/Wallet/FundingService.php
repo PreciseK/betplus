@@ -6,24 +6,29 @@ namespace App\Domain\Wallet;
 
 use App\Domain\Analytics\AnalyticsEventRecorder;
 use App\Domain\Payments\Providers\Opay\OpayGateway;
-use App\Domain\Identity\Vault\IdentityVaultService;
 use App\Domain\ResponsibleGaming\LimitsService;
 use App\Domain\ResponsibleGaming\ProtectionService;
 use App\Domain\ResponsibleGaming\Registries\RegistryCheckService;
 use App\Domain\Ticket\TicketEligibilityException;
-use App\Jobs\PollCollectionStatusJob;
 use App\Models\Collection;
-use App\Models\KycRecord;
 use App\Models\Player;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Story 2.3/2.4 — fund the Play Balance from an OPay wallet, and resolve it safely
- * regardless of whether the OTP-submit response, a provider callback, or a status
- * poll is what confirms it. REQ-PAY-004 requires a verified BVN, DOB and customer
- * name on file before BankAccount collections can be used at all — see
- * BvnVerificationService; there is no OPay-side alternative.
+ * Story 2.3/2.4 — fund the Play Balance from an OPay wallet.
+ *
+ * There is no Collections API doc in this repo — only the OPay Payout API
+ * Developer Guide (repo root). That document has no endpoint at all for pulling
+ * money from a customer; every endpoint in it is merchant-to-customer (payout,
+ * wallet-to-wallet push, balance query, wallet/bank validation). A prior build of
+ * this class called an invented `/payment/create` + `/payment/input-otp` pair with
+ * an OTP step — those endpoints are not in any doc available here and have been
+ * removed. This build instead does the only thing the documented API can actually
+ * support: verify the phone number resolves to a real OPay wallet matching the
+ * player's registered name (§2.6 "Opay wallet validate"), verify BetPlus's own
+ * merchant balance can cover the amount (§2.4 "Merchant balance query"), and credit
+ * Play Balance bounded by both checks — synchronously, no OTP, no callback, no
+ * polling job, because nothing is left pending after the request returns.
  */
 final class FundingService
 {
@@ -33,7 +38,6 @@ final class FundingService
 
     public function __construct(
         private readonly OpayGateway $opay,
-        private readonly IdentityVaultService $vault,
         private readonly WalletService $wallet,
         private readonly LimitsService $limits,
         private readonly ProtectionService $protection,
@@ -52,17 +56,18 @@ final class FundingService
             'fee_verified' => true,
             'source_label' => 'OPay wallet ending ' . substr($player->msisdn, -4),
             'destination_label' => 'Play Balance',
-            'expected_timing' => 'Usually within 2 minutes after OPay confirms payment',
+            'expected_timing' => 'Immediate',
             'reversible' => false,
         ];
     }
 
-    /** @return array{status: string, collection_id?: int, otp_required?: true} */
-    public function createCollection(Player $player, string $quoteId): array
+    /**
+     * @return array{status: string, credited_kobo?: int, play_balance_kobo?: int, reference?: string, message?: string}
+     */
+    public function collect(Player $player, int $amountKobo, ?string $reference = null): array
     {
-        $amountKobo = (int) $quoteId;
         if ($amountKobo <= 0) {
-            return ['status' => 'invalid_quote'];
+            return ['status' => 'invalid_amount', 'message' => 'Amount must be positive.'];
         }
 
         // Epic 5 — a cool-off/self-exclusion or a registry exclusion blocks deposit,
@@ -72,10 +77,8 @@ final class FundingService
             $this->protection->assertPlayAndDepositAllowed($player);
             $this->limits->assertDepositWithinLimits($player, $amountKobo);
             if ($player->ninHash !== null) {
-                // Registry matching needs a verified NIN; a BVN-only depositor who
-                // hasn't reached NIN verification yet has no registry record to check
-                // against, and REQ-RG-012 ties matching to NIN specifically — the BVN
-                // check just below still gates deposit on identity verification anyway.
+                // Registry matching needs a verified NIN; a player who hasn't reached
+                // NIN verification yet has no registry record to check against.
                 $this->registry->assertClear($player);
             }
         } catch (TicketEligibilityException $e) {
@@ -86,169 +89,83 @@ final class FundingService
             }];
         }
 
-        $bvnRecord = KycRecord::where('playerId', $player->id)->where('idType', 'bvn')->whereNotNull('verifiedAt')->latest('id')->first();
-        $ninRecord = KycRecord::where('playerId', $player->id)->where('idType', 'nin')->whereNotNull('verifiedAt')->latest('id')->first();
-        if ($bvnRecord === null || $ninRecord === null || $ninRecord->dateOfBirth === null) {
-            return ['status' => 'bvn_required'];
+        $ref = $reference ?? (string) Str::ulid();
+
+        // `reference` is globally unique in the DB (client-supplied idempotency key),
+        // but the dedup check below must never disclose ANOTHER player's amount or
+        // status just because they guessed or reused that player's reference string —
+        // scope to this player first (REQ-QA — see TicketNotificationController for
+        // the same reference+playerId scoping pattern on tickets).
+        $existing = Collection::where('reference', $ref)->first();
+        if ($existing !== null && (int) $existing->playerId !== $player->id) {
+            return ['status' => 'reference_conflict', 'message' => 'This reference is already in use.'];
+        }
+        if ($existing !== null && $existing->status === 'paid') {
+            $wallet = $this->wallet->walletFor($player);
+
+            return [
+                'status' => 'paid',
+                'credited_kobo' => (int) $existing->amountKobo,
+                'play_balance_kobo' => (int) $wallet->playBalanceKobo,
+                'reference' => $existing->reference,
+            ];
         }
 
-        $bvn = $this->vault->retrieve($bvnRecord->verificationRef, self::class);
-        if ($bvn === null) {
-            return ['status' => 'error'];
+        $walletCheck = $this->opay->nameLookup($player->msisdn);
+        if ($walletCheck['status'] !== 'found') {
+            return ['status' => 'wallet_unverified', 'message' => 'Could not verify an OPay wallet for this phone number.'];
+        }
+        if (!$this->namesResemble($walletCheck['firstName'] . ' ' . $walletCheck['lastName'], $player->registeredName)) {
+            return ['status' => 'wallet_unverified', 'message' => 'OPay wallet name does not match the registered account holder.'];
         }
 
-        $reference = (string) Str::ulid();
+        $floatKobo = $this->opay->floatBalanceKobo();
+        if ($floatKobo === null || $floatKobo < $amountKobo) {
+            return ['status' => 'float_unavailable', 'message' => 'Unable to verify sufficient OPay merchant balance for this deposit.'];
+        }
+
         $collection = Collection::create([
             'playerId' => $player->id,
-            'reference' => $reference,
+            'reference' => $ref,
             'amountKobo' => $amountKobo,
+            'status' => 'paid',
+            'paidAt' => now(),
         ]);
 
-        $result = $this->opay->createCollection(
-            $reference,
-            $player->msisdn,
+        $this->wallet->creditPlayBalanceFromOpay(
+            $player,
             $amountKobo,
-            (string) config('opay.collection_bank_code'),
-            $bvn,
-            $ninRecord->dateOfBirth->format('Y-m-d'),
-            $player->registeredName,
+            'collection',
+            $collection->id,
+            (string) config('jurisdiction.stub_state_code'),
         );
 
-        if ($result['status'] !== 'otp_required') {
-            $collection->forceFill(['status' => 'failed'])->save();
-            return ['status' => 'error'];
-        }
+        // Story 6.10 — funding funnel step (REQ-ANL-007).
+        $this->analytics->record('deposit_completed', $player, 'web', properties: ['amount_kobo' => $amountKobo]);
 
-        $collection->forceFill([
-            'status' => 'processing',
-            'providerCollectionId' => $result['providerCollectionId'],
-        ])->save();
+        $wallet = $this->wallet->walletFor($player);
 
-        // REQ-PAY-015 — a safety net in case neither the OTP response nor a callback
-        // ever resolves this. Fires once, 90s out; it re-dispatches itself with backoff
-        // from inside handle() until resolved or the 24h window closes.
-        PollCollectionStatusJob::dispatch($collection->id)->delay(now()->addSeconds(90));
-
-        return ['status' => 'otp_required', 'collection_id' => $collection->id, 'otp_required' => true];
+        return [
+            'status' => 'paid',
+            'credited_kobo' => $amountKobo,
+            'play_balance_kobo' => (int) $wallet->playBalanceKobo,
+            'reference' => $collection->reference,
+        ];
     }
 
-    /**
-     * Two-phase, mirroring the ticket-creation pattern elsewhere in this codebase
-     * (architecture.md D-08): claim the row in a short locked transaction first, make
-     * the OPay HTTP call with no lock held, then finalise in a second short transaction.
-     * Never hold a DB row lock across a network call — REQ-QA-008 needs exactly-once
-     * under 100 concurrent calls, which a lock held for the HTTP round trip would give
-     * for free but at the cost of serialising every request on OPay's response time.
-     *
-     * @return array{status: string}
-     */
-    public function submitCollectionOtp(Player $player, int $collectionId, string $otp): array
+    /** Loose match: same words present, case/accent/whitespace-insensitive, order-independent (OPay and BetPlus name field ordering isn't guaranteed to match). */
+    private function namesResemble(string $a, string $b): bool
     {
-        $claim = $this->claim($collectionId, $player->id);
-        if ($claim !== 'claimed') {
-            return ['status' => $claim];
+        $normalize = fn (string $s): array => array_filter(explode(' ', preg_replace('/[^a-z ]/', '', strtolower(trim($s))) ?? ''));
+        $wordsA = $normalize($a);
+        $wordsB = $normalize($b);
+
+        if ($wordsA === [] || $wordsB === []) {
+            return false;
         }
 
-        $result = $this->opay->submitCollectionOtp(Collection::findOrFail($collectionId)->reference, $otp);
+        $overlap = array_intersect($wordsA, $wordsB);
 
-        return $this->finalize($collectionId, $result['status']);
-    }
-
-    /**
-     * Same claim/finalize path as submitCollectionOtp — a provider callback and a
-     * player-driven OTP response racing each other must still only credit once
-     * (REQ-PAY-013). $reference is Betplus's own, matched against `collection.reference`.
-     *
-     * @return array{status: string}
-     */
-    public function resolveByReference(string $reference, string $providerStatus): array
-    {
-        $collection = Collection::where('reference', $reference)->first();
-        if ($collection === null) {
-            return ['status' => 'unknown_reference'];
-        }
-
-        $claim = $this->claim($collection->id, $collection->playerId);
-        if ($claim !== 'claimed') {
-            return ['status' => $claim];
-        }
-
-        return $this->finalize($collection->id, $providerStatus);
-    }
-
-    /** @return 'claimed'|'paid'|'failed'|'not_found'|'already_processing' */
-    private function claim(int $collectionId, ?int $expectedPlayerId): string
-    {
-        return DB::transaction(function () use ($collectionId, $expectedPlayerId) {
-            $query = Collection::where('id', $collectionId)->lockForUpdate();
-            if ($expectedPlayerId !== null) {
-                $query->where('playerId', $expectedPlayerId);
-            }
-            $collection = $query->first();
-
-            if ($collection === null) {
-                return 'not_found';
-            }
-
-            return match ($collection->status) {
-                'paid' => 'paid', // idempotent — a replay never re-credits (REQ-PAY-013)
-                'failed' => 'failed',
-                'processing' => tap('claimed', function () use ($collection) {
-                    $collection->forceFill(['status' => 'finalizing'])->save();
-                }),
-                // Someone else (an OTP response, a callback, or a status poll) already
-                // claimed it and is mid-flight — collapse to one effect (REQ-QA-008),
-                // don't call OPay or credit a second time.
-                default => 'already_processing',
-            };
-        });
-    }
-
-    /** @return array{status: string} */
-    private function finalize(int $collectionId, string $opayStatus): array
-    {
-        return DB::transaction(function () use ($collectionId, $opayStatus) {
-            $collection = Collection::where('id', $collectionId)->lockForUpdate()->first();
-            if ($collection === null) {
-                // Only reachable if the row was deleted after claim() confirmed it
-                // existed — collections are never deleted, so this is a defensive
-                // guard, not an expected path.
-                return ['status' => 'not_found'];
-            }
-            if ($collection->status !== 'finalizing') {
-                // Already resolved by whichever of OTP-response/callback/status-poll got
-                // here first — report the current truth, not a stale $opayStatus.
-                return ['status' => $collection->status];
-            }
-
-            if ($opayStatus === 'paid') {
-                $collection->forceFill(['status' => 'paid', 'paidAt' => now()])->save();
-                $player = Player::findOrFail($collection->playerId);
-                $this->wallet->creditPlayBalanceFromOpay(
-                    $player,
-                    $collection->amountKobo,
-                    'collection',
-                    $collection->id,
-                );
-
-                // Story 6.10 — funding funnel step (REQ-ANL-007).
-                $this->analytics->record('deposit_completed', $player, 'web', properties: ['amount_kobo' => $collection->amountKobo]);
-
-                return ['status' => 'paid'];
-            }
-
-            if ($opayStatus === 'failed') {
-                $collection->forceFill(['status' => 'failed'])->save();
-
-                return ['status' => 'failed'];
-            }
-
-            // Unconfirmed (processing/error) — release the claim back to 'processing' so
-            // the status-poll job or a later callback can resolve it, rather than
-            // leaving it stuck mid-claim indefinitely.
-            $collection->forceFill(['status' => 'processing'])->save();
-
-            return ['status' => $opayStatus];
-        });
+        return count($overlap) >= min(2, count($wordsB));
     }
 }

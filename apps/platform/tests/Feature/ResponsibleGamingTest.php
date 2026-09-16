@@ -130,7 +130,7 @@ final class ResponsibleGamingTest extends TestCase
         $player = $this->player();
         app(ProtectionService::class)->selfExclude($player, 'exclude-6m');
 
-        $result = app(FundingService::class)->createCollection($player, '100000');
+        $result = app(FundingService::class)->collect($player, 100_000);
 
         $this->assertSame('protection_active', $result['status']);
     }

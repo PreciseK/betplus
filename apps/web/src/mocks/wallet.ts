@@ -34,8 +34,8 @@ export interface FundingQuote {
 export interface WalletGateway {
   loadWallet(): Promise<WalletSnapshot>;
   quoteFunding(amountKobo: number): Promise<FundingQuote>;
-  createCollection(quoteId: string): Promise<{ collectionId: string; otpRequired: true }>;
-  submitCollectionOtp(collectionId: string, code: string): Promise<MoneyTransaction>;
+  /** Single step: verify the OPay wallet + merchant balance and credit, or reject. No OTP. */
+  collectDeposit(quoteId: string): Promise<MoneyTransaction>;
 }
 
 export const MOCK_RECEIPT_REFERENCE = "BP-240814-A7K2";
@@ -104,13 +104,8 @@ export const mockWalletGateway: WalletGateway = {
       reversible: false,
     };
   },
-  async createCollection(quoteId) {
+  async collectDeposit(_quoteId) {
     await Promise.resolve();
-    return { collectionId: `mock-collection-${quoteId}`, otpRequired: true };
-  },
-  async submitCollectionOtp(_collectionId, code) {
-    await Promise.resolve();
-    if (code !== "123456") throw new Error("OTP_INVALID_OR_EXPIRED");
     return { ...NEW_FUNDING_TRANSACTION };
   },
 };
