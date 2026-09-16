@@ -55,6 +55,8 @@ coverage/
 *.sqlite3
 
 # Scratch / generated output — not part of the tracked project
+/_bmad-output/
+/bmad_output/
 /graphify-out/
 /banani_flow_data.json
 /BirdEscapeBetting.jpg
