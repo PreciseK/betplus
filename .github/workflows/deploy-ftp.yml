@@ -1,0 +1,83 @@
+name: Deploy to Production via FTP (cPanel)
+
+on:
+  workflow_dispatch: # Manual trigger from GitHub Actions tab
+  # Uncomment to automatically deploy on push to main:
+  # push:
+  #   branches: [main]
+
+concurrency:
+  group: deploy-ftp-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy-ftp:
+    name: Build & Deploy via FTP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install Frontend Dependencies & Build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.betplus.com.ng/v1
+        run: |
+          pnpm install --frozen-lockfile
+          cd apps/web
+          pnpm build
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_mysql, openssl, mbstring, curl, intl, zip
+
+      - name: Install Backend Production Dependencies
+        run: |
+          cd apps/platform
+          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      # Deploy Frontend Static Export
+      - name: 📂 Deploy Frontend to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_HOST || secrets.CPANEL_SSH_HOST }}
+          username: ${{ secrets.CPANEL_FTP_USER || secrets.CPANEL_SSH_USER }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          port: ${{ secrets.CPANEL_FTP_PORT || 21 }}
+          protocol: ftp
+          local-dir: ./apps/web/out/
+          server-dir: ${{ secrets.CPANEL_FTP_WEB_DIR || 'public_html/' }}
+
+      # Deploy Backend API (optional / configurable directory)
+      - name: 📂 Deploy Backend API to cPanel via FTP
+        if: ${{ secrets.CPANEL_FTP_API_DIR != '' }}
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_HOST || secrets.CPANEL_SSH_HOST }}
+          username: ${{ secrets.CPANEL_FTP_USER || secrets.CPANEL_SSH_USER }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          port: ${{ secrets.CPANEL_FTP_PORT || 21 }}
+          protocol: ftp
+          local-dir: ./apps/platform/
+          server-dir: ${{ secrets.CPANEL_FTP_API_DIR }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.env*
+            **/storage/logs/**
+            **/storage/framework/cache/**
+            **/storage/framework/sessions/**
+            **/storage/framework/views/**
+            **/node_modules/**
