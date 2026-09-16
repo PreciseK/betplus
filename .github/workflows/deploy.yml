@@ -2,9 +2,8 @@ name: Deploy to Production (cPanel)
 
 on:
   workflow_dispatch: # Manual trigger from GitHub Actions tab
-  # Uncomment the lines below when ready for automatic deploys on push to main:
-  # push:
-  #   branches: [main]
+  push:
+    branches: [main]
 
 concurrency:
   group: deploy-production
