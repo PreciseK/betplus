@@ -62,7 +62,9 @@ jobs:
 
       # Deploy Backend API (optional / configurable directory)
       - name: 📂 Deploy Backend API to cPanel via FTP
-        if: ${{ secrets.CPANEL_FTP_API_DIR != '' }}
+        env:
+          FTP_API_DIR: ${{ secrets.CPANEL_FTP_API_DIR }}
+        if: env.FTP_API_DIR != ''
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.CPANEL_FTP_HOST || secrets.CPANEL_SSH_HOST }}
