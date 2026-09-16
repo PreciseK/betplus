@@ -243,7 +243,7 @@ export function SignInFlow({
                 </div>
               )}
 
-              {step === "phone" && (
+              {process.env.NODE_ENV === "development" && step === "phone" && (
                 <div className={styles.demoAccountCard}>
                   <div className={styles.demoAccountHeader}>
                     <span className={styles.demoBadge}>⚡ Demo Account</span>
