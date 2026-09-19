@@ -44,6 +44,12 @@ fi
 # Symlink shared storage
 ln -sfn "$REMOTE_BASE/shared/storage" "$CURRENT_RELEASE/apps/platform/storage"
 
+# Ensure vault database exists and persists across releases
+mkdir -p "$REMOTE_BASE/shared/database"
+touch "$REMOTE_BASE/shared/database/vault.sqlite"
+mkdir -p "$CURRENT_RELEASE/apps/platform/database"
+ln -sfn "$REMOTE_BASE/shared/database/vault.sqlite" "$CURRENT_RELEASE/apps/platform/database/vault.sqlite"
+
 cd "$CURRENT_RELEASE/apps/platform"
 
 # Run database migrations
