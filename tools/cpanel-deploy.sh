@@ -42,11 +42,17 @@ if [ -f "$REMOTE_BASE/shared/.env" ]; then
   ln -sfn "$REMOTE_BASE/shared/.env" "$CURRENT_RELEASE/apps/platform/.env"
   echo "Linked shared/.env into apps/platform/.env"
   
-  # Generate APP_KEY if missing or empty
+  # Ensure APP_KEY line exists in shared/.env
+  if ! grep -q "^APP_KEY=" "$REMOTE_BASE/shared/.env"; then
+    echo "APP_KEY=" >> "$REMOTE_BASE/shared/.env"
+  fi
+
+  # Generate valid base64 APP_KEY if empty
   if ! grep -qE '^APP_KEY=base64:.+' "$REMOTE_BASE/shared/.env"; then
-    echo "Generating missing APP_KEY in shared/.env..."
-    cd "$CURRENT_RELEASE/apps/platform"
-    $PHP_BIN artisan key:generate --force
+    echo "Generating new base64 APP_KEY in shared/.env..."
+    KEY=$($PHP_BIN -r 'echo "base64:" . base64_encode(random_bytes(32));')
+    sed -i "s|^APP_KEY=.*|APP_KEY=$KEY|" "$REMOTE_BASE/shared/.env"
+    echo "Set APP_KEY successfully in shared/.env"
   fi
 else
   echo "WARNING: $REMOTE_BASE/shared/.env does not exist yet. Please create it on the server."
