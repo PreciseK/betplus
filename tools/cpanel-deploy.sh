@@ -157,6 +157,13 @@ rm -rf "/home/$USER/api.$MAIN_DOMAIN"
 ln -sfn "$REMOTE_BASE/current/apps/platform/public" "/home/$USER/api.$MAIN_DOMAIN"
 echo "Linked api.$MAIN_DOMAIN document roots -> $REMOTE_BASE/current/apps/platform/public"
 
+# Explicitly assign PHP 8.4 via cPanel LangPHP module
+if command -v uapi >/dev/null 2>&1; then
+  echo "Assigning ea-php84 to api.$MAIN_DOMAIN and $MAIN_DOMAIN..."
+  uapi LangPHP php_set_vhost_versions vhost="api.$MAIN_DOMAIN" version="ea-php84" 2>/dev/null || true
+  uapi LangPHP php_set_vhost_versions vhost="$MAIN_DOMAIN" version="ea-php84" 2>/dev/null || true
+fi
+
 # --- C. USSD: Create & Configure ussd.$MAIN_DOMAIN ---
 echo "Configuring ussd.$MAIN_DOMAIN..."
 if command -v uapi >/dev/null 2>&1; then
