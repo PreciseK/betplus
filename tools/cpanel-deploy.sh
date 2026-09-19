@@ -41,6 +41,13 @@ echo "Using PHP binary: $PHP_BIN ($($PHP_BIN -v 2>/dev/null | head -n 1 || echo 
 if [ -f "$REMOTE_BASE/shared/.env" ]; then
   ln -sfn "$REMOTE_BASE/shared/.env" "$CURRENT_RELEASE/apps/platform/.env"
   echo "Linked shared/.env into apps/platform/.env"
+  
+  # Generate APP_KEY if missing or empty
+  if ! grep -qE '^APP_KEY=base64:.+' "$REMOTE_BASE/shared/.env"; then
+    echo "Generating missing APP_KEY in shared/.env..."
+    cd "$CURRENT_RELEASE/apps/platform"
+    $PHP_BIN artisan key:generate --force
+  fi
 else
   echo "WARNING: $REMOTE_BASE/shared/.env does not exist yet. Please create it on the server."
 fi
@@ -50,17 +57,21 @@ mkdir -p "$REMOTE_BASE/shared/storage/framework/sessions"
 mkdir -p "$REMOTE_BASE/shared/storage/framework/views"
 mkdir -p "$REMOTE_BASE/shared/storage/framework/cache"
 mkdir -p "$REMOTE_BASE/shared/storage/logs"
-chmod -R 775 "$REMOTE_BASE/shared/storage"
+chmod -R 777 "$REMOTE_BASE/shared/storage"
 ln -sfn "$REMOTE_BASE/shared/storage" "$CURRENT_RELEASE/apps/platform/storage"
 
 # 4. Ensure vault database exists and persists across releases
 mkdir -p "$REMOTE_BASE/shared/database"
 touch "$REMOTE_BASE/shared/database/vault.sqlite"
+chmod -R 777 "$REMOTE_BASE/shared/database"
 mkdir -p "$CURRENT_RELEASE/apps/platform/database"
 ln -sfn "$REMOTE_BASE/shared/database/vault.sqlite" "$CURRENT_RELEASE/apps/platform/database/vault.sqlite"
 
 # 5. Database Migrations & Caches
 cd "$CURRENT_RELEASE/apps/platform"
+echo "Clearing and warming production caches..."
+$PHP_BIN artisan optimize:clear || true
+
 echo "Running database migrations..."
 $PHP_BIN artisan migrate --force || echo "Notice: Migrations completed or skipped (check DB config in shared/.env)"
 
@@ -187,4 +198,8 @@ if command -v uapi >/dev/null 2>&1; then
   uapi DomainInfo list_domains 2>/dev/null | grep -E '^\s*(main_domain|sub_domains|documentroot):' || true
 fi
 echo "=========================================================="
+if [ -f "$REMOTE_BASE/shared/storage/logs/laravel.log" ]; then
+  echo "=== Recent errors from laravel.log ==="
+  tail -n 30 "$REMOTE_BASE/shared/storage/logs/laravel.log" || true
+fi
 echo "Deployment and web server configuration completed successfully!"
