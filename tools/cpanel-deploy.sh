@@ -54,6 +54,27 @@ if [ -f "$REMOTE_BASE/shared/.env" ]; then
     sed -i "s|^APP_KEY=.*|APP_KEY=$KEY|" "$REMOTE_BASE/shared/.env"
     echo "Set APP_KEY successfully in shared/.env"
   fi
+
+  # Ensure safe defaults for database, sessions, and cache if using sqlite or missing
+  if ! grep -q "^DB_CONNECTION=" "$REMOTE_BASE/shared/.env"; then
+    echo "DB_CONNECTION=sqlite" >> "$REMOTE_BASE/shared/.env"
+    echo "DB_DATABASE=$REMOTE_BASE/shared/database/database.sqlite" >> "$REMOTE_BASE/shared/.env"
+  fi
+  if ! grep -q "^VAULT_DB_CONNECTION=" "$REMOTE_BASE/shared/.env"; then
+    echo "VAULT_DB_CONNECTION=sqlite" >> "$REMOTE_BASE/shared/.env"
+    echo "VAULT_DB_DATABASE=$REMOTE_BASE/shared/database/vault.sqlite" >> "$REMOTE_BASE/shared/.env"
+  fi
+  if ! grep -q "^SESSION_DRIVER=" "$REMOTE_BASE/shared/.env"; then
+    echo "SESSION_DRIVER=file" >> "$REMOTE_BASE/shared/.env"
+  elif grep -q "^DB_CONNECTION=sqlite" "$REMOTE_BASE/shared/.env" && grep -q "^SESSION_DRIVER=database" "$REMOTE_BASE/shared/.env"; then
+    # SQLite cannot handle concurrent database session locks — switch to file driver
+    sed -i 's|^SESSION_DRIVER=database|SESSION_DRIVER=file|' "$REMOTE_BASE/shared/.env"
+  fi
+  if ! grep -q "^CACHE_STORE=" "$REMOTE_BASE/shared/.env"; then
+    echo "CACHE_STORE=file" >> "$REMOTE_BASE/shared/.env"
+  elif grep -q "^DB_CONNECTION=sqlite" "$REMOTE_BASE/shared/.env" && grep -q "^CACHE_STORE=database" "$REMOTE_BASE/shared/.env"; then
+    sed -i 's|^CACHE_STORE=database|CACHE_STORE=file|' "$REMOTE_BASE/shared/.env"
+  fi
 else
   echo "WARNING: $REMOTE_BASE/shared/.env does not exist yet. Please create it on the server."
 fi
@@ -66,11 +87,13 @@ mkdir -p "$REMOTE_BASE/shared/storage/logs"
 chmod -R 777 "$REMOTE_BASE/shared/storage"
 ln -sfn "$REMOTE_BASE/shared/storage" "$CURRENT_RELEASE/apps/platform/storage"
 
-# 4. Ensure vault database exists and persists across releases
+# 4. Ensure persistent database files exist across releases
 mkdir -p "$REMOTE_BASE/shared/database"
+touch "$REMOTE_BASE/shared/database/database.sqlite"
 touch "$REMOTE_BASE/shared/database/vault.sqlite"
 chmod -R 777 "$REMOTE_BASE/shared/database"
 mkdir -p "$CURRENT_RELEASE/apps/platform/database"
+ln -sfn "$REMOTE_BASE/shared/database/database.sqlite" "$CURRENT_RELEASE/apps/platform/database/database.sqlite"
 ln -sfn "$REMOTE_BASE/shared/database/vault.sqlite" "$CURRENT_RELEASE/apps/platform/database/vault.sqlite"
 
 # 5. Database Migrations & Caches

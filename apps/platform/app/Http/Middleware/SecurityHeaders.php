@@ -21,12 +21,18 @@ class SecurityHeaders
     {
         $response = $next($request);
 
+        $csp = "default-src 'none'; frame-ancestors 'none'";
+        $contentType = (string) $response->headers->get('Content-Type', '');
+        if (str_contains($contentType, 'text/html')) {
+            $csp = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; frame-ancestors 'none'";
+        }
+
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
         $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-        $response->headers->set('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+        $response->headers->set('Content-Security-Policy', $csp);
 
         return $response;
     }

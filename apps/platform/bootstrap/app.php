@@ -27,6 +27,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 
+        // Strip stateful session/cookie/CSRF middleware from web group — Betplus is a stateless JSON API
+        $middleware->group('web', [
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ]);
+
         $middleware->alias([
             'auth.token' => \App\Http\Middleware\EnsureAccessToken::class,
             'idempotent' => \App\Http\Middleware\EnsureIdempotency::class,
@@ -38,7 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('v1/*') || $request->is('backoffice/*'),
+            fn (Request $request) => true,
         );
 
         // No-ops when SENTRY_LARAVEL_DSN is unset (config/sentry.php) — safe to leave
