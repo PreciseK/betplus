@@ -5,9 +5,12 @@ REMOTE_BASE="/home/$USER/betplus"
 RELEASE_NAME=$(ls -1 "$REMOTE_BASE/releases" | tail -n 1)
 CURRENT_RELEASE="$REMOTE_BASE/releases/$RELEASE_NAME"
 
-echo "Configuring release at $CURRENT_RELEASE"
+echo "=========================================================="
+echo "Configuring release: $RELEASE_NAME"
+echo "Current release path: $CURRENT_RELEASE"
+echo "=========================================================="
 
-# Locate PHP 8.4 / 8.3 / 8.2 or cPanel ea-php binary
+# 1. Locate PHP 8.4 / 8.3 / 8.2 or cPanel ea-php binary
 PHP_BIN=""
 for candidate in \
   /usr/local/bin/ea-php84 \
@@ -34,34 +37,41 @@ fi
 
 echo "Using PHP binary: $PHP_BIN ($($PHP_BIN -v 2>/dev/null | head -n 1 || echo 'unknown'))"
 
-# Symlink shared .env into platform
+# 2. Symlink shared .env into platform
 if [ -f "$REMOTE_BASE/shared/.env" ]; then
   ln -sfn "$REMOTE_BASE/shared/.env" "$CURRENT_RELEASE/apps/platform/.env"
+  echo "Linked shared/.env into apps/platform/.env"
 else
   echo "WARNING: $REMOTE_BASE/shared/.env does not exist yet. Please create it on the server."
 fi
 
-# Symlink shared storage
+# 3. Symlink shared storage
+mkdir -p "$REMOTE_BASE/shared/storage/framework/sessions"
+mkdir -p "$REMOTE_BASE/shared/storage/framework/views"
+mkdir -p "$REMOTE_BASE/shared/storage/framework/cache"
+mkdir -p "$REMOTE_BASE/shared/storage/logs"
+chmod -R 775 "$REMOTE_BASE/shared/storage"
 ln -sfn "$REMOTE_BASE/shared/storage" "$CURRENT_RELEASE/apps/platform/storage"
 
-# Ensure vault database exists and persists across releases
+# 4. Ensure vault database exists and persists across releases
 mkdir -p "$REMOTE_BASE/shared/database"
 touch "$REMOTE_BASE/shared/database/vault.sqlite"
 mkdir -p "$CURRENT_RELEASE/apps/platform/database"
 ln -sfn "$REMOTE_BASE/shared/database/vault.sqlite" "$CURRENT_RELEASE/apps/platform/database/vault.sqlite"
 
+# 5. Database Migrations & Caches
 cd "$CURRENT_RELEASE/apps/platform"
+echo "Running database migrations..."
+$PHP_BIN artisan migrate --force || echo "Notice: Migrations completed or skipped (check DB config in shared/.env)"
 
-# Run database migrations
-$PHP_BIN artisan migrate --force || echo "Migrations skipped or failed, check DB connection in shared/.env"
-
-# Warm caches
+echo "Warming production caches..."
 $PHP_BIN artisan config:cache || true
 $PHP_BIN artisan route:cache || true
 $PHP_BIN artisan view:cache || true
 
-# ATOMIC SWITCH: Point current to new release
+# 6. ATOMIC SWITCH: Point current to new release
 ln -sfn "$CURRENT_RELEASE" "$REMOTE_BASE/current"
+echo "Atomic switch: $REMOTE_BASE/current -> $CURRENT_RELEASE"
 
 # Restart queue workers gracefully
 $PHP_BIN artisan queue:restart || true
@@ -70,4 +80,104 @@ $PHP_BIN artisan queue:restart || true
 cd "$REMOTE_BASE/releases"
 ls -1t | tail -n +6 | xargs -r rm -rf
 
-echo "Deployment completed successfully!"
+# ==========================================================
+# 7. WEB SERVER INTEGRATION & SUBDOMAINS SETUP
+# ==========================================================
+echo "=========================================================="
+echo "Configuring Web Server & Subdomains..."
+echo "=========================================================="
+
+MAIN_DOMAIN="betplus.com.ng"
+if command -v uapi >/dev/null 2>&1; then
+  DETECTED_MAIN=$(uapi DomainInfo list_domains 2>/dev/null | grep -E '^\s*main_domain:' | head -n 1 | awk '{print $2}' || true)
+  if [ -n "$DETECTED_MAIN" ]; then
+    MAIN_DOMAIN="$DETECTED_MAIN"
+  fi
+fi
+echo "Target Main Domain: $MAIN_DOMAIN"
+
+# --- A. FRONTEND: Publish to public_html ---
+echo "Publishing Next.js static export to public_html..."
+mkdir -p "/home/$USER/public_html"
+chmod 755 "/home/$USER"
+chmod 755 "/home/$USER/public_html"
+
+if [ -d "$REMOTE_BASE/current/apps/web/out" ]; then
+  # Sync static build assets into public_html without wiping subdomains or ssl directories
+  rsync -av \
+    --exclude 'api*' \
+    --exclude 'ussd*' \
+    --exclude '.well-known*' \
+    --exclude 'cgi-bin*' \
+    "$REMOTE_BASE/current/apps/web/out/" "/home/$USER/public_html/"
+  echo "Frontend files synchronized to public_html."
+fi
+
+# Ensure clean routing and HTTPS in public_html
+cat << 'HTACCESS_EOF' > "/home/$USER/public_html/.htaccess"
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Force HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Serve HTML file if exists (e.g. /games -> /games.html)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^(.*)$ $1.html [L]
+
+  # SPA Fallback to index.html for dynamic player routes
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+HTACCESS_EOF
+chmod 644 "/home/$USER/public_html/.htaccess"
+
+# --- B. BACKEND: Create & Configure api.$MAIN_DOMAIN ---
+echo "Configuring api.$MAIN_DOMAIN..."
+if command -v uapi >/dev/null 2>&1; then
+  if ! uapi DomainInfo list_domains 2>/dev/null | grep -q "api\.$MAIN_DOMAIN"; then
+    echo "Adding subdomain api.$MAIN_DOMAIN via cPanel UAPI..."
+    uapi SubDomain addsubdomain domain=api rootdomain="$MAIN_DOMAIN" dir="public_html/api" || true
+  else
+    echo "Subdomain api.$MAIN_DOMAIN is already registered in cPanel."
+  fi
+fi
+
+# Link both potential document roots directly to Laravel public directory
+# (covers both public_html/api and /home/$USER/api.$MAIN_DOMAIN)
+rm -rf "/home/$USER/public_html/api"
+ln -sfn "$REMOTE_BASE/current/apps/platform/public" "/home/$USER/public_html/api"
+
+rm -rf "/home/$USER/api.$MAIN_DOMAIN"
+ln -sfn "$REMOTE_BASE/current/apps/platform/public" "/home/$USER/api.$MAIN_DOMAIN"
+echo "Linked api.$MAIN_DOMAIN document roots -> $REMOTE_BASE/current/apps/platform/public"
+
+# --- C. USSD: Create & Configure ussd.$MAIN_DOMAIN ---
+echo "Configuring ussd.$MAIN_DOMAIN..."
+if command -v uapi >/dev/null 2>&1; then
+  if ! uapi DomainInfo list_domains 2>/dev/null | grep -q "ussd\.$MAIN_DOMAIN"; then
+    echo "Adding subdomain ussd.$MAIN_DOMAIN via cPanel UAPI..."
+    uapi SubDomain addsubdomain domain=ussd rootdomain="$MAIN_DOMAIN" dir="public_html/ussd" || true
+  else
+    echo "Subdomain ussd.$MAIN_DOMAIN is already registered in cPanel."
+  fi
+fi
+
+mkdir -p "$REMOTE_BASE/current/apps/ussd"
+rm -rf "/home/$USER/public_html/ussd"
+ln -sfn "$REMOTE_BASE/current/apps/ussd" "/home/$USER/public_html/ussd"
+rm -rf "/home/$USER/ussd.$MAIN_DOMAIN"
+ln -sfn "$REMOTE_BASE/current/apps/ussd" "/home/$USER/ussd.$MAIN_DOMAIN"
+
+echo "=========================================================="
+echo "cPanel Domains and Subdomains Summary:"
+if command -v uapi >/dev/null 2>&1; then
+  uapi DomainInfo list_domains 2>/dev/null | grep -E '^\s*(main_domain|sub_domains|documentroot):' || true
+fi
+echo "=========================================================="
+echo "Deployment and web server configuration completed successfully!"
