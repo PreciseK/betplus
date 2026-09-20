@@ -89,6 +89,28 @@ if [ -f "$REMOTE_BASE/shared/.env" ]; then
   elif grep -q "^DB_CONNECTION=sqlite" "$REMOTE_BASE/shared/.env" && grep -q "^CACHE_STORE=database" "$REMOTE_BASE/shared/.env"; then
     sed -i 's|^CACHE_STORE=database|CACHE_STORE=file|' "$REMOTE_BASE/shared/.env"
   fi
+
+  # Generate BACKOFFICE_MFA_ENCRYPTION_KEY if missing or empty
+  if ! grep -qE '^BACKOFFICE_MFA_ENCRYPTION_KEY=[A-Za-z0-9+/=]{40,}' "$REMOTE_BASE/shared/.env"; then
+    MFA_KEY=$($PHP_BIN -r 'echo base64_encode(random_bytes(32));')
+    if grep -q "^BACKOFFICE_MFA_ENCRYPTION_KEY=" "$REMOTE_BASE/shared/.env"; then
+      sed -i "s|^BACKOFFICE_MFA_ENCRYPTION_KEY=.*|BACKOFFICE_MFA_ENCRYPTION_KEY=$MFA_KEY|" "$REMOTE_BASE/shared/.env"
+    else
+      echo "BACKOFFICE_MFA_ENCRYPTION_KEY=$MFA_KEY" >> "$REMOTE_BASE/shared/.env"
+    fi
+    echo "Configured BACKOFFICE_MFA_ENCRYPTION_KEY in shared/.env"
+  fi
+
+  # Generate VAULT_ENCRYPTION_KEY if missing or empty
+  if ! grep -qE '^VAULT_ENCRYPTION_KEY=[A-Za-z0-9+/=]{40,}' "$REMOTE_BASE/shared/.env"; then
+    V_KEY=$($PHP_BIN -r 'echo base64_encode(random_bytes(32));')
+    if grep -q "^VAULT_ENCRYPTION_KEY=" "$REMOTE_BASE/shared/.env"; then
+      sed -i "s|^VAULT_ENCRYPTION_KEY=.*|VAULT_ENCRYPTION_KEY=$V_KEY|" "$REMOTE_BASE/shared/.env"
+    else
+      echo "VAULT_ENCRYPTION_KEY=$V_KEY" >> "$REMOTE_BASE/shared/.env"
+    fi
+    echo "Configured VAULT_ENCRYPTION_KEY in shared/.env"
+  fi
 else
   echo "WARNING: $REMOTE_BASE/shared/.env does not exist yet. Please create it on the server."
 fi
