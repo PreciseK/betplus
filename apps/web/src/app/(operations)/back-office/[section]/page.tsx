@@ -63,7 +63,11 @@ export function generateStaticParams() {
   return sectionDestinations.map((destination) => ({ section: destination.href.split("/").at(-1) }));
 }
 
-export default async function OperationsSectionPage({ params }: PageProps<"/back-office/[section]">) {
+export default async function OperationsSectionPage({
+  params,
+}: {
+  params: Promise<{ section: string }>;
+}) {
   const { section } = await params;
   const destination = sectionDestinations.find((item) => item.href.endsWith(`/${section}`));
   if (!destination) notFound();

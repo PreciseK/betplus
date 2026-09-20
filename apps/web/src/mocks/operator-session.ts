@@ -58,13 +58,14 @@ export const mockOperatorSessionGateway: OperatorSessionGateway = {
     if (email.startsWith("blocked.")) {
       throw new OperatorSessionError("IP_NOT_ALLOWED");
     }
-    if (!email.toLowerCase().endsWith("@betplus.ng") || password.length < 8) {
+    const lower = email.toLowerCase();
+    if ((!lower.endsWith("@betplus.com.ng") && !lower.endsWith("@betplus.ng")) || password.length < 8) {
       throw new OperatorSessionError("CREDENTIALS_INVALID");
     }
-    const [localPart] = email.split("@");
+    const [localPart, domain] = email.split("@");
     return {
       challengeId: `mock-operator-${localPart}`,
-      maskedEmail: `${localPart.slice(0, 1)}•••@betplus.ng`,
+      maskedEmail: `${localPart.slice(0, 1)}•••@${domain}`,
     };
   },
 

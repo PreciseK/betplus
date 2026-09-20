@@ -21,7 +21,7 @@ interface OperatorSignInProps {
   gateway?: OperatorSessionGateway;
 }
 
-const EMAIL_ERROR = "Enter your Betplus work email ending in @betplus.ng.";
+const EMAIL_ERROR = "Enter your Betplus work email ending in @betplus.com.ng or @betplus.ng.";
 const PASSWORD_ERROR = "Enter your operator password. It must be at least 8 characters.";
 
 export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSignInProps) {
@@ -39,7 +39,7 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
   const [session, setSession] = useState<OperatorSession>();
 
   const validateEmail = () => {
-    const valid = /^[^@\s]+@betplus\.ng$/i.test(email.trim());
+    const valid = /^[^@\s]+@(betplus\.com\.ng|betplus\.ng)$/i.test(email.trim());
     setEmailError(valid ? undefined : EMAIL_ERROR);
     return valid;
   };
@@ -136,7 +136,7 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
             type="email"
             inputMode="email"
             autoComplete="username"
-            placeholder="name@betplus.ng"
+            placeholder="name@betplus.com.ng"
             value={email}
             errorText={emailError}
             onBlur={validateEmail}
