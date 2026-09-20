@@ -66,15 +66,16 @@ jobs:
           RELEASE_NAME=$(date +%Y%m%d%H%M%S)
           REMOTE_BASE="/home/$SSH_USER/betplus"
           REMOTE_RELEASE="$REMOTE_BASE/releases/$RELEASE_NAME"
+          SSH_OPTS="-p $SSH_PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=30 -o ServerAliveCountMax=5 -o ConnectTimeout=30"
 
           echo "Deploying release: $RELEASE_NAME"
 
           # 1. Ensure remote directories exist
-          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_BASE/releases $REMOTE_BASE/shared/storage $REMOTE_BASE/shared/storage/framework/{sessions,views,cache} $REMOTE_BASE/shared/storage/logs"
+          ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_BASE/releases $REMOTE_BASE/shared/storage $REMOTE_BASE/shared/storage/framework/{sessions,views,cache} $REMOTE_BASE/shared/storage/logs"
 
           # 2. Rsync repository files (including pre-built vendor) excluding build caches
           rsync -avz --delete \
-            -e "ssh -p $SSH_PORT" \
+            -e "ssh $SSH_OPTS" \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'node_modules' \
@@ -86,8 +87,8 @@ jobs:
 
           # 3. Rsync pre-built frontend static export into the release
           rsync -avz \
-            -e "ssh -p $SSH_PORT" \
+            -e "ssh $SSH_OPTS" \
             ./apps/web/out/ $SSH_USER@$SSH_HOST:$REMOTE_RELEASE/apps/web/out/
 
           # 4. Execute atomic switch, migrations, and cache warming on server
-          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "bash -s" < tools/cpanel-deploy.sh
+          ssh $SSH_OPTS $SSH_USER@$SSH_HOST "bash -s" < tools/cpanel-deploy.sh
