@@ -14,6 +14,10 @@ return new class extends Migration
 
     public function up(): void
     {
+        if (Schema::connection($this->connection)->hasTable('vaultedIdentifier')) {
+            return;
+        }
+
         Schema::connection($this->connection)->create('vaultedIdentifier', function (Blueprint $table) {
             $table->id();
             // No FK to player — that table lives in a different schema/connection entirely.

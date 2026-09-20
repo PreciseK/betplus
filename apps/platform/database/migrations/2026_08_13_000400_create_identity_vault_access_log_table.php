@@ -14,6 +14,10 @@ return new class extends Migration
 
     public function up(): void
     {
+        if (Schema::connection($this->connection)->hasTable('identityVaultAccessLog')) {
+            return;
+        }
+
         Schema::connection($this->connection)->create('identityVaultAccessLog', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('playerId')->nullable();

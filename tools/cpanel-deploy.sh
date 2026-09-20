@@ -58,12 +58,26 @@ if [ -f "$REMOTE_BASE/shared/.env" ]; then
   # Ensure safe defaults for database, sessions, and cache if using sqlite or missing
   if ! grep -q "^DB_CONNECTION=" "$REMOTE_BASE/shared/.env"; then
     echo "DB_CONNECTION=sqlite" >> "$REMOTE_BASE/shared/.env"
-    echo "DB_DATABASE=$REMOTE_BASE/shared/database/database.sqlite" >> "$REMOTE_BASE/shared/.env"
   fi
+  if grep -q "^DB_CONNECTION=sqlite" "$REMOTE_BASE/shared/.env"; then
+    if ! grep -q "^DB_DATABASE=" "$REMOTE_BASE/shared/.env"; then
+      echo "DB_DATABASE=$REMOTE_BASE/shared/database/database.sqlite" >> "$REMOTE_BASE/shared/.env"
+    else
+      sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$REMOTE_BASE/shared/database/database.sqlite|" "$REMOTE_BASE/shared/.env"
+    fi
+  fi
+
   if ! grep -q "^VAULT_DB_CONNECTION=" "$REMOTE_BASE/shared/.env"; then
     echo "VAULT_DB_CONNECTION=sqlite" >> "$REMOTE_BASE/shared/.env"
-    echo "VAULT_DB_DATABASE=$REMOTE_BASE/shared/database/vault.sqlite" >> "$REMOTE_BASE/shared/.env"
   fi
+  if grep -q "^VAULT_DB_CONNECTION=sqlite" "$REMOTE_BASE/shared/.env"; then
+    if ! grep -q "^VAULT_DB_DATABASE=" "$REMOTE_BASE/shared/.env"; then
+      echo "VAULT_DB_DATABASE=$REMOTE_BASE/shared/database/vault.sqlite" >> "$REMOTE_BASE/shared/.env"
+    else
+      sed -i "s|^VAULT_DB_DATABASE=.*|VAULT_DB_DATABASE=$REMOTE_BASE/shared/database/vault.sqlite|" "$REMOTE_BASE/shared/.env"
+    fi
+  fi
+
   if ! grep -q "^SESSION_DRIVER=" "$REMOTE_BASE/shared/.env"; then
     echo "SESSION_DRIVER=file" >> "$REMOTE_BASE/shared/.env"
   elif grep -q "^DB_CONNECTION=sqlite" "$REMOTE_BASE/shared/.env" && grep -q "^SESSION_DRIVER=database" "$REMOTE_BASE/shared/.env"; then
@@ -102,7 +116,45 @@ echo "Clearing and warming production caches..."
 $PHP_BIN artisan optimize:clear || true
 
 echo "Running database migrations..."
-$PHP_BIN artisan migrate --force || echo "Notice: Migrations completed or skipped (check DB config in shared/.env)"
+$PHP_BIN artisan migrate --force --verbose || echo "Notice: Migrations completed or skipped (check DB config in shared/.env)"
+
+echo "Database Migration Status:"
+$PHP_BIN artisan migrate:status || true
+
+echo "Seeding initial game data..."
+$PHP_BIN artisan db:seed --force || echo "Notice: Seeding completed or skipped"
+
+echo "Ensuring Back-Office Admin user exists..."
+$PHP_BIN -r '
+require "vendor/autoload.php";
+$app = require_once "bootstrap/app.php";
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
+try {
+    if (!\App\Models\InstitutionUser::where("email", "admin@betplus.com.ng")->exists()) {
+        $cipher = $app->make(\App\Domain\BackOffice\MfaSecretCipher::class);
+        $totp = $app->make(\App\Domain\BackOffice\TotpService::class);
+        $secret = $totp->generateSecret();
+        \App\Models\InstitutionUser::create([
+            "email" => "admin@betplus.com.ng",
+            "displayName" => "System Administrator",
+            "passwordHash" => password_hash("AdminPass123!", PASSWORD_BCRYPT),
+            "role" => "system_admin",
+            "status" => "active",
+            "mfaSecretEncrypted" => $cipher->encrypt($secret),
+        ]);
+        echo "\n>>> INITIAL ADMIN CREATED <<<\n";
+        echo "Email: admin@betplus.com.ng\n";
+        echo "Password: AdminPass123!\n";
+        echo "TOTP Secret: " . $secret . "\n";
+        echo ">>> =================== <<<\n\n";
+    } else {
+        echo "Admin user admin@betplus.com.ng is already configured.\n";
+    }
+} catch (\Throwable $e) {
+    echo "Notice: Admin seeding skipped: " . $e->getMessage() . "\n";
+}
+' || true
 
 echo "Warming production caches..."
 $PHP_BIN artisan config:cache || true
