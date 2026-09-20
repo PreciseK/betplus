@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { ErrorSummary } from "@/components/auth/ErrorSummary/ErrorSummary";
 import { OPERATOR_ROLE_LABELS } from "@/components/operations/operations-navigation";
 import { Button } from "@/components/ui/Button/Button";
@@ -34,9 +34,21 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
   const [codeError, setCodeError] = useState<string>();
   const [challengeId, setChallengeId] = useState("");
   const [maskedEmail, setMaskedEmail] = useState("");
+  const [mfaSecret, setMfaSecret] = useState<string>();
+  const [copiedSecret, setCopiedSecret] = useState(false);
+  const [sessionExpiredNotice, setSessionExpiredNotice] = useState(false);
   const [providerError, setProviderError] = useState<string>();
   const [pending, setPending] = useState(false);
   const [session, setSession] = useState<OperatorSession>();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("session_expired") === "1") {
+        setSessionExpiredNotice(true);
+      }
+    }
+  }, []);
 
   const validateEmail = () => {
     const valid = /^[^@\s]+@(betplus\.com\.ng|betplus\.ng)$/i.test(email.trim());
@@ -61,6 +73,11 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
       const response = await gateway.beginMfa(email.trim(), password);
       setChallengeId(response.challengeId);
       setMaskedEmail(response.maskedEmail);
+      if (response.secret) {
+        setMfaSecret(response.secret);
+      } else {
+        setMfaSecret(undefined);
+      }
       setPassword("");
       setStep("mfa");
     } catch (error) {
@@ -119,11 +136,19 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
     <section className={styles.flow} aria-labelledby="operator-sign-in-title">
       <div className={styles.intro}>
         <p className={styles.context}>Betplus back office</p>
-        <h1 id="operator-sign-in-title">{step === "credentials" ? "Operator sign in" : "Verify with MFA"}</h1>
+        <h1 id="operator-sign-in-title">{step === "credentials" ? "Operator sign in" : (mfaSecret ? "Set up authenticator" : "Verify with MFA")}</h1>
         <p>{step === "credentials"
           ? "Use your assigned operator account. This surface is separate from player sign-in."
-          : `Enter the current code from your authenticator app. A security notice was also sent to ${maskedEmail}.`}</p>
+          : (mfaSecret
+            ? `Add the secret key below into your authenticator app, then enter the 6-digit code.`
+            : `Enter the current code from your authenticator app. A security notice was also sent to ${maskedEmail}.`)}</p>
       </div>
+
+      {sessionExpiredNotice && step === "credentials" && (
+        <InlineMessage tone="info" title="Session required">
+          Your operator session expired or you must sign in to view that console.
+        </InlineMessage>
+      )}
 
       {providerError && <InlineMessage tone="error" title="Access not confirmed">{providerError}</InlineMessage>}
 
@@ -162,6 +187,34 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
       ) : (
         <form className={styles.form} noValidate onSubmit={verifyMfa}>
           <ErrorSummary errors={errors} />
+          {mfaSecret && (
+            <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px", padding: "16px", marginBottom: "16px" }}>
+              <strong style={{ display: "block", marginBottom: "6px", fontSize: "0.95rem", color: "#f3f4f6" }}>
+                Set up Authenticator app
+              </strong>
+              <p style={{ margin: "0 0 10px 0", fontSize: "0.85rem", color: "#9ca3af" }}>
+                This account requires MFA registration. Enter this key into your authenticator app (Google Authenticator, Microsoft Authenticator, Apple Keychain):
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(0,0,0,0.35)", padding: "8px 12px", borderRadius: "6px" }}>
+                <code style={{ fontFamily: "monospace", fontSize: "1rem", letterSpacing: "1px", wordBreak: "break-all", flex: 1, color: "#34d399" }}>
+                  {mfaSecret}
+                </code>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={() => {
+                    if (typeof navigator !== "undefined" && navigator.clipboard) {
+                      navigator.clipboard.writeText(mfaSecret);
+                    }
+                    setCopiedSecret(true);
+                    setTimeout(() => setCopiedSecret(false), 2500);
+                  }}
+                >
+                  {copiedSecret ? "Copied!" : "Copy Key"}
+                </Button>
+              </div>
+            </div>
+          )}
           <OtpInput
             id="operator-mfa"
             label="Authenticator code"

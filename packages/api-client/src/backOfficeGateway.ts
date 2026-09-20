@@ -306,7 +306,15 @@ async function request<T>(
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
   });
   const body = await response.json().catch(() => ({})) as Record<string, unknown>;
-  if (!response.ok) throw new BackOfficeApiError(response.status, body);
+  if (!response.ok) {
+    if (response.status === 401 && options.authenticated !== false) {
+      backOfficeGateway.clearSession();
+      if (typeof window !== "undefined" && !window.location.pathname.endsWith("/back-office")) {
+        window.location.replace("/back-office?session_expired=1");
+      }
+    }
+    throw new BackOfficeApiError(response.status, body);
+  }
   return body as T;
 }
 
@@ -314,7 +322,10 @@ export const backOfficeGateway = {
   hasSession: () => Boolean(readToken()),
 
   clearSession() {
-    if (typeof window !== "undefined") window.sessionStorage.removeItem(TOKEN_KEY);
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem(TOKEN_KEY);
+      window.sessionStorage.removeItem("betplus.operator.session");
+    }
   },
 
   async beginMfa(email: string, password: string) {

@@ -30,6 +30,8 @@ export interface OperatorSessionGateway {
   beginMfa(email: string, password: string): Promise<{
     challengeId: string;
     maskedEmail: string;
+    status?: "mfa_required" | "mfa_setup_required";
+    secret?: string;
   }>;
   verifyMfa(challengeId: string, code: string): Promise<OperatorSession>;
 }

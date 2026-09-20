@@ -43,7 +43,12 @@ export const operatorSessionGateway: OperatorSessionGateway = {
     pendingEmail = email;
     try {
       const response = await backOfficeGateway.beginMfa(email, password);
-      return { challengeId: response.challenge_id, maskedEmail: maskEmail(email) };
+      return {
+        challengeId: response.challenge_id,
+        maskedEmail: maskEmail(email),
+        status: response.status,
+        secret: response.secret,
+      };
     } catch (error) {
       throw toSessionError(error);
     }
@@ -53,7 +58,7 @@ export const operatorSessionGateway: OperatorSessionGateway = {
     try {
       const response = await backOfficeGateway.verifyMfa(challengeId, code);
       const now = new Date();
-      return {
+      const sessionResult = {
         operator: {
           id: pendingEmail,
           displayName: displayName(pendingEmail),
@@ -64,6 +69,10 @@ export const operatorSessionGateway: OperatorSessionGateway = {
         expiresAt: new Date(now.getTime() + response.expires_in * 1000).toISOString(),
         approvedNetwork: "Approved institutional network",
       };
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("betplus.operator.session", JSON.stringify(sessionResult.operator));
+      }
+      return sessionResult;
     } catch (error) {
       if (error instanceof BackOfficeApiError && error.status === 401) {
         throw new OperatorSessionError("MFA_INVALID_OR_EXPIRED");

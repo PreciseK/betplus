@@ -25,7 +25,7 @@ use Illuminate\Support\Str;
  */
 final class InstitutionAuthService
 {
-    private const ACCESS_TOKEN_TTL_SECONDS = 900; // 15 minutes — shorter than the player token (REQ-BO-014: highest-value surface)
+    private const ACCESS_TOKEN_TTL_SECONDS = 28800; // 8 hours — supports operator shift length (was 15 min)
     private const MFA_CHALLENGE_TTL_SECONDS = 300;
     private const MAX_SIGN_IN_ATTEMPTS_PER_ACCOUNT = 5;
     private const MAX_SIGN_IN_ATTEMPTS_PER_IP = 20;
