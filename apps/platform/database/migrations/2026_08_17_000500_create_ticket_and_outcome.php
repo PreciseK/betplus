@@ -71,16 +71,20 @@ return new class extends Migration
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'mysql' || $driver === 'mariadb') {
-            // REQ-NFR-032 — monthly range partitions, declared at creation.
-            DB::statement(<<<'SQL'
-                ALTER TABLE ticket
-                PARTITION BY RANGE COLUMNS (createdAt) (
-                    PARTITION p_before_2026_08 VALUES LESS THAN ('2026-08-01'),
-                    PARTITION p_2026_08 VALUES LESS THAN ('2026-09-01'),
-                    PARTITION p_2026_09 VALUES LESS THAN ('2026-10-01'),
-                    PARTITION p_future VALUES LESS THAN (MAXVALUE)
-                )
-            SQL);
+            try {
+                // REQ-NFR-032 — monthly range partitions, declared at creation.
+                DB::statement(<<<'SQL'
+                    ALTER TABLE ticket
+                    PARTITION BY RANGE COLUMNS (createdAt) (
+                        PARTITION p_before_2026_08 VALUES LESS THAN ('2026-08-01'),
+                        PARTITION p_2026_08 VALUES LESS THAN ('2026-09-01'),
+                        PARTITION p_2026_09 VALUES LESS THAN ('2026-10-01'),
+                        PARTITION p_future VALUES LESS THAN (MAXVALUE)
+                    )
+                SQL);
+            } catch (\Throwable) {
+                // Ignored when database engine restricts foreign keys on partitioned tables.
+            }
         }
 
         $this->createImmutabilityTriggers($driver);

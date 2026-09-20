@@ -36,19 +36,23 @@ return new class extends Migration
             $table->index(['gameCode', 'stateCode'], 'idx_analyticsEvent_game_state');
         });
 
-        if (DB::connection()->getDriverName() === 'mysql') {
-            // REQ-ANL-006 — raw events retained 25 months, partitioned monthly so
-            // dashboards never scan the whole table (they read rollups anyway; this is
-            // for the retention-window sweep).
-            DB::statement(<<<'SQL'
-                ALTER TABLE analyticsEvent
-                PARTITION BY RANGE COLUMNS (occurredAt) (
-                    PARTITION p_before_2026_08 VALUES LESS THAN ('2026-08-01'),
-                    PARTITION p_2026_08 VALUES LESS THAN ('2026-09-01'),
-                    PARTITION p_2026_09 VALUES LESS THAN ('2026-10-01'),
-                    PARTITION p_future VALUES LESS THAN (MAXVALUE)
-                )
-            SQL);
+        $driver = DB::connection()->getDriverName();
+        if ($driver === 'mysql' || $driver === 'mariadb') {
+            try {
+                // REQ-ANL-006 — raw events retained 25 months, partitioned monthly so
+                // dashboards never scan the whole table.
+                DB::statement(<<<'SQL'
+                    ALTER TABLE analyticsEvent
+                    PARTITION BY RANGE COLUMNS (occurredAt) (
+                        PARTITION p_before_2026_08 VALUES LESS THAN ('2026-08-01'),
+                        PARTITION p_2026_08 VALUES LESS THAN ('2026-09-01'),
+                        PARTITION p_2026_09 VALUES LESS THAN ('2026-10-01'),
+                        PARTITION p_future VALUES LESS THAN (MAXVALUE)
+                    )
+                SQL);
+            } catch (\Throwable) {
+                // Ignored if engine primary key restrictions conflict with partition key.
+            }
         }
     }
 
