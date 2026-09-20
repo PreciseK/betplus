@@ -54,28 +54,39 @@ jobs:
           echo "${{ secrets.CPANEL_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           echo "" >> ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ secrets.CPANEL_SSH_PORT || '22' }} -H "${{ secrets.CPANEL_SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
-          chmod 644 ~/.ssh/known_hosts
+          cat << 'EOF' > ~/.ssh/config
+          Host cpanel-target
+            HostName ${{ secrets.CPANEL_SSH_HOST }}
+            User ${{ secrets.CPANEL_SSH_USER }}
+            Port ${{ secrets.CPANEL_SSH_PORT || '22' }}
+            IdentityFile ~/.ssh/id_rsa
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            ServerAliveInterval 30
+            ServerAliveCountMax 5
+            ConnectTimeout 30
+            ControlMaster auto
+            ControlPath ~/.ssh/cm-%r@%h:%p
+            ControlPersist 10m
+          EOF
+          chmod 600 ~/.ssh/config
 
       - name: Deploy Release via SSH & Rsync
         env:
-          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
           SSH_USER: ${{ secrets.CPANEL_SSH_USER }}
-          SSH_PORT: ${{ secrets.CPANEL_SSH_PORT || '22' }}
         run: |
           RELEASE_NAME=$(date +%Y%m%d%H%M%S)
           REMOTE_BASE="/home/$SSH_USER/betplus"
           REMOTE_RELEASE="$REMOTE_BASE/releases/$RELEASE_NAME"
-          SSH_OPTS="-p $SSH_PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=30 -o ServerAliveCountMax=5 -o ConnectTimeout=30"
 
           echo "Deploying release: $RELEASE_NAME"
 
-          # 1. Ensure remote directories exist
-          ssh $SSH_OPTS $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_BASE/releases $REMOTE_BASE/shared/storage $REMOTE_BASE/shared/storage/framework/{sessions,views,cache} $REMOTE_BASE/shared/storage/logs"
+          # 1. Ensure remote directories exist (establishes multiplexed master connection)
+          ssh cpanel-target "mkdir -p $REMOTE_BASE/releases $REMOTE_BASE/shared/storage $REMOTE_BASE/shared/storage/framework/{sessions,views,cache} $REMOTE_BASE/shared/storage/logs"
 
           # 2. Rsync repository files (including pre-built vendor) excluding build caches
           rsync -avz --delete \
-            -e "ssh $SSH_OPTS" \
+            -e ssh \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'node_modules' \
@@ -83,12 +94,12 @@ jobs:
             --exclude 'apps/platform/storage' \
             --exclude '.env' \
             --exclude 'apps/*/.env' \
-            ./ $SSH_USER@$SSH_HOST:$REMOTE_RELEASE/
+            ./ cpanel-target:$REMOTE_RELEASE/
 
           # 3. Rsync pre-built frontend static export into the release
           rsync -avz \
-            -e "ssh $SSH_OPTS" \
-            ./apps/web/out/ $SSH_USER@$SSH_HOST:$REMOTE_RELEASE/apps/web/out/
+            -e ssh \
+            ./apps/web/out/ cpanel-target:$REMOTE_RELEASE/apps/web/out/
 
           # 4. Execute atomic switch, migrations, and cache warming on server
-          ssh $SSH_OPTS $SSH_USER@$SSH_HOST "bash -s" < tools/cpanel-deploy.sh
+          ssh cpanel-target "bash -s" < tools/cpanel-deploy.sh
