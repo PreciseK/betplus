@@ -1,0 +1,50 @@
+.emptyState {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: calc(var(--ops-panel-padding) * 1.5) var(--ops-panel-padding);
+  border: var(--ops-panel-border);
+  border-radius: var(--corner-surface);
+  background: var(--ops-panel-subtle);
+  gap: var(--ops-group-gap);
+  width: 100%;
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-subtle);
+}
+
+.copy {
+  display: grid;
+  gap: var(--ops-tight-gap);
+  max-width: 48ch;
+}
+
+.copy h3 {
+  margin: 0;
+  font-size: var(--type-h3-size);
+  font-weight: var(--type-body-strong-weight);
+  color: var(--text-primary);
+}
+
+.copy p {
+  margin: 0;
+  font-size: var(--type-small-size);
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.action {
+  margin-top: var(--ops-tight-gap);
+}

@@ -5,6 +5,7 @@ import { backOfficeGateway, BackOfficeApiError } from "@betplus/api-client";
 import { Button } from "@/components/ui/Button/Button";
 import { Icon } from "@/components/ui/Icon/Icon";
 import { TextField } from "@/components/ui/TextField/TextField";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "./TicketReplayAudit.module.css";
 
 type ReplayResult = Awaited<ReturnType<typeof backOfficeGateway.ticketReplay>>;
@@ -73,12 +74,20 @@ export function TicketReplayAudit() {
 
       {error && <p className={styles.fieldError} role="alert"><Icon name="error" />{error}</p>}
 
+      {!result && !notFound && !error && (
+        <EmptyState
+          icon="ticket"
+          title="Enter a ticket reference to audit"
+          description="Provide a BlackRed ticket reference above to run deterministic cryptographic RNG replay verification against settled outcomes."
+        />
+      )}
+
       {notFound && (
-        <section className={styles.notFound} aria-labelledby="ticket-not-found-title">
-          <Icon name="ticket" size="empty" />
-          <h2 id="ticket-not-found-title">No replay record for "{lastSearch}"</h2>
-          <p>Check the complete Betplus ticket reference. This is a BlackRed-only replay surface today.</p>
-        </section>
+        <EmptyState
+          icon="ticket"
+          title={`No replay record for "${lastSearch}"`}
+          description="Check the complete Betplus ticket reference. This is a BlackRed-only replay surface today."
+        />
       )}
 
       {result && (

@@ -5,6 +5,7 @@ import { backOfficeGateway, type BackOfficeJurisdiction } from "@betplus/api-cli
 import { Button } from "@/components/ui/Button/Button";
 import { Dialog } from "@/components/ui/feedback/Dialog/Dialog";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
 function basisPointsToPercent(bp: number) {
@@ -76,7 +77,15 @@ export function JurisdictionConsole() {
   }
 
   if (loadFailed) {
-    return <div className={styles.page}><p className={styles.muted}>Live jurisdiction data could not be loaded. Sign in again if this persists.</p></div>;
+    return (
+      <div className={styles.page}>
+        <EmptyState
+          icon="error"
+          title="Could not load jurisdictions"
+          description="Live jurisdiction data could not be loaded from the back-office gateway. Try refreshing or signing in again."
+        />
+      </div>
+    );
   }
 
   return (
@@ -104,7 +113,15 @@ export function JurisdictionConsole() {
 
       <section className={styles.section} aria-labelledby="state-register-title">
         <header className={styles.sectionHeader}><div><h2 id="state-register-title">State licence and ruleset register</h2></div></header>
-        {states === undefined ? <p className={styles.muted}>Loading…</p> : (
+        {states === undefined ? (
+          <p className={styles.muted}>Loading…</p>
+        ) : states.length === 0 ? (
+          <EmptyState
+            icon="limits"
+            title="No jurisdiction licences registered"
+            description="State licensing rulesets and regulatory tax rates have not been populated."
+          />
+        ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <caption className="sr-only">Jurisdiction licence, tax and activity status by state</caption>

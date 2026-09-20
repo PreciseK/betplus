@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { backOfficeGateway, type BackOfficeAuditEvent } from "@betplus/api-client";
 import { Icon } from "@/components/ui/Icon/Icon";
 import { TextField } from "@/components/ui/TextField/TextField";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "./AuditLog.module.css";
 
 /** Real field-by-field diff from the stored before/after snapshots — no fabricated risk score. */
@@ -61,7 +62,11 @@ export function AuditLog() {
   if (loadFailed) {
     return (
       <div className={styles.page}>
-        <p className={styles.muted}>Live audit data could not be loaded. Sign in again if this persists.</p>
+        <EmptyState
+          icon="error"
+          title="Could not load audit log"
+          description="Live audit data could not be loaded from the back-office gateway. Sign in again if this persists."
+        />
       </div>
     );
   }
@@ -182,11 +187,11 @@ export function AuditLog() {
             </table>
           </div>
         ) : (
-          <div className={styles.emptyState}>
-            <Icon name="info" size="empty" />
-            <h3>No matching audit events</h3>
-            <p>Try another search term or date range.</p>
-          </div>
+          <EmptyState
+            icon="info"
+            title="No matching audit events"
+            description="Try another search term or date range."
+          />
         )}
       </section>
     </div>

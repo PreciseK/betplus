@@ -5,6 +5,7 @@ import { backOfficeGateway } from "@betplus/api-client";
 import { useOperationsUrlFilters } from "@/components/operations/useOperationsUrlFilters";
 import { Button } from "@/components/ui/Button/Button";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
 function todayIso() {
@@ -114,7 +115,11 @@ export function ReportsConsole() {
       <section className={styles.section} aria-labelledby="export-jobs-title">
         <header className={styles.sectionHeader}><div><h2 id="export-jobs-title">Export jobs this session</h2><p>There is no server-side history list for report exports — this table only tracks jobs requested in this browser session. Reloading the page loses this list; the underlying export and its audit record still exist.</p></div></header>
         {jobs.length === 0 ? (
-          <div className={styles.emptyState}><h3>No exports requested yet</h3><p>Queue an export above to see its status here.</p></div>
+          <EmptyState
+            icon="calendar"
+            title="No exports requested yet"
+            description="Queue an export using the form above to generate and download compliance and financial reports."
+          />
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>

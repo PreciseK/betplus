@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { backOfficeGateway, BackOfficeApiError, type BackOfficeChange } from "@betplus/api-client";
 import { Button } from "@/components/ui/Button/Button";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import { formatKobo, parseNairaInputToKobo } from "@/lib/money";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
@@ -66,7 +67,15 @@ export function AdjustmentsConsole() {
   }
 
   if (loadFailed) {
-    return <div className={styles.page}><p className={styles.muted}>Live adjustment data could not be loaded. Sign in again if this persists.</p></div>;
+    return (
+      <div className={styles.page}>
+        <EmptyState
+          icon="error"
+          title="Could not load adjustments"
+          description="Live adjustment records could not be loaded from the back-office gateway. Try refreshing or signing in again."
+        />
+      </div>
+    );
   }
 
   return (
@@ -143,7 +152,11 @@ export function AdjustmentsConsole() {
             </table>
           </div>
         ) : (
-          <div className={styles.emptyState}><h3>No adjustments yet</h3><p>Propose one above.</p></div>
+          <EmptyState
+            icon="activity"
+            title="No adjustments yet"
+            description="No manual balance credits or debits have been proposed yet. Use the form above to propose one."
+          />
         )}
       </section>
     </div>

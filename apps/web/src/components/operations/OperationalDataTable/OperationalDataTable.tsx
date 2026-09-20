@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button/Button";
 import { Dialog } from "@/components/ui/feedback/Dialog/Dialog";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
 export type OperationalDataState = "ready" | "loading" | "partial" | "stale" | "error";
@@ -110,7 +111,7 @@ export function OperationalDataTable<Row>({
   }
 
   if (rows.length === 0) {
-    return <div className={styles.emptyState}><h3>{emptyTitle}</h3><p>{emptyMessage}</p></div>;
+    return <EmptyState icon="info" title={emptyTitle} description={emptyMessage} />;
   }
 
   return (

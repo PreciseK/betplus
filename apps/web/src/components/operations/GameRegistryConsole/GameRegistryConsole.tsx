@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/Button/Button";
 import { Dialog } from "@/components/ui/feedback/Dialog/Dialog";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import { formatKobo } from "@/lib/money";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
@@ -213,7 +214,15 @@ export function GameRegistryConsole() {
   }
 
   if (loadFailed) {
-    return <div className={styles.page}><p className={styles.muted}>Live game registry data could not be loaded. Sign in again if this persists.</p></div>;
+    return (
+      <div className={styles.page}>
+        <EmptyState
+          icon="error"
+          title="Could not load game registry"
+          description="Live game registry data could not be loaded from the back-office gateway. Try refreshing or signing in again."
+        />
+      </div>
+    );
   }
 
   return (
@@ -235,7 +244,15 @@ export function GameRegistryConsole() {
 
       <section className={styles.section} aria-labelledby="game-registry-title">
         <header className={styles.sectionHeader}><div><h2 id="game-registry-title">Game registry</h2></div></header>
-        {games === undefined ? <p className={styles.muted}>Loading…</p> : (
+        {games === undefined ? (
+          <p className={styles.muted}>Loading…</p>
+        ) : games.length === 0 ? (
+          <EmptyState
+            icon="games"
+            title="No games registered"
+            description="No games have been provisioned in the runtime registry."
+          />
+        ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <caption className="sr-only">Configured Betplus game registry</caption>
@@ -281,8 +298,19 @@ export function GameRegistryConsole() {
           <Button leadingIcon={<Icon name="activity" />} onClick={startCreateDraft}>New draft</Button>
         </header>
         {prizeTablesError && <p className={styles.fieldError} role="alert"><Icon name="error" />{prizeTablesError}</p>}
-        {prizeTables === undefined ? <p className={styles.muted}>Loading…</p> : prizeTables.length === 0 ? (
-          <div className={styles.emptyState}><p>No prize tables yet for this game.</p></div>
+        {prizeTables === undefined ? (
+          <p className={styles.muted}>Loading…</p>
+        ) : prizeTables.length === 0 ? (
+          <EmptyState
+            icon="activity"
+            title="No prize tables yet for this game"
+            description="Create a new draft prize table to configure tier multipliers and winning probabilities."
+            action={
+              <Button leadingIcon={<Icon name="activity" />} onClick={startCreateDraft}>
+                New draft
+              </Button>
+            }
+          />
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>

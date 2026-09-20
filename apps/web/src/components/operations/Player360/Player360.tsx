@@ -5,6 +5,7 @@ import { backOfficeGateway, BackOfficeApiError } from "@betplus/api-client";
 import { Button } from "@/components/ui/Button/Button";
 import { Icon } from "@/components/ui/Icon/Icon";
 import { TextField } from "@/components/ui/TextField/TextField";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import { formatKobo } from "@/lib/money";
 import styles from "./Player360.module.css";
 
@@ -73,12 +74,20 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
 
       {error && <p className={styles.fieldError} role="alert"><Icon name="error" />{error}</p>}
 
+      {!player && !notFound && !error && (
+        <EmptyState
+          icon="account"
+          title="Find a player record"
+          description="Enter a numeric player ID above to inspect profile data, KYC verifications, wallet balances, ticket logs, and payment receipts."
+        />
+      )}
+
       {notFound && (
-        <section className={styles.notFound} aria-labelledby="not-found-title">
-          <Icon name="account" size="empty" />
-          <h2 id="not-found-title">No player found for "{lastSearch}"</h2>
-          <p>Search by numeric player ID. Phone numbers, names and raw identity numbers are not accepted.</p>
-        </section>
+        <EmptyState
+          icon="account"
+          title={`No player found for "${lastSearch}"`}
+          description="Search by numeric player ID. Phone numbers, names and raw identity numbers are not accepted."
+        />
       )}
 
       {player && (
@@ -113,7 +122,13 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
                     <h2 id="kyc-title">Identity and KYC records</h2>
                     <p><Icon name="lock" />Raw NIN/BVN are never returned by this view — only verification status.</p>
                   </div>
-                  {player.kyc_records.length === 0 ? <p className={styles.muted}>No KYC records on file.</p> : (
+                  {player.kyc_records.length === 0 ? (
+                    <EmptyState
+                      icon="account"
+                      title="No KYC records on file"
+                      description="No identity verification documents have been submitted or approved for this player."
+                    />
+                  ) : (
                     <dl>
                       {player.kyc_records.map((record, index) => (
                         <div key={`${record.id_type}-${index}`}>
@@ -128,7 +143,13 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
 
               {view === "tickets" && (
                 <EvidenceSection id="tickets" title="Ticket history" description="Every submitted stake and its settled outcome.">
-                  {player.tickets.length === 0 ? <p className={styles.muted}>No tickets yet.</p> : (
+                  {player.tickets.length === 0 ? (
+                    <EmptyState
+                      icon="ticket"
+                      title="No tickets yet"
+                      description="This player has not placed any game stakes yet."
+                    />
+                  ) : (
                     <div className={styles.tableWrap}>
                       <table className={styles.table}>
                         <caption className="sr-only">Player ticket history</caption>
@@ -150,36 +171,50 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
 
               {view === "payments" && (
                 <EvidenceSection id="payments" title="Payment history" description="Deposits and payouts, most recent first.">
-                  <div className={styles.tableWrap}>
-                    <table className={styles.table}>
-                      <caption className="sr-only">Player deposit and payout history</caption>
-                      <thead><tr><th scope="col">Type</th><th scope="col">Reference</th><th scope="col">Status</th><th scope="col" className={styles.money}>Amount</th></tr></thead>
-                      <tbody>
-                        {player.payments.deposits.map((deposit) => (
-                          <tr key={deposit.reference}>
-                            <td data-label="Type">Deposit</td>
-                            <th scope="row" data-label="Reference">{deposit.reference}</th>
-                            <td data-label="Status">{deposit.status}</td>
-                            <td data-label="Amount" className={styles.money}>{formatKobo(deposit.amount_kobo)}</td>
-                          </tr>
-                        ))}
-                        {player.payments.payouts.map((payout) => (
-                          <tr key={payout.reference}>
-                            <td data-label="Type">{payout.kind === "automatic-prize" ? "Prize payout" : "Withdrawal"}</td>
-                            <th scope="row" data-label="Reference">{payout.reference}</th>
-                            <td data-label="Status">{payout.provider_status}</td>
-                            <td data-label="Amount" className={styles.money}>{formatKobo(payout.amount_kobo)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  {player.payments.deposits.length === 0 && player.payments.payouts.length === 0 ? (
+                    <EmptyState
+                      icon="wallet"
+                      title="No payments recorded"
+                      description="No deposit or withdrawal transactions have been processed for this player."
+                    />
+                  ) : (
+                    <div className={styles.tableWrap}>
+                      <table className={styles.table}>
+                        <caption className="sr-only">Player deposit and payout history</caption>
+                        <thead><tr><th scope="col">Type</th><th scope="col">Reference</th><th scope="col">Status</th><th scope="col" className={styles.money}>Amount</th></tr></thead>
+                        <tbody>
+                          {player.payments.deposits.map((deposit) => (
+                            <tr key={deposit.reference}>
+                              <td data-label="Type">Deposit</td>
+                              <th scope="row" data-label="Reference">{deposit.reference}</th>
+                              <td data-label="Status">{deposit.status}</td>
+                              <td data-label="Amount" className={styles.money}>{formatKobo(deposit.amount_kobo)}</td>
+                            </tr>
+                          ))}
+                          {player.payments.payouts.map((payout) => (
+                            <tr key={payout.reference}>
+                              <td data-label="Type">{payout.kind === "automatic-prize" ? "Prize payout" : "Withdrawal"}</td>
+                              <th scope="row" data-label="Reference">{payout.reference}</th>
+                              <td data-label="Status">{payout.provider_status}</td>
+                              <td data-label="Amount" className={styles.money}>{formatKobo(payout.amount_kobo)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </EvidenceSection>
               )}
 
               {view === "notifications" && (
                 <EvidenceSection id="notifications" title="Notification delivery history" description="Every message sent to this player's number.">
-                  {player.notification_history.length === 0 ? <p className={styles.muted}>No notifications sent.</p> : (
+                  {player.notification_history.length === 0 ? (
+                    <EmptyState
+                      icon="info"
+                      title="No notifications sent"
+                      description="No SMS or transaction alert messages have been dispatched to this player."
+                    />
+                  ) : (
                     <ul className={styles.notificationList}>
                       {player.notification_history.map((notification, index) => (
                         <li key={`${notification.category}-${index}`}>

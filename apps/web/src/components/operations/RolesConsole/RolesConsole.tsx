@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { backOfficeGateway, type BackOfficeInstitutionUser } from "@betplus/api-client";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
 const ROLES = ['super_admin', 'system_admin', 'support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer'] as const;
@@ -28,7 +29,15 @@ export function RolesConsole() {
   }, [users]);
 
   if (loadFailed) {
-    return <div className={styles.page}><p className={styles.muted}>Live user data could not be loaded. Sign in again if this persists.</p></div>;
+    return (
+      <div className={styles.page}>
+        <EmptyState
+          icon="error"
+          title="Could not load role assignments"
+          description="Live user data could not be loaded from the back-office gateway. Try refreshing or signing in again."
+        />
+      </div>
+    );
   }
 
   return (
@@ -46,7 +55,15 @@ export function RolesConsole() {
           <div><h2 id="roles-title">Roles overview</h2><p>{users?.length ?? 0} accounts across {ROLES.length} roles.</p></div>
         </header>
 
-        {users === undefined ? <p className={styles.muted}>Loading…</p> : (
+        {users === undefined ? (
+          <p className={styles.muted}>Loading…</p>
+        ) : users.length === 0 ? (
+          <EmptyState
+            icon="lock"
+            title="No team members assigned"
+            description="No institutional user accounts have been created or assigned roles yet."
+          />
+        ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <caption className="sr-only">Institution users grouped by role</caption>

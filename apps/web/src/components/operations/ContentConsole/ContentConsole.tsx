@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { backOfficeGateway, type BackOfficeHeritageCatalogueItem } from "@betplus/api-client";
 import { Button } from "@/components/ui/Button/Button";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
 export function ContentConsole() {
@@ -43,7 +44,15 @@ export function ContentConsole() {
   }
 
   if (loadFailed) {
-    return <div className={styles.page}><p className={styles.muted}>Live catalogue data could not be loaded. Sign in again if this persists.</p></div>;
+    return (
+      <div className={styles.page}>
+        <EmptyState
+          icon="error"
+          title="Could not load catalogue items"
+          description="Live catalogue data could not be loaded from the back-office gateway. Try refreshing or signing in again."
+        />
+      </div>
+    );
   }
 
   return (
@@ -63,7 +72,15 @@ export function ContentConsole() {
           <div><h2 id="catalogue-title">Catalogue items</h2><p>{items?.length ?? 0} items.</p></div>
         </header>
 
-        {items === undefined ? <p className={styles.muted}>Loading…</p> : (
+        {items === undefined ? (
+          <p className={styles.muted}>Loading…</p>
+        ) : items.length === 0 ? (
+          <EmptyState
+            icon="games"
+            title="No heritage catalogue items"
+            description="No regalia or cultural items found in the catalogue registry."
+          />
+        ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <caption className="sr-only">Heritage catalogue items and their publication status</caption>

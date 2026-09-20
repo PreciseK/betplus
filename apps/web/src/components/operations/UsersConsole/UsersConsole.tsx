@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { backOfficeGateway, BackOfficeApiError, type BackOfficeInstitutionUser } from "@betplus/api-client";
 import { Button } from "@/components/ui/Button/Button";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
 const ROLES = ['super_admin', 'system_admin', 'support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer'] as const;
@@ -108,7 +109,13 @@ export function UsersConsole() {
           <div><h2 id="users-title">Team members</h2><p>{users?.length ?? 0} accounts.</p></div>
         </header>
 
-        {users === undefined ? <p className={styles.muted}>Loading…</p> : (
+        {users === undefined ? <p className={styles.muted}>Loading…</p> : users.length === 0 ? (
+          <EmptyState
+            icon="account"
+            title="No team members yet"
+            description="No institutional user accounts have been created. Use the form above to add your first operator."
+          />
+        ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <caption className="sr-only">Institution user accounts</caption>

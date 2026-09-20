@@ -5,6 +5,7 @@ import { backOfficeGateway, type BackOfficeDeposit } from "@betplus/api-client";
 import { Button } from "@/components/ui/Button/Button";
 import { Dialog } from "@/components/ui/feedback/Dialog/Dialog";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import { formatKobo } from "@/lib/money";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
@@ -74,7 +75,15 @@ export function DepositsConsole() {
   }
 
   if (loadFailed) {
-    return <div className={styles.page}><p className={styles.muted}>Live deposit data could not be loaded. Sign in again if this persists.</p></div>;
+    return (
+      <div className={styles.page}>
+        <EmptyState
+          icon="error"
+          title="Could not load deposits"
+          description="Live deposit data could not be loaded from the back-office gateway. Try refreshing or signing in again."
+        />
+      </div>
+    );
   }
 
   return (
@@ -127,7 +136,11 @@ export function DepositsConsole() {
             </table>
           </div>
         ) : (
-          <div className={styles.emptyState}><h3>No deposits in this status</h3><p>Change the status filter to see other records.</p></div>
+          <EmptyState
+            icon="money"
+            title="No deposits in this status"
+            description="Try changing the status filter above to view completed, pending review, or failed deposits."
+          />
         )}
       </section>
 

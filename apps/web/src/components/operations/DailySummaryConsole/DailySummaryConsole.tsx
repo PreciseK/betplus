@@ -9,6 +9,7 @@ import {
 } from "@/components/operations/OperationalDataTable/OperationalDataTable";
 import { useOperationsUrlFilters } from "@/components/operations/useOperationsUrlFilters";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import { formatKobo } from "@/lib/money";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
@@ -130,7 +131,11 @@ export function DailySummaryConsole() {
   if (loadFailed) {
     return (
       <div className={styles.page}>
-        <p className={styles.muted}>Live daily summary data could not be loaded. Sign in again if this persists.</p>
+        <EmptyState
+          icon="error"
+          title="Could not load daily summary"
+          description="Live daily summary data could not be loaded from the back-office gateway. Sign in again if this persists."
+        />
       </div>
     );
   }

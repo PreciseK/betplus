@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/Button/Button";
 import { Dialog } from "@/components/ui/feedback/Dialog/Dialog";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
 type DraftResult = BackOfficeGameEconomicsConfig & { gate_errors: string[] };
@@ -180,7 +181,15 @@ export function GameEconomicsConfigConsole() {
   }
 
   if (loadFailed) {
-    return <div className={styles.page}><p className={styles.muted}>Live game data could not be loaded. Sign in again if this persists.</p></div>;
+    return (
+      <div className={styles.page}>
+        <EmptyState
+          icon="error"
+          title="Could not load game economics"
+          description="Live game data could not be loaded from the back-office gateway. Try refreshing or signing in again."
+        />
+      </div>
+    );
   }
 
   return (
@@ -193,20 +202,28 @@ export function GameEconomicsConfigConsole() {
         </div>
       </header>
 
+      <section className={styles.runStrip} aria-labelledby="economics-runtime-title">
+        <Icon name="limits" size="control" />
+        <div><h2 id="economics-runtime-title">Model changes are maker-checker gated</h2><p>Proposing a publication produces a change record that another operator must approve.</p></div>
+      </section>
+
       {receipt && <div className={styles.receipt} role="status"><Icon name="check" />{receipt}</div>}
 
       <section className={styles.section} aria-labelledby="game-select-title">
-        <header className={styles.sectionHeader}><div><h2 id="game-select-title">Game</h2></div></header>
+        <header className={styles.sectionHeader}><div><h2 id="game-select-title">Select game</h2></div></header>
         {games === undefined ? <p className={styles.muted}>Loading…</p> : (
-          <div className={styles.controls} role="group" aria-label="Select a game">
+          <div className={styles.segmented} role="radiogroup" aria-label="Game for economics configuration">
             {games.map((game) => (
-              <Button
+              <button
                 key={game.game_code}
-                variant={selectedGameCode === game.game_code ? "primary" : "secondary"}
+                type="button"
+                role="radio"
+                aria-checked={game.game_code === selectedGameCode}
+                className={game.game_code === selectedGameCode ? styles.segmentActive : styles.segment}
                 onClick={() => setSelectedGameCode(game.game_code)}
               >
                 {game.game_code}
-              </Button>
+              </button>
             ))}
           </div>
         )}
@@ -218,8 +235,19 @@ export function GameEconomicsConfigConsole() {
           <Button leadingIcon={<Icon name="activity" />} onClick={startCreateDraft}>New draft</Button>
         </header>
         {configsError && <p className={styles.fieldError} role="alert"><Icon name="error" />{configsError}</p>}
-        {configs === undefined ? <p className={styles.muted}>Loading…</p> : configs.length === 0 ? (
-          <div className={styles.emptyState}><p>No economics configs yet for this game.</p></div>
+        {configs === undefined ? (
+          <p className={styles.muted}>Loading…</p>
+        ) : configs.length === 0 ? (
+          <EmptyState
+            icon="limits"
+            title="No economics configs yet for this game"
+            description="Create a new draft economics model to specify return-to-player target rates and house margin."
+            action={
+              <Button leadingIcon={<Icon name="activity" />} onClick={startCreateDraft}>
+                New draft
+              </Button>
+            }
+          />
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>

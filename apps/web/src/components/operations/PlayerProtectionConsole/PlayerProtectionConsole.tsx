@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { backOfficeGateway, type BackOfficeLimitUsage, type BackOfficeProtectionEvent, type BackOfficeVelocityReview } from "@betplus/api-client";
 import { Button } from "@/components/ui/Button/Button";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import { formatKobo } from "@/lib/money";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
@@ -75,7 +76,15 @@ export function PlayerProtectionConsole({ view }: { view: PlayerProtectionView }
   }, [view, reviews, limits, exclusions]);
 
   if (loadFailed) {
-    return <div className={styles.page}><p className={styles.muted}>Live player protection data could not be loaded. Sign in again if this persists.</p></div>;
+    return (
+      <div className={styles.page}>
+        <EmptyState
+          icon="error"
+          title="Could not load player protection records"
+          description="Live safer play data could not be loaded from the back-office gateway. Try refreshing or signing in again."
+        />
+      </div>
+    );
   }
 
   return (
@@ -121,7 +130,11 @@ export function PlayerProtectionConsole({ view }: { view: PlayerProtectionView }
               </table>
             </div>
           ) : (
-            <div className={styles.emptyState}><h3>No open reviews</h3><p>Every flagged velocity event has been actioned.</p></div>
+            <EmptyState
+              icon="check"
+              title="No open reviews"
+              description="Every flagged velocity and stake escalation event has been actioned."
+            />
           )
         )}
 
@@ -143,7 +156,11 @@ export function PlayerProtectionConsole({ view }: { view: PlayerProtectionView }
               </table>
             </div>
           ) : (
-            <div className={styles.emptyState}><h3>No players near a limit</h3><p>Nobody with a tracked limit is currently near or at their threshold.</p></div>
+            <EmptyState
+              icon="limits"
+              title="No players near a limit"
+              description="Nobody with a tracked deposit or stake limit is currently near or at their threshold."
+            />
           )
         )}
 
@@ -165,7 +182,11 @@ export function PlayerProtectionConsole({ view }: { view: PlayerProtectionView }
               </table>
             </div>
           ) : (
-            <div className={styles.emptyState}><h3>No active exclusions</h3><p>No player currently has an active cool-off or self-exclusion.</p></div>
+            <EmptyState
+              icon="lock"
+              title="No active exclusions"
+              description="No player currently has an active cool-off or self-exclusion registered."
+            />
           )
         )}
       </section>

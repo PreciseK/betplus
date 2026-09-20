@@ -5,6 +5,7 @@ import { backOfficeGateway, BackOfficeApiError, type BackOfficeChange } from "@b
 import { Button } from "@/components/ui/Button/Button";
 import { Dialog } from "@/components/ui/feedback/Dialog/Dialog";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "./MakerCheckerWorkspace.module.css";
 
 type FilterState = "all" | BackOfficeChange["status"];
@@ -124,8 +125,19 @@ export function MakerCheckerWorkspace() {
   if (!selected) {
     return (
       <div className={styles.page}>
-        <header className={styles.pageHeader}><div><p className={styles.context}>Shared review workflow</p><h1>Change approvals</h1></div></header>
-        <p className={styles.muted}>No changes match this state.</p>
+        <header className={styles.pageHeader}>
+          <div>
+            <p className={styles.context}>Shared review workflow</p>
+            <h1>Change approvals</h1>
+            <p>Maker-checker gate for configuration updates, prize tables, and economics changes.</p>
+          </div>
+        </header>
+        <EmptyState
+          icon="check"
+          title="No pending change approvals"
+          description="All proposed configurations, game setups, and prize tables have been reviewed and approved or rejected."
+          action={<Button href="/back-office/overview">Return to overview</Button>}
+        />
       </div>
     );
   }

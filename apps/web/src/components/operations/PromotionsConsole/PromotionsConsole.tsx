@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button/Button";
 import { Dialog } from "@/components/ui/feedback/Dialog/Dialog";
 import { Icon } from "@/components/ui/Icon/Icon";
 import { formatKobo } from "@/lib/money";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import opsStyles from "@/components/operations/OperationsConsole.module.css";
 import styles from "./PromotionsConsole.module.css";
 
@@ -193,7 +194,14 @@ export function PromotionsConsole() {
           <h2 id="campaigns-heading" className="sr-only">
             Active Campaigns
           </h2>
-          <div className={styles.promoGrid}>
+          {promotions.length === 0 ? (
+            <EmptyState
+              icon="activity"
+              title="No active promotional campaigns"
+              description="No marketing promotions or boost pools are currently configured in the game engine."
+            />
+          ) : (
+            <div className={styles.promoGrid}>
             {promotions.map((promo) => {
               const isWeekend = promo.campaign_key === "weekend_double_odds";
               const isVipDraw = promo.campaign_key === "monthly_vip_draw";
@@ -358,8 +366,9 @@ export function PromotionsConsole() {
               );
             })}
           </div>
-        </section>
-      )}
+        )}
+      </section>
+    )}
 
       {/* Monthly VIP Draw Pool Section */}
       <section style={{ marginBlockStart: "32px" }} aria-labelledby="draw-history-heading">

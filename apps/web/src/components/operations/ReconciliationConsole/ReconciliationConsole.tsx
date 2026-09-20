@@ -5,6 +5,7 @@ import { backOfficeGateway, type BackOfficeReconciliationException } from "@betp
 import { Button } from "@/components/ui/Button/Button";
 import { Dialog } from "@/components/ui/feedback/Dialog/Dialog";
 import { Icon } from "@/components/ui/Icon/Icon";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import { formatKobo } from "@/lib/money";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
@@ -109,10 +110,11 @@ export function ReconciliationConsole() {
             </table>
           </div>
         ) : (
-          <div className={styles.emptyState}>
-            <h3>No exceptions in this status</h3>
-            <p>Change the status filter to see other records.</p>
-          </div>
+          <EmptyState
+            icon="check"
+            title="No exceptions in this status"
+            description={status === "open" ? "Zero open reconciliation exceptions. Wallet balances and transaction aggregates are consistent." : "No exceptions match this filter view."}
+          />
         )}
       </section>
 

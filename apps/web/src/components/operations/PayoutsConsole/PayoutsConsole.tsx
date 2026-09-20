@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { backOfficeGateway, type BackOfficePayout } from "@betplus/api-client";
 import { formatKobo } from "@/lib/money";
+import { EmptyState } from "@/components/operations/EmptyState/EmptyState";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
 export function PayoutsConsole() {
@@ -23,7 +24,15 @@ export function PayoutsConsole() {
   }, [reviewOnly]);
 
   if (loadFailed) {
-    return <div className={styles.page}><p className={styles.muted}>Live payout data could not be loaded. Sign in again if this persists.</p></div>;
+    return (
+      <div className={styles.page}>
+        <EmptyState
+          icon="error"
+          title="Could not load payouts"
+          description="Live payout data could not be loaded from the back-office gateway. Try refreshing or signing in again."
+        />
+      </div>
+    );
   }
 
   return (
@@ -68,7 +77,11 @@ export function PayoutsConsole() {
             </table>
           </div>
         ) : (
-          <div className={styles.emptyState}><h3>No payouts in this view</h3><p>Change the filter to see other records.</p></div>
+          <EmptyState
+            icon="wallet"
+            title="No payouts in this view"
+            description="Try changing the filter above to view completed, pending, or manual review payouts."
+          />
         )}
       </section>
 
