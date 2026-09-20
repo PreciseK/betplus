@@ -157,8 +157,8 @@ export function PlayerProtectionConsole({ view }: { view: PlayerProtectionView }
                   <tr key={event.id}>
                     <th scope="row" data-label="Player"><strong>{event.registered_name ?? event.player_reference}</strong><span>{event.player_reference}</span></th>
                     <td data-label="Type">{event.type === "self-exclusion" ? "Self-exclusion" : "Cool-off"}</td>
-                    <td data-label="Started">{new Date(event.started_at).toLocaleDateString()}</td>
-                    <td data-label="Ends">{new Date(event.ends_at).toLocaleDateString()}</td>
+                    <td data-label="Started">{event.started_at ? new Date(event.started_at).toLocaleDateString("en-NG") : "—"}</td>
+                    <td data-label="Ends">{event.ends_at ? new Date(event.ends_at).toLocaleDateString("en-NG") : "Indefinite"}</td>
                     <td data-label="Actions">{playerLink(event.player_id, event.player_reference)}</td>
                   </tr>
                 ))}</tbody>

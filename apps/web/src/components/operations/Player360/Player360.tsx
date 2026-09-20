@@ -85,10 +85,10 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
         <>
           <section className={styles.identityBand} aria-labelledby="player-name">
             <div className={styles.identityPrimary}>
-              <span className={styles.avatar} aria-hidden="true">{(player.profile.display_name ?? player.profile.registered_name).slice(0, 2).toUpperCase()}</span>
+              <span className={styles.avatar} aria-hidden="true">{(player.profile.display_name ?? player.profile.registered_name ?? "Player").slice(0, 2).toUpperCase()}</span>
               <div>
                 <p>#{player.profile.id} · {player.profile.account_status}</p>
-                <h2 id="player-name">{player.profile.display_name ?? player.profile.registered_name}</h2>
+                <h2 id="player-name">{player.profile.display_name ?? player.profile.registered_name ?? `Player #${player.profile.id}`}</h2>
                 <span>{player.profile.msisdn}</span>
               </div>
             </div>
@@ -96,7 +96,7 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
               <div><dt>KYC</dt><dd><Icon name="check" />Tier {player.profile.kyc_tier}{player.profile.kyc_status ? ` · ${player.profile.kyc_status}` : ""}</dd></div>
               <div><dt>NIN verified</dt><dd>{player.profile.has_verified_nin ? "Yes" : "No"}</dd></div>
               <div><dt>BVN verified</dt><dd>{player.profile.has_verified_bvn ? "Yes" : "No"}</dd></div>
-              <div><dt>Joined</dt><dd>{new Date(player.profile.created_at).toLocaleDateString("en-NG")}</dd></div>
+              <div><dt>Joined</dt><dd>{player.profile.created_at ? new Date(player.profile.created_at).toLocaleDateString("en-NG") : "—"}</dd></div>
             </dl>
             <div className={styles.balances} aria-label="Player balances">
               <div><span>Play Balance</span><strong>{formatKobo(player.balances.play_balance_kobo)}</strong></div>
@@ -197,7 +197,7 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
                 <EvidenceSection id="responsible-play" title="Responsible-play status" description="Registry result and active player-protection remain visible to support.">
                   <dl>
                     <div><dt>Registry state</dt><dd><Icon name={player.rg_status.registry_status === "clear" ? "check" : "warning"} />{player.rg_status.registry_status}</dd></div>
-                    <div><dt>Active protection</dt><dd>{player.rg_status.protection ? `${player.rg_status.protection.type} until ${new Date(player.rg_status.protection.ends_at).toLocaleString("en-NG")}` : "None"}</dd></div>
+                    <div><dt>Active protection</dt><dd>{player.rg_status.protection ? `${player.rg_status.protection.type} until ${player.rg_status.protection.ends_at ? new Date(player.rg_status.protection.ends_at).toLocaleString("en-NG") : "indefinite"}` : "None"}</dd></div>
                   </dl>
                 </EvidenceSection>
               )}

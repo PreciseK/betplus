@@ -20,7 +20,16 @@ class EnsureInstitutionRole
     {
         /** @var InstitutionUser|null $user */
         $user = $request->attributes->get('institutionUser');
-        if ($user === null || !in_array($user->role, $allowedRoles, true)) {
+        if ($user === null) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        // Super Admin and System Admin have unrestricted access to all back-office roles and endpoints
+        if (in_array($user->role, ['super_admin', 'system_admin'], true)) {
+            return $next($request);
+        }
+
+        if (!in_array($user->role, $allowedRoles, true)) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 

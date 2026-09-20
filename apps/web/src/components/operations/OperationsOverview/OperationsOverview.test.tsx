@@ -19,12 +19,12 @@ describe("OperationsOverview", () => {
     expect(screen.getByRole("table", { name: /exact values for settled value and exceptions/i })).toBeInTheDocument();
   });
 
-  it("lets Super Admin preview another role without changing session scope", () => {
-    render(<OperationsOverview role="super-admin" />);
-    fireEvent.change(screen.getByLabelText("Role view"), { target: { value: "compliance" } });
+  it("renders respective dashboard for the logged in operator role without a role selector", () => {
+    window.sessionStorage.setItem("betplus.operator.session", JSON.stringify({ role: "compliance" }));
+    render(<OperationsOverview role="compliance" />);
+    expect(screen.queryByLabelText("Role view")).not.toBeInTheDocument();
     expect(screen.getByText(/Compliance overview/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Player safety" })).toBeInTheDocument();
-    expect(window.location.search).toContain("viewRole=compliance");
   });
 
   it("scopes the dashboard to one game and exposes previous-day data", () => {

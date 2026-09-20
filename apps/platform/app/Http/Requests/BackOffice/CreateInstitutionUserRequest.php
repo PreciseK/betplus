@@ -21,7 +21,7 @@ class CreateInstitutionUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:institutionUser,email'],
             'display_name' => ['required', 'string', 'max:100'],
             'role' => ['required', Rule::in([
-                'support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer', 'system_admin',
+                'support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer', 'system_admin', 'super_admin',
             ])],
         ];
     }

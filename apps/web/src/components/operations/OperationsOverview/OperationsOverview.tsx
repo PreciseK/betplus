@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon/Icon";
 import { OPERATOR_ROLE_LABELS } from "@/components/operations/operations-navigation";
@@ -100,15 +100,33 @@ function contextualTitle(role: OperatorRole) {
   return "Operational status";
 }
 
-export function OperationsOverview({ role }: OperationsOverviewProps) {
+export function OperationsOverview({ role = "super-admin" }: OperationsOverviewProps) {
   const todayIso = useMemo(() => today(), []);
-  const previewDefaults = useMemo(() => ({ viewRole: "super-admin", game: "all", date: todayIso }), [todayIso]);
+  const previewDefaults = useMemo(() => ({ game: "all", date: todayIso }), [todayIso]);
   const { filters, updateFilter } = useOperationsUrlFilters(previewDefaults);
-  const previewRole = isOperatorRole(filters.viewRole) ? filters.viewRole : "super-admin";
   const selectedGame = isOperationsGameScope(filters.game) ? filters.game : "all";
   const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(filters.date) ? filters.date : todayIso;
-  const dashboardRole = role === "super-admin" ? previewRole : role;
-  const dashboard = OPERATOR_DASHBOARDS[dashboardRole];
+
+  const [activeRole, setActiveRole] = useState<OperatorRole>(role);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.sessionStorage.getItem("betplus.operator.session");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.role) {
+            setActiveRole(parsed.role);
+          }
+        } catch {}
+      }
+    }
+  }, []);
+
+  const dashboardRole: OperatorRole = (activeRole === "system-admin" || activeRole === "super-admin")
+    ? "super-admin"
+    : activeRole;
+
+  const dashboard = OPERATOR_DASHBOARDS[dashboardRole] ?? OPERATOR_DASHBOARDS["super-admin"];
   const selectedGameLabel = operationsGameLabel(selectedGame);
   const isToday = selectedDate === todayIso;
   const { data, loading, error, refresh } = useOperationsDashboardData(dashboardRole, selectedGame, selectedDate);
@@ -131,14 +149,6 @@ export function OperationsOverview({ role }: OperationsOverviewProps) {
               {!isToday && <button type="button" onClick={() => updateFilter("date", todayIso)}>Today</button>}
             </div>
           </div>
-          {role === "super-admin" && (
-            <div className={styles.roleView}>
-              <label htmlFor="dashboard-role-preview">Role view</label>
-              <select id="dashboard-role-preview" value={dashboardRole} onChange={(event) => updateFilter("viewRole", event.target.value)}>
-                {OPERATOR_ROLES.map((option) => <option key={option} value={option}>{OPERATOR_ROLE_LABELS[option]}</option>)}
-              </select>
-            </div>
-          )}
         </div>
       </header>
 

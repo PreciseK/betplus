@@ -23,6 +23,9 @@ function displayName(email: string) {
 
 function toFrontendRole(role: string): OperatorRole {
   const normalized = role.replaceAll("_", "-");
+  if (normalized === "super-admin" || normalized === "system-admin") {
+    return "super-admin";
+  }
   const supported: OperatorRole[] = [
     "support-agent", "support-lead", "finance", "compliance", "game-ops",
     "content-editor", "cultural-reviewer", "system-admin", "super-admin",

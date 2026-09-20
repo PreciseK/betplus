@@ -20,7 +20,7 @@ use Illuminate\Http\Request;
  */
 class InstitutionUserController extends Controller
 {
-    private const VALID_ROLES = ['support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer', 'system_admin'];
+    private const VALID_ROLES = ['support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer', 'system_admin', 'super_admin'];
 
     public function __construct(
         private readonly TotpService $totp,

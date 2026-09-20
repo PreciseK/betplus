@@ -75,5 +75,6 @@ export const ROLE_CAPABILITIES: Record<OperatorRole, readonly OperationsCapabili
 };
 
 export function roleHasCapability(role: OperatorRole, capability: OperationsCapability) {
-  return ROLE_CAPABILITIES[role].includes(capability);
+  if (role === "super-admin") return true;
+  return ROLE_CAPABILITIES[role]?.includes(capability) ?? false;
 }

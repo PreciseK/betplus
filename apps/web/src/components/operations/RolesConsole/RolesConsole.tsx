@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { backOfficeGateway, type BackOfficeInstitutionUser } from "@betplus/api-client";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
-const ROLES = ['support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer', 'system_admin'] as const;
+const ROLES = ['super_admin', 'system_admin', 'support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer'] as const;
 
 export function RolesConsole() {
   const [users, setUsers] = useState<BackOfficeInstitutionUser[]>();
@@ -37,7 +37,7 @@ export function RolesConsole() {
         <div>
           <p className={styles.context}>Administration</p>
           <h1>Roles</h1>
-          <p>Who holds each of the eight fixed roles, derived from the real team access list.</p>
+          <p>Who holds each role, derived from the real team access list.</p>
         </div>
       </header>
 

@@ -247,7 +247,7 @@ export function GameRegistryConsole() {
                   <td data-label="Stake range" className={styles.money}>{formatKobo(game.min_stake_kobo)}–{formatKobo(game.max_stake_kobo)}</td>
                   <td data-label="Channels">{game.enabled_channels.join(", ") || "None"}</td>
                   <td data-label="States">{game.enabled_states.join(", ") || "None"}</td>
-                  <td data-label="Status"><span className={styles.statusLabel}><Icon name={game.status === "active" ? "check" : "warning"} />{game.status}</span></td>
+                  <td data-label="Status"><span className={styles.statusLabel}><Icon name={game.status?.toLowerCase() === "active" ? "check" : "warning"} />{game.status}</span></td>
                   <td data-label="Configure"><button className={styles.tableAction} type="button" onClick={() => setSelectedGameCode(game.game_code)}>Inspect</button></td>
                 </tr>
               ))}</tbody>
@@ -260,7 +260,7 @@ export function GameRegistryConsole() {
         <article className={styles.inspector} aria-labelledby="selected-game-title">
           <header className={styles.inspectorHeader}>
             <div><p>{selectedGame.game_code} · {selectedGame.engine_version}</p><h2 id="selected-game-title">Runtime configuration</h2></div>
-            <span className={styles.statusLabel}><Icon name="warning" />{selectedGame.status}</span>
+            <span className={styles.statusLabel}><Icon name={selectedGame.status?.toLowerCase() === "active" ? "check" : "warning"} />{selectedGame.status}</span>
           </header>
           <dl className={styles.factsGrid}>
             <Fact label="Engine version" value={selectedGame.engine_version} />

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button/Button";
 import { Icon } from "@/components/ui/Icon/Icon";
 import styles from "@/components/operations/OperationsConsole.module.css";
 
-const ROLES = ['support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer', 'system_admin'] as const;
+const ROLES = ['super_admin', 'system_admin', 'support_agent', 'support_lead', 'finance', 'compliance', 'game_ops', 'content_editor', 'cultural_reviewer'] as const;
 
 export function UsersConsole() {
   const [users, setUsers] = useState<BackOfficeInstitutionUser[]>();

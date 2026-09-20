@@ -111,7 +111,7 @@ function queueFromLiveData(
       age: item.expires_at,
       href: "/back-office/jurisdictions",
     })),
-    ...games.filter((item) => item.status !== "active").map((item) => ({
+    ...games.filter((item) => item.status?.toLowerCase() !== "active").map((item) => ({
       id: `GAME-${item.game_code}`,
       task: `${titleCase(item.game_code)} availability`,
       detail: `Runtime status is ${item.status}`,
@@ -151,9 +151,12 @@ function liveMetrics(
     approvals: { label: "Needs approval", value: changes.length.toLocaleString("en-NG"), change: "Independent checker required", context: "Open maker-checker changes" },
     exceptions: { label: "Open exceptions", value: exceptions.length.toLocaleString("en-NG"), change: "Reconciliation review", context: "Unresolved entries" },
     licences: { label: "Licence alerts", value: jurisdictions.filter((item) => item.is_expired || item.expiry_alert).length.toLocaleString("en-NG"), change: "Expired or due within 60 days", context: "Licensed states" },
-    games: { label: "Live games", value: games.filter((item) => item.status === "active").length.toLocaleString("en-NG"), change: `${games.length} registered`, context: "Runtime registry" },
+    games: { label: "Live games", value: games.filter((item) => item.status?.toLowerCase() === "active").length.toLocaleString("en-NG"), change: `${games.length} registered`, context: "Runtime registry" },
   };
 
+  if (role === "super-admin" || role === "system-admin") {
+    return [base.plays, base.deposits, base.payouts, base.approvals];
+  }
   if (role === "finance") return [base.deposits, base.payouts, base.exceptions];
   if (role === "compliance") return [base.plays, base.licences, base.approvals];
   if (role === "game-ops" || role === "content-editor" || role === "cultural-reviewer") return [base.plays, base.games, base.approvals];

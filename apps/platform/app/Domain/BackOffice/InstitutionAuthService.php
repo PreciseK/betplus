@@ -33,7 +33,7 @@ final class InstitutionAuthService
     private const MAX_MFA_ATTEMPTS_PER_CHALLENGE = 5;
 
     // REQ-BO-011 — "IP allowlisting applies to privileged roles."
-    private const PRIVILEGED_ROLES = ['system_admin', 'finance', 'compliance'];
+    private const PRIVILEGED_ROLES = ['super_admin', 'system_admin', 'finance', 'compliance'];
 
     public function __construct(
         private readonly TotpService $totp,
