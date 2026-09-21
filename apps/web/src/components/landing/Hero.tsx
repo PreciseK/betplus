@@ -7,7 +7,6 @@ export function Hero() {
       <div className="hero-copy t-stagger">
         <p className="eyebrow t-stagger-line t-stagger-line--1">Web, Android &amp; USSD *7006#</p>
         <h1 id="hero-title" className="t-stagger-line t-stagger-line--2">
-          <span className="hero-brand">Betplus</span>
           <span className="hero-promise">Your Move.<br />Your Moment.<br />Your Naira.</span>
         </h1>
         <p className="hero-summary t-stagger-line t-stagger-line--3">

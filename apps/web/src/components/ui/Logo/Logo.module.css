@@ -8,12 +8,18 @@
 }
 
 .logoImg {
-  height: 48px;
+  height: 44px;
   width: auto;
   object-fit: contain;
   display: block;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.logo:hover .logoImg {
+  opacity: 0.95;
+  transform: scale(1.02);
 }
 
 .large .logoImg {
-  height: 58px;
+  height: 52px;
 }

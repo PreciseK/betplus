@@ -21,7 +21,9 @@ export function Logo({
 }: LogoProps) {
   const isLarge = footer || size === "large";
   const classes = [styles.logo, isLarge && styles.large, className].filter(Boolean).join(" ");
-  const logoSrc = variant === "color"
+  const logoSrc = !withWordmark
+    ? "/assets/betplus-mark.png"
+    : variant === "color"
     ? "/assets/betplus-logo-color.png"
     : "/assets/betplus-logo-white.png";
 

@@ -13,9 +13,12 @@ export function PlayerShell({ children }: { children: ReactNode }) {
 
       {/* Mobile Header */}
       <header className={styles.mobileHeader}>
-        <Link href="/home" className={styles.mobileBrand}>
-          <span className={styles.brandIcon}>⚡</span>
-          <strong>Betplus</strong>
+        <Link href="/home" className={styles.mobileBrand} aria-label="Betplus Home">
+          <img
+            src="/assets/betplus-logo-white.png"
+            alt="Betplus"
+            className={styles.mobileLogoImg}
+          />
         </Link>
         <MobileUserPill />
       </header>

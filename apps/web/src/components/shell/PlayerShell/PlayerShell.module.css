@@ -175,6 +175,13 @@
   font-weight: 800;
 }
 
+.mobileLogoImg {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
 .mobileUserPill {
   display: flex;
   align-items: center;

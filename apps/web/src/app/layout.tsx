@@ -30,10 +30,13 @@ export const metadata: Metadata = {
     "No waiting, no wondering, and no lost tickets. Play BlackRed, Heritage, and Caged with instant OPay direct settlement and zero-data USSD access (*7006#) in Nigeria.",
   icons: {
     icon: [
-      { url: "/assets/betplus-favicon.png" },
-      { url: "/favicon.ico" },
+      { url: "/assets/betplus-favicon.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: "/assets/betplus-favicon.png",
+    apple: [
+      { url: "/assets/betplus-favicon.png", type: "image/png" },
+    ],
+    shortcut: "/assets/betplus-favicon.png",
   },
 };
 

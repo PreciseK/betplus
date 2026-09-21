@@ -90,7 +90,7 @@ body.nav-open { overflow: hidden; }
 .eyebrow-dark { color: var(--coral-dark); }
 .hero h1 { margin: 0; font-family: var(--font-display); line-height: .88; letter-spacing: -.065em; }
 .hero-brand { display: block; font-size: clamp(4.2rem, 9.3vw, 9.5rem); font-weight: 800; background: linear-gradient(135deg, #ff473a 0%, #150061 50%, #d71108 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-promise { display: block; max-width: 10ch; margin-top: 1.1rem; color: rgb(250 248 244 / 82%); font-size: clamp(2rem, 4vw, 4rem); font-weight: 600; line-height: .96; letter-spacing: -.045em; }
+.hero-promise { display: block; max-width: 13ch; margin-top: 0; color: var(--paper); font-size: clamp(3rem, 6.2vw, 5.8rem); font-weight: 800; line-height: .98; letter-spacing: -.055em; }
 .hero-summary { max-width: 34rem; margin: 1.7rem 0 0; color: rgb(250 248 244 / 72%); font-size: clamp(1rem, 1.5vw, 1.18rem); }
 .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 2rem; }
 .age-note { margin: 1rem 0 0; color: rgb(250 248 244 / 57%); font-size: .72rem; }
