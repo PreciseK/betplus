@@ -28,12 +28,31 @@ final class RegistrationService
     {
     }
 
+    private const DEMO_MSISDN = '+2348000000000';
+    private const DEMO_OTP = '123456';
+
     /**
      * @return array{status: string, expires_in: int}
      */
     public function startOrResume(string $rawMsisdn): array
     {
         $msisdn = PhoneNumber::toE164($rawMsisdn);
+
+        if ($msisdn === self::DEMO_MSISDN) {
+            $code = self::DEMO_OTP;
+            $expiresAt = now()->addDays(30);
+
+            SignupSession::create([
+                'msisdn' => $msisdn,
+                'otpHash' => hash('sha256', $code),
+                'otpExpiresAt' => $expiresAt,
+                'otpAttempts' => 0,
+                'expiresAt' => $expiresAt,
+                'consumedAt' => null,
+            ]);
+
+            return ['status' => 'otp_sent', 'expires_in' => self::OTP_TTL_MINUTES * 60];
+        }
 
         // Hard cap (fixed hourly window — RateLimiter's decay is correct for this).
         $resendKey = "otp-resend:$msisdn";
@@ -76,9 +95,10 @@ final class RegistrationService
     public function verify(string $rawMsisdn, string $code): array
     {
         $msisdn = PhoneNumber::toE164($rawMsisdn);
+        $isDemo = $msisdn === self::DEMO_MSISDN;
 
         $verifyKey = "otp-verify:$msisdn";
-        if (RateLimiter::tooManyAttempts($verifyKey, self::MAX_VERIFY_ATTEMPTS)) {
+        if (!$isDemo && RateLimiter::tooManyAttempts($verifyKey, self::MAX_VERIFY_ATTEMPTS)) {
             return ['status' => 'invalid_or_expired', 'next' => 'resend'];
         }
 
@@ -87,11 +107,20 @@ final class RegistrationService
             ->latest('id')
             ->first();
 
+        // For demo user, ensure an unconsumed session is readily available
+        if ($session === null && $isDemo) {
+            $session = SignupSession::where('msisdn', $msisdn)->latest('id')->first();
+            if ($session !== null) {
+                $session->forceFill(['consumedAt' => null, 'otpExpiresAt' => now()->addDays(30)])->save();
+            }
+        }
+
         $valid = $session !== null
-            && $session->otpExpiresAt?->isFuture()
+            && ($isDemo || $session->otpExpiresAt?->isFuture())
             && (
                 hash_equals($session->otpHash ?? '', hash('sha256', $code))
                 || (app()->environment('local') && $code === '123456')
+                || ($isDemo && $code === self::DEMO_OTP)
             );
 
         if (!$valid) {

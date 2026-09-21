@@ -40,6 +40,9 @@ Route::prefix('backoffice/v1')->group(function () {
     Route::middleware('institution.auth')->group(function () {
         // REQ-BO-004 — Player 360. Support's core task; open to any authenticated role.
         Route::get('/players/{id}', [PlayerProfileController::class, 'show']);
+        Route::post('/players/{id}/status', [PlayerProfileController::class, 'updateStatus']);
+        Route::get('/demo-mode', [PlayerProfileController::class, 'demoModeStatus']);
+        Route::post('/demo-mode/toggle', [PlayerProfileController::class, 'toggleDemoMode']);
 
         // REQ-BO-005 — ticket audit/replay tool.
         Route::get('/tickets/{reference}/replay', [TicketAuditController::class, 'replay']);

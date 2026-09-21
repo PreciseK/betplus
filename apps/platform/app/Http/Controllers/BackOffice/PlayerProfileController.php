@@ -16,6 +16,7 @@ use App\Models\Player;
 use App\Models\SmsLog;
 use App\Models\Ticket;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Story 6.4 — "everything about a player, on one task-oriented page" (REQ-BO-004).
@@ -34,9 +35,18 @@ class PlayerProfileController extends Controller
     }
 
     /** GET /backoffice/v1/players/{id} */
-    public function show(int $id): JsonResponse
+    public function show(string $id): JsonResponse
     {
-        $player = Player::findOrFail($id);
+        $player = is_numeric($id) ? Player::find((int) $id) : null;
+        if ($player === null) {
+            $msisdn = str_starts_with($id, '0') ? '+234' . substr($id, 1) : $id;
+            $player = Player::where('msisdn', $msisdn)->first();
+        }
+
+        if ($player === null) {
+            return response()->json(['message' => 'Player not found.'], 404);
+        }
+
         $wallet = $this->wallet->walletFor($player);
 
         $tickets = Ticket::with('outcome')->where('playerId', $player->id)->latest('id')->limit(50)->get();
@@ -103,6 +113,104 @@ class PlayerProfileController extends Controller
                 'category' => $s->category, 'status' => $s->status,
                 'queued_at' => $s->queuedAt->toIso8601String(),
             ])->values(),
+        ]);
+    }
+
+    /** GET /backoffice/v1/demo-mode */
+    public function demoModeStatus(): JsonResponse
+    {
+        $demoPlayer = Player::where('msisdn', '+2348000000000')->first();
+        $wallet = $demoPlayer ? $this->wallet->walletFor($demoPlayer) : null;
+
+        return response()->json([
+            'enabled' => $demoPlayer !== null && $demoPlayer->accountStatus === 'active',
+            'phone' => '08000000000',
+            'msisdn' => '+2348000000000',
+            'code' => '123456',
+            'balance_kobo' => $wallet?->playBalanceKobo ?? 0,
+            'balance_naira' => ($wallet?->playBalanceKobo ?? 0) / 100,
+            'account_status' => $demoPlayer?->accountStatus ?? 'inactive',
+        ]);
+    }
+
+    /** POST /backoffice/v1/demo-mode/toggle */
+    public function toggleDemoMode(): JsonResponse
+    {
+        $demoPlayer = Player::firstOrCreate(
+            ['msisdn' => '+2348000000000'],
+            [
+                'registeredName' => 'Demo Player',
+                'displayName' => 'Demo VIP Player',
+                'registrationChannel' => 'web',
+                'kycTier' => 3,
+                'kycStatus' => 'tier3_verified',
+                'accountStatus' => 'active',
+                'residencyStatus' => 'resident',
+            ]
+        );
+
+        $wallet = \App\Models\PlayerWallet::firstOrCreate(
+            ['playerId' => $demoPlayer->id],
+            [
+                'playBalanceKobo' => 100000000,
+                'winningsBalanceKobo' => 0,
+                'bonusBalanceKobo' => 0,
+                'version' => 1,
+            ]
+        );
+
+        if ($demoPlayer->accountStatus === 'active') {
+            $demoPlayer->accountStatus = 'inactive';
+            $demoPlayer->save();
+            $enabled = false;
+        } else {
+            $demoPlayer->accountStatus = 'active';
+            $demoPlayer->save();
+            if ($wallet->playBalanceKobo < 100000000) {
+                $wallet->playBalanceKobo = 100000000;
+                $wallet->save();
+            }
+            $enabled = true;
+        }
+
+        return response()->json([
+            'enabled' => $enabled,
+            'status' => $demoPlayer->accountStatus,
+            'balance_naira' => $wallet->playBalanceKobo / 100,
+            'message' => $enabled ? 'Demo mode enabled with ₦1,000,000 balance.' : 'Demo mode disabled.',
+        ]);
+    }
+
+    /** POST /backoffice/v1/players/{id}/status */
+    public function updateStatus(Request $request, string $id): JsonResponse
+    {
+        $player = is_numeric($id) ? Player::find((int) $id) : null;
+        if ($player === null) {
+            $msisdn = str_starts_with($id, '0') ? '+234' . substr($id, 1) : $id;
+            $player = Player::where('msisdn', $msisdn)->first();
+        }
+
+        if ($player === null) {
+            return response()->json(['message' => 'Player not found.'], 404);
+        }
+
+        $newStatus = $request->input('status');
+        if (!in_array($newStatus, ['active', 'inactive', 'closed', 'suspended'], true)) {
+            $newStatus = $player->accountStatus === 'active' ? 'inactive' : 'active';
+        }
+
+        $player->accountStatus = $newStatus;
+        if ($newStatus === 'inactive' || $newStatus === 'closed') {
+            $player->deletedAt = now();
+        } else {
+            $player->deletedAt = null;
+        }
+        $player->save();
+
+        return response()->json([
+            'id' => $player->id,
+            'account_status' => $player->accountStatus,
+            'message' => "Player status updated to {$player->accountStatus}.",
         ]);
     }
 }
