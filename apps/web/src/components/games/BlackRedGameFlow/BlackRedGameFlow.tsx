@@ -167,8 +167,8 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
     } catch (err) {
       setStakeError(
         err instanceof BlackRedGatewayError
-          ? blackRedPlayErrorMessage(err.code)
-          : "Could not place that ticket. Please try again.",
+          ? blackRedPlayErrorMessage(err.code, err.message)
+          : (err instanceof Error && err.message ? err.message : "Could not place that ticket. Please try again."),
       );
     } finally {
       setIsSubmittingTicket(false);

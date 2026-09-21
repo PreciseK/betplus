@@ -11,8 +11,9 @@ export type BlackRedEligibilityCode =
 
 /** Structurally the same shape as apps/web's BlackRedGatewayError (mocks/blackred.ts). */
 export class BlackRedGatewayError extends Error {
-  constructor(public readonly code: BlackRedEligibilityCode) {
-    super(code);
+  constructor(public readonly code: BlackRedEligibilityCode, message?: string) {
+    super(message || code);
+    this.name = "BlackRedGatewayError";
   }
 }
 
@@ -135,8 +136,10 @@ export const blackRedGateway = {
 };
 
 function toBlackRedError(error: unknown): Error {
-  if (error instanceof ApiError && error.status === 422 && typeof error.body.code === "string") {
-    return new BlackRedGatewayError(error.body.code as BlackRedEligibilityCode);
+  if (error instanceof ApiError && error.status === 422) {
+    const code = typeof error.body.code === "string" ? (error.body.code as BlackRedEligibilityCode) : "GAME_UNAVAILABLE";
+    const msg = typeof error.body.message === "string" ? error.body.message : undefined;
+    return new BlackRedGatewayError(code, msg);
   }
   return error instanceof Error ? error : new Error("BLACKRED_REQUEST_FAILED");
 }

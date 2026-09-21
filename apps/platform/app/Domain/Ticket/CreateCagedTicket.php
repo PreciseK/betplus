@@ -82,7 +82,7 @@ final class CreateCagedTicket
         // ── ELIGIBILITY AND RESOLUTION — no database locks held ──
         $game = GameRegistry::where('gameCode', self::GAME_CODE)->first();
         if ($game === null || $game->status !== 'ACTIVE') {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Caged is not currently available.');
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Caged is temporarily undergoing maintenance. Please check back shortly.');
         }
 
         if ($targetBirds < 1 || $targetBirds > 5) {
@@ -96,7 +96,9 @@ final class CreateCagedTicket
         $attribution = $this->attribution->attribute($player, $game);
 
         if ($stakeKobo < $game->minStakeKobo || $stakeKobo > $game->maxStakeKobo) {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', "Stake must be between {$game->minStakeKobo} and {$game->maxStakeKobo} kobo.");
+            $minNaira = number_format($game->minStakeKobo / 100, 0);
+            $maxNaira = number_format($game->maxStakeKobo / 100, 0);
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', "Stake must be between ₦{$minNaira} and ₦{$maxNaira}.");
         }
         $this->limits->assertStakeWithinLimits($player, $stakeKobo);
 
@@ -106,7 +108,7 @@ final class CreateCagedTicket
 
         $prizeTable = $this->prizeTableResolver->resolveFor(self::GAME_CODE, $attribution['stateCode']);
         if ($prizeTable === null || $prizeTable->tiers->firstWhere('positions', $targetBirds) === null) {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Caged has no published prize table for this state.');
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Caged prize table is temporarily unavailable. Please try again shortly.');
         }
 
         if ($economicsConfig?->activeModel === 'PARI_MUTUEL_POOL') {

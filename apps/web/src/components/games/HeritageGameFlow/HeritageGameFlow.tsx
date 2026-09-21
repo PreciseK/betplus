@@ -42,11 +42,11 @@ interface ConfettiPiece {
 }
 
 const ERROR_COPY: Record<string, string> = {
-  INSUFFICIENT_PLAY_BALANCE: "Your Heritage game is preserved. Top up Play Balance or lower the stake.",
-  INVALID_SELECTION: "Select exactly five different board positions. No ticket was created.",
-  LIMIT_REACHED: "This stake is outside your available limit. No ticket was created.",
-  PLAY_BLOCKED: "Player protection currently blocks new games. Withdrawals remain available.",
-  GAME_UNAVAILABLE: "Heritage is temporarily unavailable. No ticket was created and no money moved.",
+  INSUFFICIENT_PLAY_BALANCE: "Your stake exceeds your available balance. Please top up your wallet or lower the stake.",
+  INVALID_SELECTION: "Please select exactly five distinct positions on the board.",
+  LIMIT_REACHED: "You have reached your daily play limit. You can review or adjust your limits anytime in Account Settings.",
+  PLAY_BLOCKED: "Player protection currently blocks new games (such as an active cool-off or exclusion). Withdrawals remain available.",
+  GAME_UNAVAILABLE: "Heritage is temporarily undergoing maintenance. Please check back shortly.",
 };
 
 export interface HeritageGameFlowProps {
@@ -315,8 +315,15 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
         setPhase("settled");
       }
     } catch (error) {
-      const code = error instanceof HeritageGatewayError ? error.code : "GAME_UNAVAILABLE";
-      setPlayError(ERROR_COPY[code] ?? ERROR_COPY.GAME_UNAVAILABLE);
+      const friendlyMessage =
+        error instanceof HeritageGatewayError
+          ? (error.message && error.message !== error.code
+              ? error.message
+              : ERROR_COPY[error.code] ?? ERROR_COPY.GAME_UNAVAILABLE)
+          : (error instanceof Error && error.message && !error.message.includes("HERITAGE_REQUEST_FAILED")
+              ? error.message
+              : ERROR_COPY.GAME_UNAVAILABLE);
+      setPlayError(friendlyMessage);
       setPhase("configuring");
     }
   }
@@ -607,7 +614,10 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
                         aria-label="Stake amount"
                         inputMode="decimal"
                         value={stakeInput}
-                        onChange={(event) => setStakeInput(event.target.value)}
+                        onChange={(event) => {
+                          setStakeInput(event.target.value);
+                          if (playError) setPlayError("");
+                        }}
                         placeholder="Amount"
                       />
                     </label>
@@ -617,6 +627,26 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
 
                 {phase !== "resolving" && (
                   <div className={styles.actionZone}>
+                    {playError && (
+                      <div className={styles.playErrorBanner} role="alert">
+                        <span className={styles.playErrorIcon} aria-hidden="true">⚠️</span>
+                        <div className={styles.playErrorBody}>
+                          <strong>Notice</strong>
+                          <p>{playError}</p>
+                          {(playError.toLowerCase().includes("balance") || playError.toLowerCase().includes("top up") || playError.toLowerCase().includes("funds")) && (
+                            <a href="/wallet" className={styles.playErrorLink}>Top up Play Balance →</a>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.playErrorClose}
+                          onClick={() => setPlayError("")}
+                          aria-label="Dismiss error notification"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
                     {phase === "confirming" && (
                       <div id={confirmDialogId} ref={confirmPopoverRef} className={styles.confirmPopover} role="dialog" aria-modal="false" aria-labelledby={confirmTitleId} onKeyDown={handleConfirmationKeyDown}>
                         <div className={styles.confirmHeader}>
@@ -740,13 +770,6 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
 
           {phase === "settled" && settlement && <ResultEvidence board={settlement.board} />}
 
-          {playError && (
-            <div className={styles.playError} role="alert">
-              <strong>Game not placed</strong>
-              <span>{playError}</span>
-              {playError.startsWith("Your Heritage") && <a href="/wallet">Top up Play Balance</a>}
-            </div>
-          )}
 
           <section className={styles.rules} id="heritage-rules" aria-labelledby="rules-title">
             <h2 id="rules-title">Rules and exact odds</h2>

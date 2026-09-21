@@ -10,8 +10,8 @@ export type HeritageGatewayErrorCode =
 
 /** Structurally the same shape as apps/web's HeritageGatewayError (mocks/heritage.ts). */
 export class HeritageGatewayError extends Error {
-  constructor(public readonly code: HeritageGatewayErrorCode) {
-    super(code);
+  constructor(public readonly code: HeritageGatewayErrorCode, message?: string) {
+    super(message || code);
     this.name = "HeritageGatewayError";
   }
 }
@@ -200,8 +200,9 @@ export const heritageGateway = {
 function toHeritageError(error: unknown): Error {
   if (error instanceof ApiError && error.status === 422) {
     const body = error.body as { errors?: Record<string, unknown>; message?: unknown; code?: unknown } | undefined;
+    const msg = typeof body?.message === "string" ? body.message : undefined;
     if (typeof body?.code === "string") {
-      return new HeritageGatewayError(body.code as HeritageGatewayErrorCode);
+      return new HeritageGatewayError(body.code as HeritageGatewayErrorCode, msg);
     }
     const hasSelectedPositionsError = Boolean(
       body?.errors && typeof body.errors === "object" && "selected_positions" in body.errors
@@ -209,7 +210,10 @@ function toHeritageError(error: unknown): Error {
     const hasSelectedPositionsMessage =
       typeof body?.message === "string" && body.message.includes("selected_positions");
     if (hasSelectedPositionsError || hasSelectedPositionsMessage) {
-      return new HeritageGatewayError("INVALID_SELECTION");
+      return new HeritageGatewayError("INVALID_SELECTION", msg);
+    }
+    if (msg) {
+      return new HeritageGatewayError("GAME_UNAVAILABLE", msg);
     }
   }
   return error instanceof Error ? error : new Error("HERITAGE_REQUEST_FAILED");

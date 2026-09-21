@@ -188,7 +188,7 @@ final class WalletService
             $wallet = PlayerWallet::findOrFail($wallet->id);
             $totalHeadroomKobo = (int) $wallet->playBalanceKobo + (int) $wallet->bonusBalanceKobo;
             if ($totalHeadroomKobo < $amountKobo) {
-                throw new TicketEligibilityException('INSUFFICIENT_PLAY_BALANCE', 'Stake exceeds available balance.');
+                throw new TicketEligibilityException('INSUFFICIENT_PLAY_BALANCE', 'Your stake exceeds your available balance. Please top up your wallet or enter a lower stake.');
             }
             // Otherwise a concurrent write raced the version — retry against fresh state.
         }

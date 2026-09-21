@@ -22,11 +22,11 @@ final class LimitsService
 {
     private const KEYS = ['deposit-daily', 'deposit-weekly', 'deposit-monthly', 'stake-daily', 'stake-weekly', 'session-time'];
     private const DEFAULT_KOBO = [
-        'deposit-daily' => 2_000_000,
-        'deposit-weekly' => 7_500_000,
-        'deposit-monthly' => 20_000_000,
-        'stake-daily' => 1_500_000,
-        'stake-weekly' => 5_000_000,
+        'deposit-daily' => 250_000_000,     // ₦2,500,000 (2.5 million Naira)
+        'deposit-weekly' => 1_000_000_000,  // ₦10,000,000 (10 million Naira)
+        'deposit-monthly' => 2_500_000_000, // ₦25,000,000 (25 million Naira)
+        'stake-daily' => 250_000_000,       // ₦2,500,000 (2.5 million Naira)
+        'stake-weekly' => 1_000_000_000,    // ₦10,000,000 (10 million Naira)
     ];
     private const DEFAULT_SESSION_MINUTES = 60;
     private const INCREASE_DELAY_HOURS = 24;
@@ -111,7 +111,19 @@ final class LimitsService
         $spentSoFar = $this->spentSince($player, $key, $since);
 
         if ($spentSoFar + $amountKobo > $limit->currentValue) {
-            throw new TicketEligibilityException('LIMIT_REACHED', "The $key limit would be exceeded by this amount.");
+            $limitNaira = number_format($limit->currentValue / 100, 0);
+            $friendlyName = match ($key) {
+                'stake-daily' => 'daily stake limit',
+                'stake-weekly' => 'weekly stake limit',
+                'deposit-daily' => 'daily deposit limit',
+                'deposit-weekly' => 'weekly deposit limit',
+                'deposit-monthly' => 'monthly deposit limit',
+                default => "$key limit",
+            };
+            throw new TicketEligibilityException(
+                'LIMIT_REACHED',
+                "You have reached your {$friendlyName} of ₦{$limitNaira}. You can review or adjust your limits anytime in Account Settings."
+            );
         }
     }
 

@@ -83,15 +83,15 @@ final class CreateHeritageTicket
         // ── ELIGIBILITY AND RESOLUTION — no database locks held (mirrors CreateTicket) ──
         $game = GameRegistry::where('gameCode', self::GAME_CODE)->first();
         if ($game === null || $game->status !== 'ACTIVE') {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Heritage is not currently available.');
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Heritage is temporarily undergoing maintenance. Please check back shortly.');
         }
 
         if (count($selectedPositions) !== 5 || count(array_unique($selectedPositions)) !== 5) {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Exactly 5 distinct positions must be selected (REQ-HG-003).');
+            throw new TicketEligibilityException('INVALID_SELECTION', 'Please select exactly five distinct positions on the board.');
         }
         foreach ($selectedPositions as $position) {
             if ($position < 0 || $position > 8) {
-                throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Selected positions must be within 0-8.');
+                throw new TicketEligibilityException('INVALID_SELECTION', 'Selected positions must be within the board grid (1–9).');
             }
         }
 
@@ -102,7 +102,9 @@ final class CreateHeritageTicket
         $attribution = $this->attribution->attribute($player, $game);
 
         if ($stakeKobo < $game->minStakeKobo || $stakeKobo > $game->maxStakeKobo) {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', "Stake must be between {$game->minStakeKobo} and {$game->maxStakeKobo} kobo.");
+            $minNaira = number_format($game->minStakeKobo / 100, 0);
+            $maxNaira = number_format($game->maxStakeKobo / 100, 0);
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', "Stake must be between ₦{$minNaira} and ₦{$maxNaira}.");
         }
         $this->limits->assertStakeWithinLimits($player, $stakeKobo);
 
@@ -112,7 +114,7 @@ final class CreateHeritageTicket
 
         $prizeTable = $this->prizeTableResolver->resolveFor(self::GAME_CODE, $attribution['stateCode']);
         if ($prizeTable === null || $prizeTable->heritageTiers->isEmpty()) {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Heritage has no published prize table for this state.');
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'Heritage prize table is temporarily unavailable. Please try again shortly.');
         }
 
         if ($economicsConfig?->activeModel === 'PARI_MUTUEL_POOL') {

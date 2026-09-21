@@ -90,7 +90,7 @@ final class CreateTicket
         // ── ELIGIBILITY AND RESOLUTION — no database locks held (REQ-TKT-002 steps 1-7) ──
         $game = GameRegistry::where('gameCode', 'BLACKRED')->first();
         if ($game === null || $game->status !== 'ACTIVE') {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'BlackRed is not currently available.');
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'BlackRed is temporarily undergoing maintenance. Please check back shortly.');
         }
 
         $this->assertKycTier($player);
@@ -101,7 +101,9 @@ final class CreateTicket
 
         $length = count($prediction);
         if ($stakeKobo < $game->minStakeKobo || $stakeKobo > $game->maxStakeKobo) {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', "Stake must be between {$game->minStakeKobo} and {$game->maxStakeKobo} kobo.");
+            $minNaira = number_format($game->minStakeKobo / 100, 0);
+            $maxNaira = number_format($game->maxStakeKobo / 100, 0);
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', "Stake must be between ₦{$minNaira} and ₦{$maxNaira}.");
         }
         $this->limits->assertStakeWithinLimits($player, $stakeKobo);
 
@@ -111,7 +113,7 @@ final class CreateTicket
 
         $prizeTable = $this->prizeTableResolver->resolveFor('BLACKRED', $attribution['stateCode']);
         if ($prizeTable === null || $prizeTable->tiers->firstWhere('positions', $length) === null) {
-            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'BlackRed has no published prize table for this state.');
+            throw new TicketEligibilityException('GAME_UNAVAILABLE', 'BlackRed prize table is temporarily unavailable. Please try again shortly.');
         }
 
         // Model 4 — no per-ticket RNG roll happens at all; the ticket joins a shared
