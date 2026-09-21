@@ -241,6 +241,8 @@ final class WalletService
         $lines = [];
         if ($excessKobo > 0) {
             $lines[] = new LedgerLine('HOUSE_REVENUE', null, 'debit', $excessKobo, $stateCode);
+        } elseif ($excessKobo < 0) {
+            $lines[] = new LedgerLine('HOUSE_REVENUE', null, 'credit', -$excessKobo, $stateCode);
         }
         $lines[] = new LedgerLine('SUSPENSE', null, 'debit', $stakeKobo, $stateCode);
 
