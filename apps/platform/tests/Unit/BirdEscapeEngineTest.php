@@ -116,20 +116,67 @@ final class BirdEscapeEngineTest extends TestCase
         $engine->resolve(bin2hex(random_bytes(32)), 1, 10_001);
     }
 
+    public function test_anti_clumping_allows_occasional_consecutive_tier1_but_prevents_frequent_streaks(): void
+    {
+        $engine = new BirdEscapeEngine();
+        $seed = bin2hex(random_bytes(32));
+        $totalRounds = 10_000;
+
+        $lastCrash = null;
+        $consecutiveTier1Count = 0;
+        $maxConsecutiveTier1 = 0;
+        $streak1Count = 0;
+        $streak2Count = 0;
+
+        $tier1Count = 0;
+        for ($round = 1; $round <= $totalRounds; $round++) {
+            $m = $engine->resolve(
+                seedHex: $seed,
+                roundNumber: $round,
+                houseEdgeBasisPoints: 500,
+                lastCrashMultiplierHundredths: $lastCrash,
+                consecutiveTier1Count: $consecutiveTier1Count
+            )->crashMultiplierHundredths;
+
+            if ($m <= 120) {
+                $tier1Count++;
+                $consecutiveTier1Count++;
+                if ($consecutiveTier1Count > $maxConsecutiveTier1) {
+                    $maxConsecutiveTier1 = $consecutiveTier1Count;
+                }
+            } else {
+                if ($consecutiveTier1Count === 1) {
+                    $streak1Count++;
+                } elseif ($consecutiveTier1Count === 2) {
+                    $streak2Count++;
+                }
+                $consecutiveTier1Count = 0;
+            }
+
+            $lastCrash = $m;
+        }
+
+        // Two in a row can occur (occasional ~25% of Tier 1 occurrences), but 3 or more is strictly prevented
+        $this->assertLessThanOrEqual(2, $maxConsecutiveTier1, 'Anti-clumping must prevent 3+ consecutive Tier 1 crashes');
+        $this->assertGreaterThan(0, $streak2Count, 'Consecutive Tier 1 can occasionally occur');
+        // While still preserving the long-term ~40% aggregate frequency
+        $this->assertEqualsWithDelta(0.40, $tier1Count / $totalRounds, 0.03, 'Tier 1 should still be ~40% overall');
+    }
+
     public function test_growth_curve_is_constant_uniform_and_starts_at_one_hundred(): void
     {
         // Floor is 100 (1.00x) at t=0 — flight always starts at break-even. From
         // there every full 1.00x step (1.00x->2.00x, 2.00x->3.00x, ...) takes the
-        // same duration: 4000ms by default, per the user's requested pacing.
-        $this->assertSame(100, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(0, 4000));
-        $this->assertSame(150, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(2000, 4000));
-        $this->assertSame(200, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(4000, 4000));
-        $this->assertSame(300, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(8000, 4000));
-        $this->assertSame(400, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(12000, 4000));
+        // same duration: 10000ms by default (1.00x to 2.00x takes 10 seconds).
+        $this->assertSame(100, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(0));
+        $this->assertSame(150, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(5000));
+        $this->assertSame(200, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(10000));
+        $this->assertSame(300, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(20000));
+        $this->assertSame(400, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(30000));
 
         $previous = 100;
-        for ($elapsedMs = 100; $elapsedMs <= 30_000; $elapsedMs += 100) {
-            $current = BirdEscapeEngine::multiplierHundredthsAtElapsedMs($elapsedMs, 4000);
+        for ($elapsedMs = 100; $elapsedMs <= 60_000; $elapsedMs += 200) {
+            $current = BirdEscapeEngine::multiplierHundredthsAtElapsedMs($elapsedMs);
             $this->assertGreaterThanOrEqual($previous, $current);
             $this->assertGreaterThanOrEqual(100, $current);
             $previous = $current;

@@ -254,34 +254,48 @@ interface MockRound {
  * server-side. Math.random() is fine here — this file is explicitly a mock, never
  * the real-money path (see birdEscapeGateway.ts for that).
  */
-function drawCrashMultiplierHundredths(): number {
+let mockConsecutiveTier1Count = 0;
+
+function drawCrashMultiplierHundredths(consecutiveTier1Count: number = 0): number {
   const r = Math.random();
   let m = 100;
 
-  if (r < 0.40) {
-    // 40% falls btw 1.00 - 1.20 (100 - 120 hundredths)
-    m = 100 + Math.floor((r / 0.40) * 21);
+  const pTier1 = consecutiveTier1Count >= 2 ? 0.0 : consecutiveTier1Count === 1 ? 0.25 : 8.0 / 15.0;
+
+  if (r < pTier1) {
+    // Tier 1: 1.00x - 1.20x (100 - 120 hundredths)
+    const frac = r / pTier1;
+    m = 100 + Math.floor(frac * 21);
     if (m > 120) m = 120;
-  } else if (r < 0.60) {
-    // 20% falls on 1.20 - 1.50 (121 - 150 hundredths)
-    m = 121 + Math.floor(((r - 0.40) / 0.20) * 30);
-    if (m > 150) m = 150;
-  } else if (r < 0.80) {
-    // 20% falls on 1.51 - 2.50 (151 - 250 hundredths)
-    m = 151 + Math.floor(((r - 0.60) / 0.20) * 100);
-    if (m > 250) m = 250;
-  } else if (r < 0.90) {
-    // 10% falls on 2.51 - 4.00 (251 - 400 hundredths)
-    m = 251 + Math.floor(((r - 0.80) / 0.10) * 150);
-    if (m > 400) m = 400;
-  } else if (r < 0.97) {
-    // 7% falls btw 4.00 - 5.00 (401 - 500 hundredths)
-    m = 401 + Math.floor(((r - 0.90) / 0.07) * 100);
-    if (m > 500) m = 500;
   } else {
-    // 3% falls btw 5.10 - 15.00 (501 - 1500 hundredths)
-    m = 501 + Math.floor(((r - 0.97) / 0.03) * 1000);
-    if (m > 1500) m = 1500;
+    // Remaining probability distributed across Tiers 2..6 in exact 20:20:10:7:3 ratio (sum 60)
+    const remR = pTier1 < 1.0 ? (r - pTier1) / (1.0 - pTier1) : r;
+    if (remR < 20.0 / 60.0) {
+      // Tier 2: 1.20x - 1.50x (121 - 150)
+      const frac = remR / (20.0 / 60.0);
+      m = 121 + Math.floor(frac * 30);
+      if (m > 150) m = 150;
+    } else if (remR < 40.0 / 60.0) {
+      // Tier 3: 1.51x - 2.50x (151 - 250)
+      const frac = (remR - 20.0 / 60.0) / (20.0 / 60.0);
+      m = 151 + Math.floor(frac * 100);
+      if (m > 250) m = 250;
+    } else if (remR < 50.0 / 60.0) {
+      // Tier 4: 2.51x - 4.00x (251 - 400)
+      const frac = (remR - 40.0 / 60.0) / (10.0 / 60.0);
+      m = 251 + Math.floor(frac * 150);
+      if (m > 400) m = 400;
+    } else if (remR < 57.0 / 60.0) {
+      // Tier 5: 4.00x - 5.00x (401 - 500)
+      const frac = (remR - 50.0 / 60.0) / (7.0 / 60.0);
+      m = 401 + Math.floor(frac * 100);
+      if (m > 500) m = 500;
+    } else {
+      // Tier 6: 5.10x - 15.00x (501 - 1500)
+      const frac = (remR - 57.0 / 60.0) / (3.0 / 60.0);
+      m = 501 + Math.floor(frac * 1000);
+      if (m > 1500) m = 1500;
+    }
   }
 
   // Cap at 15.00x maximum
@@ -332,13 +346,18 @@ function advanceMockRoundIfDue(): void {
   }
 
   if (currentRound.status === "CRASHED" && currentRound.crashedAt !== null && now - currentRound.crashedAt >= MOCK_POST_CRASH_INTERVAL_SECONDS * 1000) {
+    if (currentRound.crashMultiplierHundredths <= 120) {
+      mockConsecutiveTier1Count++;
+    } else {
+      mockConsecutiveTier1Count = 0;
+    }
     currentRound = {
       roundNumber: currentRound.roundNumber + 1,
       status: "BETTING",
       bettingStartedAt: now,
       flightStartedAt: null,
       crashedAt: null,
-      crashMultiplierHundredths: drawCrashMultiplierHundredths(),
+      crashMultiplierHundredths: drawCrashMultiplierHundredths(mockConsecutiveTier1Count),
     };
   }
 }

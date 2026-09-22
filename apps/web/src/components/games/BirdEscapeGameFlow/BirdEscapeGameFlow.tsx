@@ -124,6 +124,9 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
 
   const prevRoundStatusRef = useRef<string | null>(null);
   const prevCountdownRef = useRef<number | null>(null);
+  const roundCrashedRef = useRef(false);
+  const crashMultiplierRef = useRef<number | null>(null);
+  const triggerImmediatePollRef = useRef<(() => void) | null>(null);
 
   const formatNaira = (kobo: number) => `₦${(kobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -174,8 +177,20 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
           return result;
         });
 
-        if (result.status === "CRASHED" && result.crashMultiplierHundredths !== null && result.crashMultiplierHundredths !== undefined) {
-          setLiveMultiplierHundredths(result.crashMultiplierHundredths);
+        if (result.status === "CRASHED") {
+          roundCrashedRef.current = true;
+          if (result.crashMultiplierHundredths !== null && result.crashMultiplierHundredths !== undefined) {
+            crashMultiplierRef.current = result.crashMultiplierHundredths;
+            setLiveMultiplierHundredths(result.crashMultiplierHundredths);
+          }
+        } else if (result.status === "BETTING") {
+          roundCrashedRef.current = false;
+          crashMultiplierRef.current = null;
+        } else if (result.status === "FLYING") {
+          roundCrashedRef.current = false;
+          if (result.crashMultiplierHundredths !== null && result.crashMultiplierHundredths !== undefined) {
+            crashMultiplierRef.current = result.crashMultiplierHundredths;
+          }
         }
 
         syncSlotFromServer(setBet1, bet1Ref.current, result, 0);
@@ -189,7 +204,8 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
           const remainingSec = Math.max(0, result.bettingWindowSeconds - Math.floor(elapsedMs / 1000));
           nextDelayMs = remainingSec <= 2 ? 800 : 1500;
         } else if (result.status === "FLYING") {
-          nextDelayMs = 1000;
+          // Poll at 300ms during flight to minimize crash latency and prevent overshoot
+          nextDelayMs = 300;
         } else if (result.status === "CRASHED") {
           nextDelayMs = 1500;
         }
@@ -202,6 +218,11 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
           timerId = setTimeout(poll, nextDelayMs);
         }
       }
+    };
+
+    triggerImmediatePollRef.current = () => {
+      if (timerId) clearTimeout(timerId);
+      void poll();
     };
 
     const handleVisibilityChange = () => {
@@ -218,6 +239,7 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
     void poll();
     return () => {
       cancelled = true;
+      triggerImmediatePollRef.current = null;
       if (timerId) clearTimeout(timerId);
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -232,12 +254,18 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
   // which sets it immediately on the same tick the crash is learned about, rather
   // than waiting for this effect's dependencies to settle).
   useEffect(() => {
-    if (roundState?.status === "CRASHED" && roundState.crashMultiplierHundredths !== null && roundState.crashMultiplierHundredths !== undefined) {
-      setLiveMultiplierHundredths(roundState.crashMultiplierHundredths);
+    if (roundState?.status === "CRASHED") {
+      roundCrashedRef.current = true;
+      if (roundState.crashMultiplierHundredths !== null && roundState.crashMultiplierHundredths !== undefined) {
+        crashMultiplierRef.current = roundState.crashMultiplierHundredths;
+        setLiveMultiplierHundredths(roundState.crashMultiplierHundredths);
+      }
       return;
     }
 
     if (roundState?.status === "BETTING") {
+      roundCrashedRef.current = false;
+      crashMultiplierRef.current = null;
       setLiveMultiplierHundredths(100);
       return;
     }
@@ -247,14 +275,31 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
       return;
     }
 
+    roundCrashedRef.current = false;
+    crashMultiplierRef.current = roundState.crashMultiplierHundredths ?? null;
+
     const flightStartMs = Date.parse(roundState.flightStartedAt);
     const growthRateConstant = roundState.growthRateConstant;
     let animationFrameId: number;
 
     const tickFlight = () => {
+      if (roundCrashedRef.current) {
+        if (crashMultiplierRef.current !== null) {
+          setLiveMultiplierHundredths(crashMultiplierRef.current);
+        }
+        return;
+      }
+
       const estimatedNow = Date.now() + clockOffsetMs;
       const elapsed = Math.max(0, estimatedNow - flightStartMs);
       const mult = multiplierHundredthsAtElapsedMs(elapsed, growthRateConstant);
+
+      // Prevent visual overshoot if crashMultiplier is already known
+      if (crashMultiplierRef.current !== null && mult >= crashMultiplierRef.current) {
+        setLiveMultiplierHundredths(crashMultiplierRef.current);
+        return;
+      }
+
       setLiveMultiplierHundredths(mult);
       animationFrameId = requestAnimationFrame(tickFlight);
     };
@@ -400,7 +445,9 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
           setRoundState((prev) => (prev ? { ...prev, winningsBalanceKobo: result.winningsBalanceAfterKobo } : prev));
         } else if (result.status === "LOST") {
           // Round crashed at the same moment — a normal loss, not an error
+          roundCrashedRef.current = true;
           setSlot((s) => ({ ...s, status: "lost" }));
+          triggerImmediatePollRef.current?.();
         } else if (result.status === "PLACED") {
           // Server returned the bet still PLACED — restore to active during flight
           setSlot((s) => ({ ...s, status: preCashoutStatus }));
@@ -411,6 +458,10 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
         // On network/server error, restore to prior state so player can retry
         const isRoundCrashed =
           error instanceof BirdEscapeCashoutError && error.code === "TOO_LATE_ROUND_CRASHED";
+        if (isRoundCrashed) {
+          roundCrashedRef.current = true;
+          triggerImmediatePollRef.current?.();
+        }
         setSlot((s) => ({
           ...s,
           status: isRoundCrashed ? "lost" : preCashoutStatus,

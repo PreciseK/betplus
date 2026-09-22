@@ -8,9 +8,9 @@
  * Floor is 100 (1.00x) at t<=0 — flight always starts at break-even, never 0.00x (a
  * crash game's multiplier can never read below what an instant cash-out would return).
  * From there, a constant/uniform rate: every full 1.00x step takes the same duration
- * (growthRateConstant ms, default 4000ms).
+ * (growthRateConstant ms, default 10000ms: 1.00x to 2.00x takes 10 seconds).
  */
-export function multiplierHundredthsAtElapsedMs(elapsedMs: number, growthRateConstant: number = 4000): number {
+export function multiplierHundredthsAtElapsedMs(elapsedMs: number, growthRateConstant: number = 10000): number {
   if (elapsedMs <= 0) return 100;
 
   const rate = Math.max(1, growthRateConstant);

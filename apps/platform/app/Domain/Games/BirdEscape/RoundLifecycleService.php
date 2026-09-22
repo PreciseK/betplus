@@ -44,18 +44,34 @@ final class RoundLifecycleService
         }
 
         if ($latest->status === 'CRASHED' && $latest->crashedAt->addSeconds($latest->postCrashIntervalSeconds)->isPast()) {
-            return $this->startRound($gameCode);
+            return $this->startRound($gameCode, $latest->crashMultiplierHundredths);
         }
 
         return $this->advanceIfDue($latest);
     }
 
-    public function startRound(string $gameCode = 'BIRDESCAPE'): CrashRound
+    public function startRound(string $gameCode = 'BIRDESCAPE', ?int $lastCrashMultiplierHundredths = null): CrashRound
     {
         $config = $this->configs->resolveFor($gameCode);
         if ($config === null) {
             throw new RuntimeException("No published crash config for $gameCode.");
         }
+
+        $recent = CrashRound::where('gameCode', $gameCode)
+            ->whereNotNull('crashMultiplierHundredths')
+            ->orderByDesc('id')
+            ->limit(2)
+            ->get();
+
+        $consecutiveTier1Count = 0;
+        foreach ($recent as $r) {
+            if ($r->crashMultiplierHundredths <= 120) {
+                $consecutiveTier1Count++;
+            } else {
+                break;
+            }
+        }
+        $lastCrashMultiplierHundredths = $lastCrashMultiplierHundredths ?? $recent->first()?->crashMultiplierHundredths;
 
         $seed = $this->seedIssuer->issue();
 
@@ -84,7 +100,9 @@ final class RoundLifecycleService
                 $config->houseEdgeBasisPoints,
                 $dailyAbove25x,
                 $dailyBetween20xAnd25x,
-                $dailyBetween15xAnd20x
+                $dailyBetween15xAnd20x,
+                $lastCrashMultiplierHundredths,
+                $consecutiveTier1Count
             );
 
             try {
@@ -158,11 +176,13 @@ final class RoundLifecycleService
             return $round; // still flying
         }
 
-        // 2. Crash detection — a conditional UPDATE guards double-crash-processing
-        //    (an overlapping tick, or two loop instances running by operator mistake).
-        $wonTransition = DB::transaction(function () use ($round) {
+        // 2. Crash detection — compute exact moment of crash so latency between ticks does not skew crashedAt
+        $crashDurationMs = (int) round((($round->crashMultiplierHundredths - 100) * $round->growthRateConstant) / 100);
+        $exactCrashedAt = $round->flightStartedAt->copy()->addMilliseconds($crashDurationMs);
+
+        $wonTransition = DB::transaction(function () use ($round, $exactCrashedAt) {
             return CrashRound::where('id', $round->id)->where('status', 'FLYING')
-                ->update(['status' => 'CRASHED', 'crashedAt' => now()]) === 1;
+                ->update(['status' => 'CRASHED', 'crashedAt' => $exactCrashedAt]) === 1;
         });
 
         if ($wonTransition) {

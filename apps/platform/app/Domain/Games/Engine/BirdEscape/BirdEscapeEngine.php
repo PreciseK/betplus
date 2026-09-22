@@ -51,6 +51,11 @@ final class BirdEscapeEngine
      * - 3% of rounds:  5.10x - 15.00x (501 - 1500 hundredths)
      *
      * Maximum multiplier is strictly 15.00x (1500 hundredths).
+     *
+     * Anti-clumping scatter: To prevent predictable 1.00-1.20 clusters and ensure
+     * outcomes scatter unpredictably across different ranges, if the previous round
+     * crashed in Tier 1 (<= 1.20x), the next round scatters into Tiers 2-6.
+     * The stationary probability strictly preserves 40%/20%/20%/10%/7%/3%.
      */
     public function resolve(
         string $seedHex,
@@ -58,7 +63,9 @@ final class BirdEscapeEngine
         int $houseEdgeBasisPoints,
         int $dailyCountAbove25x = 0,
         int $dailyCountBetween20xAnd25x = 0,
-        int $dailyCountBetween15xAnd20x = 0
+        int $dailyCountBetween15xAnd20x = 0,
+        ?int $lastCrashMultiplierHundredths = null,
+        int $consecutiveTier1Count = 0
     ): CrashEngineResult {
         if ($houseEdgeBasisPoints < 0 || $houseEdgeBasisPoints > 10_000) {
             throw new InvalidArgumentException('houseEdgeBasisPoints must be between 0 and 10000.');
@@ -76,42 +83,57 @@ final class BirdEscapeEngine
         // Normalized uniform draw [0.0, 1.0)
         $r = ($h % 100_000) / 100_000.0;
 
-        // Configured fall distribution
-        if ($r < 0.40) {
-            // 40% falls btw 1.00 - 1.20 (100 - 120 hundredths)
-            $m = 100 + (int) floor(($r / 0.40) * 21);
-            if ($m > 120) {
-                $m = 120;
-            }
-        } elseif ($r < 0.60) {
-            // 20% falls on 1.20 - 1.50 (121 - 150 hundredths)
-            $m = 121 + (int) floor((($r - 0.40) / 0.20) * 30);
-            if ($m > 150) {
-                $m = 150;
-            }
-        } elseif ($r < 0.80) {
-            // 20% falls on 1.51 - 2.50 (151 - 250 hundredths)
-            $m = 151 + (int) floor((($r - 0.60) / 0.20) * 100);
-            if ($m > 250) {
-                $m = 250;
-            }
-        } elseif ($r < 0.90) {
-            // 10% falls on 2.51 - 4.00 (251 - 400 hundredths)
-            $m = 251 + (int) floor((($r - 0.80) / 0.10) * 150);
-            if ($m > 400) {
-                $m = 400;
-            }
-        } elseif ($r < 0.97) {
-            // 7% falls btw 4.00 - 5.00 (401 - 500 hundredths)
-            $m = 401 + (int) floor((($r - 0.90) / 0.07) * 100);
-            if ($m > 500) {
-                $m = 500;
-            }
+        // Anti-clumping scatter distribution:
+        // Consecutive Tier 1 rounds (1.00x - 1.20x) can occur naturally due to their 40% target,
+        // but are damped so they are occasional (25% chance after 1 Tier 1) and never clump into
+        // long streaks (scatter guaranteed after 2 in a row).
+        // Long-term stationary frequencies strictly preserve:
+        // 40% (Tier 1), 20% (Tier 2), 20% (Tier 3), 10% (Tier 4), 7% (Tier 5), 3% (Tier 6).
+        if ($consecutiveTier1Count === 0 && $lastCrashMultiplierHundredths !== null && $lastCrashMultiplierHundredths <= 120) {
+            $consecutiveTier1Count = 1;
+        }
+
+        if ($consecutiveTier1Count >= 2) {
+            $pTier1 = 0.0;
+        } elseif ($consecutiveTier1Count === 1) {
+            $pTier1 = 0.25; // Occasional consecutive Tier 1 (1 in 4 after Tier 1)
         } else {
-            // 3% falls btw 5.10 - 15.00 (501 - 1500 hundredths)
-            $m = 501 + (int) floor((($r - 0.97) / 0.03) * 1000);
-            if ($m > 1500) {
-                $m = 1500;
+            $pTier1 = 8.0 / 15.0; // ~53.33% after non-Tier 1
+        }
+
+        if ($r < $pTier1) {
+            // Tier 1: 1.00x - 1.20x (100 - 120 hundredths)
+            $frac = $r / $pTier1;
+            $m = 100 + (int) floor($frac * 21);
+            if ($m > 120) $m = 120;
+        } else {
+            // Remaining probability distributed across Tiers 2..6 in exact 20:20:10:7:3 ratio (sum 60)
+            $remR = ($pTier1 < 1.0) ? ($r - $pTier1) / (1.0 - $pTier1) : $r;
+            if ($remR < 20.0 / 60.0) {
+                // Tier 2: 1.20x - 1.50x (121 - 150)
+                $frac = $remR / (20.0 / 60.0);
+                $m = 121 + (int) floor($frac * 30);
+                if ($m > 150) $m = 150;
+            } elseif ($remR < 40.0 / 60.0) {
+                // Tier 3: 1.51x - 2.50x (151 - 250)
+                $frac = ($remR - 20.0 / 60.0) / (20.0 / 60.0);
+                $m = 151 + (int) floor($frac * 100);
+                if ($m > 250) $m = 250;
+            } elseif ($remR < 50.0 / 60.0) {
+                // Tier 4: 2.51x - 4.00x (251 - 400)
+                $frac = ($remR - 40.0 / 60.0) / (10.0 / 60.0);
+                $m = 251 + (int) floor($frac * 150);
+                if ($m > 400) $m = 400;
+            } elseif ($remR < 57.0 / 60.0) {
+                // Tier 5: 4.00x - 5.00x (401 - 500)
+                $frac = ($remR - 50.0 / 60.0) / (7.0 / 60.0);
+                $m = 401 + (int) floor($frac * 100);
+                if ($m > 500) $m = 500;
+            } else {
+                // Tier 6: 5.10x - 15.00x (501 - 1500)
+                $frac = ($remR - 57.0 / 60.0) / (3.0 / 60.0);
+                $m = 501 + (int) floor($frac * 1000);
+                if ($m > 1500) $m = 1500;
             }
         }
 
@@ -131,7 +153,9 @@ final class BirdEscapeEngine
         int $houseEdgeBasisPoints,
         int $dailyCountAbove25x = 0,
         int $dailyCountBetween20xAnd25x = 0,
-        int $dailyCountBetween15xAnd20x = 0
+        int $dailyCountBetween15xAnd20x = 0,
+        ?int $lastCrashMultiplierHundredths = null,
+        int $consecutiveTier1Count = 0
     ): CrashEngineResult {
         return $this->resolve(
             $seedHex,
@@ -139,11 +163,13 @@ final class BirdEscapeEngine
             $houseEdgeBasisPoints,
             $dailyCountAbove25x,
             $dailyCountBetween20xAnd25x,
-            $dailyCountBetween15xAnd20x
+            $dailyCountBetween15xAnd20x,
+            $lastCrashMultiplierHundredths,
+            $consecutiveTier1Count
         );
     }
 
-    public const DEFAULT_MS_PER_MULTIPLIER = 4000;
+    public const DEFAULT_MS_PER_MULTIPLIER = 10000; // 10s per 1.00x (1.00x to 2.00x takes 10s)
 
     /**
      * The public, non-secret growth curve mapping elapsed flight time to a multiplier.
