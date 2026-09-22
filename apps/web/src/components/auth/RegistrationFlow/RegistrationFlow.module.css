@@ -166,7 +166,8 @@
 .brandTrustItem .val {
   font-family: var(--font-display, inherit);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.25;
   color: #F6F1E7;
   letter-spacing: -0.02em;
 }

@@ -168,7 +168,7 @@ export function SignInFlow({
         <div className={styles.brandTrust}>
           <div className={styles.brandTrustItem}>
             <div className={styles.label}>Regulated</div>
-            <div className={styles.val}>NLRC <span className={styles.brandAccent}>Licensed</span></div>
+            <div className={styles.val}>Licensed by <span className={styles.brandAccent}>Gaming Authority</span></div>
           </div>
           <div className={styles.brandTrustItem}>
             <div className={styles.label}>Settlement</div>
@@ -386,7 +386,7 @@ export function SignInFlow({
               </a>
 
               <p className={styles.finePrint}>
-                Licensed by NLRC · 18+ only.<br />
+                Licensed by Gaming Authority · 18+ only.<br />
                 Gaming can be addictive. <a href="/safe-play">Play responsibly</a>.
               </p>
             </section>

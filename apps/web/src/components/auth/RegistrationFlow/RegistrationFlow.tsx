@@ -210,7 +210,7 @@ export function RegistrationFlow({ gateway = mockRegistrationGateway }: { gatewa
         <div className={styles.brandTrust}>
           <div className={styles.brandTrustItem}>
             <div className={styles.label}>Regulated</div>
-            <div className={styles.val}>NLRC <span className={styles.brandAccent}>Licensed</span></div>
+            <div className={styles.val}>Licensed by <span className={styles.brandAccent}>Gaming Authority</span></div>
           </div>
           <div className={styles.brandTrustItem}>
             <div className={styles.label}>Settlement</div>
