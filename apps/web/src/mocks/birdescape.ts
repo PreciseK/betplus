@@ -258,18 +258,34 @@ function drawCrashMultiplierHundredths(): number {
   const r = Math.random();
   let m = 100;
 
-  if (r < 0.70) {
-    m = 100 + Math.floor((r / 0.70) * 150); // 1.00x - 2.50x
-  } else if (r < 0.85) {
-    m = 251 + Math.floor(((r - 0.70) / 0.15) * 100); // 2.51x - 3.50x
-  } else if (r < 0.95) {
-    m = 351 + Math.floor(((r - 0.85) / 0.10) * 150); // 3.51x - 5.00x
+  if (r < 0.40) {
+    // 40% falls btw 1.00 - 1.20 (100 - 120 hundredths)
+    m = 100 + Math.floor((r / 0.40) * 21);
+    if (m > 120) m = 120;
+  } else if (r < 0.60) {
+    // 20% falls on 1.20 - 1.50 (121 - 150 hundredths)
+    m = 121 + Math.floor(((r - 0.40) / 0.20) * 30);
+    if (m > 150) m = 150;
+  } else if (r < 0.80) {
+    // 20% falls on 1.51 - 2.50 (151 - 250 hundredths)
+    m = 151 + Math.floor(((r - 0.60) / 0.20) * 100);
+    if (m > 250) m = 250;
+  } else if (r < 0.90) {
+    // 10% falls on 2.51 - 4.00 (251 - 400 hundredths)
+    m = 251 + Math.floor(((r - 0.80) / 0.10) * 150);
+    if (m > 400) m = 400;
+  } else if (r < 0.97) {
+    // 7% falls btw 4.00 - 5.00 (401 - 500 hundredths)
+    m = 401 + Math.floor(((r - 0.90) / 0.07) * 100);
+    if (m > 500) m = 500;
   } else {
-    m = 501 + Math.floor(((r - 0.95) / 0.05) * 3000); // 5.01x - 35.00x
+    // 3% falls btw 5.10 - 15.00 (501 - 1500 hundredths)
+    m = 501 + Math.floor(((r - 0.97) / 0.03) * 1000);
+    if (m > 1500) m = 1500;
   }
 
-  // Cap at 35.00x maximum
-  return Math.max(100, Math.min(3500, m));
+  // Cap at 15.00x maximum
+  return Math.max(100, Math.min(1500, m));
 }
 
 let currentRound: MockRound = {

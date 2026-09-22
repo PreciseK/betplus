@@ -104,12 +104,13 @@ export function BetSlot({
 
       <div className={styles.autoCashoutRow}>
         <div className={styles.autoCashoutLeft}>
-          <span className={styles.autoCashoutLabel}>Auto Cash-out at (min 2.00×)</span>
+          <span className={styles.autoCashoutLabel}>Auto Cash-out at (2.00× – 15.00×)</span>
           <input
             type="number"
             className={styles.autoCashoutInput}
             value={state.autoCashoutMult}
             min={2.0}
+            max={15.0}
             step="0.1"
             onChange={(e) => {
               const val = parseFloat(e.target.value);
@@ -117,7 +118,8 @@ export function BetSlot({
             }}
             onBlur={(e) => {
               const val = parseFloat(e.target.value);
-              onChangeAutoCashoutMult(isNaN(val) || val < 2.0 ? 2.0 : Math.round(val * 100) / 100);
+              const clamped = isNaN(val) || val < 2.0 ? 2.0 : Math.min(15.0, Math.round(val * 100) / 100);
+              onChangeAutoCashoutMult(clamped);
             }}
             disabled={locked}
           />

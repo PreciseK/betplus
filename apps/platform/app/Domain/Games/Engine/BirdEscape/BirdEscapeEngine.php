@@ -25,9 +25,9 @@ final class BirdEscapeEngine
      * realistically <= ~10,000,000 kobo, the largest possible product
      * (10,000,000 * 1,000,000) stays safely inside PHP_INT_MAX on a 64-bit build.
      */
-    public const ABSOLUTE_MAX_MULTIPLIER_HUNDREDTHS = 3500; // 35.00x absolute ceiling
-    public const DEFAULT_MAX_CAP_HUNDREDTHS = 2500; // 25.00x regular cap
-    public const MAX_MULTIPLIER_HUNDREDTHS = 3500;
+    public const ABSOLUTE_MAX_MULTIPLIER_HUNDREDTHS = 1500; // 15.00x absolute ceiling
+    public const DEFAULT_MAX_CAP_HUNDREDTHS = 1500; // 15.00x regular cap
+    public const MAX_MULTIPLIER_HUNDREDTHS = 1500;
 
     /**
      * Worst-case liability a single bet could ever create for the house — stake paid
@@ -43,15 +43,14 @@ final class BirdEscapeEngine
 
     /**
      * Resolves the crash point from the seed adhering to:
-     * - 70% of rounds: 1.00x - 2.50x
-     * - 15% of rounds: 2.51x - 3.50x
-     * - 10% of rounds: 3.51x - 5.00x
-     * - 5% of rounds: 5.01x - 35.00x
+     * - 40% of rounds: 1.00x - 1.20x (100 - 120 hundredths)
+     * - 20% of rounds: 1.20x - 1.50x (121 - 150 hundredths)
+     * - 20% of rounds: 1.51x - 2.50x (151 - 250 hundredths)
+     * - 10% of rounds: 2.51x - 4.00x (251 - 400 hundredths)
+     * - 7% of rounds:  4.00x - 5.00x (401 - 500 hundredths)
+     * - 3% of rounds:  5.10x - 15.00x (501 - 1500 hundredths)
      *
-     * Daily Tier Limits (24-hour window):
-     * - Max 2 rounds per day can go past 25.00x (and never > 35.00x).
-     * - Max 5 rounds per day can reach between 20.00x - 25.00x.
-     * - Max 10 rounds per day can reach between 15.00x - 20.00x.
+     * Maximum multiplier is strictly 15.00x (1500 hundredths).
      */
     public function resolve(
         string $seedHex,
@@ -77,45 +76,42 @@ final class BirdEscapeEngine
         // Normalized uniform draw [0.0, 1.0)
         $r = ($h % 100_000) / 100_000.0;
 
-        // Base distribution
-        if ($r < 0.70) {
-            // 70% of rounds: 1.00x - 2.50x (100 - 250)
-            $m = 100 + (int) floor(($r / 0.70) * 150);
-        } elseif ($r < 0.85) {
-            // 15% of rounds: 2.51x - 3.50x (251 - 350)
-            $m = 251 + (int) floor((($r - 0.70) / 0.15) * 100);
-        } elseif ($r < 0.95) {
-            // 10% of rounds: 3.51x - 5.00x (351 - 500)
-            $m = 351 + (int) floor((($r - 0.85) / 0.10) * 150);
+        // Configured fall distribution
+        if ($r < 0.40) {
+            // 40% falls btw 1.00 - 1.20 (100 - 120 hundredths)
+            $m = 100 + (int) floor(($r / 0.40) * 21);
+            if ($m > 120) {
+                $m = 120;
+            }
+        } elseif ($r < 0.60) {
+            // 20% falls on 1.20 - 1.50 (121 - 150 hundredths)
+            $m = 121 + (int) floor((($r - 0.40) / 0.20) * 30);
+            if ($m > 150) {
+                $m = 150;
+            }
+        } elseif ($r < 0.80) {
+            // 20% falls on 1.51 - 2.50 (151 - 250 hundredths)
+            $m = 151 + (int) floor((($r - 0.60) / 0.20) * 100);
+            if ($m > 250) {
+                $m = 250;
+            }
+        } elseif ($r < 0.90) {
+            // 10% falls on 2.51 - 4.00 (251 - 400 hundredths)
+            $m = 251 + (int) floor((($r - 0.80) / 0.10) * 150);
+            if ($m > 400) {
+                $m = 400;
+            }
+        } elseif ($r < 0.97) {
+            // 7% falls btw 4.00 - 5.00 (401 - 500 hundredths)
+            $m = 401 + (int) floor((($r - 0.90) / 0.07) * 100);
+            if ($m > 500) {
+                $m = 500;
+            }
         } else {
-            // 5% of rounds: 5.01x - 35.00x (501 - 3500)
-            $m = 501 + (int) floor((($r - 0.95) / 0.05) * 3000);
-        }
-
-        // Apply Daily Tier Quota Rules:
-        // Rule 1: Only 2 rounds in 24h can go past 25.00x (and strictly capped at <= 35.00x)
-        if ($m > 2500) {
-            if ($dailyCountAbove25x < 2) {
-                $m = min(self::ABSOLUTE_MAX_MULTIPLIER_HUNDREDTHS, $m);
-            } else {
-                // Quota reached: step down into 20x - 25x
-                $m = 2000 + ($m % 501);
-            }
-        }
-
-        // Rule 2: Only 5 rounds in 24h can reach between 20.00x - 25.00x
-        if ($m >= 2000 && $m <= 2500) {
-            if ($dailyCountBetween20xAnd25x >= 5) {
-                // Quota reached: step down into 15x - 20x
-                $m = 1500 + ($m % 500);
-            }
-        }
-
-        // Rule 3: Only 10 rounds in 24h can reach between 15.00x - 20.00x
-        if ($m >= 1500 && $m < 2000) {
-            if ($dailyCountBetween15xAnd20x >= 10) {
-                // Quota reached: step down into sub-15x (5.01x - 14.99x)
-                $m = 501 + ($m % 999);
+            // 3% falls btw 5.10 - 15.00 (501 - 1500 hundredths)
+            $m = 501 + (int) floor((($r - 0.97) / 0.03) * 1000);
+            if ($m > 1500) {
+                $m = 1500;
             }
         }
 

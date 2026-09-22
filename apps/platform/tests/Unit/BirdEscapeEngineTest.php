@@ -46,34 +46,57 @@ final class BirdEscapeEngineTest extends TestCase
         }
     }
 
-    public function test_daily_tier_quota_caps_prevent_excess_high_multiplier_rounds(): void
+    public function test_multiplier_strictly_bounded_by_fifteen_hundredths(): void
     {
         $engine = new BirdEscapeEngine();
 
-        // 1. When dailyCountAbove25x >= 2, no round can exceed 25.00x (2500 hundredths)
         for ($round = 1; $round <= 200; $round++) {
-            $result = $engine->resolve(bin2hex(random_bytes(32)), $round, 500, dailyCountAbove25x: 2);
-            $this->assertLessThanOrEqual(2500, $result->crashMultiplierHundredths, "Round $round exceeded 25.00x despite daily quota being full");
+            $result = $engine->resolve(bin2hex(random_bytes(32)), $round, 500);
+            $this->assertGreaterThanOrEqual(100, $result->crashMultiplierHundredths);
+            $this->assertLessThanOrEqual(1500, $result->crashMultiplierHundredths, "Round $round exceeded 15.00x max multiplier");
+        }
+    }
+
+    public function test_multiplier_distribution_buckets_align_with_target_probabilities(): void
+    {
+        $engine = new BirdEscapeEngine();
+        $seed = bin2hex(random_bytes(32));
+        $totalRounds = 10_000;
+
+        $tier1Count = 0; // 100 - 120 (40%)
+        $tier2Count = 0; // 121 - 150 (20%)
+        $tier3Count = 0; // 151 - 250 (20%)
+        $tier4Count = 0; // 251 - 400 (10%)
+        $tier5Count = 0; // 401 - 500 (7%)
+        $tier6Count = 0; // 501 - 1500 (3%)
+
+        for ($round = 1; $round <= $totalRounds; $round++) {
+            $m = $engine->resolve($seed, $round, 500)->crashMultiplierHundredths;
+            $this->assertGreaterThanOrEqual(100, $m);
+            $this->assertLessThanOrEqual(1500, $m);
+
+            if ($m >= 100 && $m <= 120) {
+                $tier1Count++;
+            } elseif ($m >= 121 && $m <= 150) {
+                $tier2Count++;
+            } elseif ($m >= 151 && $m <= 250) {
+                $tier3Count++;
+            } elseif ($m >= 251 && $m <= 400) {
+                $tier4Count++;
+            } elseif ($m >= 401 && $m <= 500) {
+                $tier5Count++;
+            } elseif ($m >= 501 && $m <= 1500) {
+                $tier6Count++;
+            }
         }
 
-        // 2. When dailyCountBetween20xAnd25x >= 5, no round can be in [2000, 2500]
-        for ($round = 1; $round <= 200; $round++) {
-            $result = $engine->resolve(bin2hex(random_bytes(32)), $round, 500, dailyCountAbove25x: 2, dailyCountBetween20xAnd25x: 5);
-            $this->assertLessThan(2000, $result->crashMultiplierHundredths, "Round $round landed in [20x, 25x] despite quota being full");
-        }
-
-        // 3. When dailyCountBetween15xAnd20x >= 10, no round can be in [1500, 2000]
-        for ($round = 1; $round <= 200; $round++) {
-            $result = $engine->resolve(
-                bin2hex(random_bytes(32)),
-                $round,
-                500,
-                dailyCountAbove25x: 2,
-                dailyCountBetween20xAnd25x: 5,
-                dailyCountBetween15xAnd20x: 10
-            );
-            $this->assertLessThan(1500, $result->crashMultiplierHundredths, "Round $round landed in [15x, 20x] despite quota being full");
-        }
+        // Check within +/- 2.5% statistical tolerance for 10,000 draws
+        $this->assertEqualsWithDelta(0.40, $tier1Count / $totalRounds, 0.025, 'Tier 1 (1.00-1.20) should be ~40%');
+        $this->assertEqualsWithDelta(0.20, $tier2Count / $totalRounds, 0.025, 'Tier 2 (1.20-1.50) should be ~20%');
+        $this->assertEqualsWithDelta(0.20, $tier3Count / $totalRounds, 0.025, 'Tier 3 (1.51-2.50) should be ~20%');
+        $this->assertEqualsWithDelta(0.10, $tier4Count / $totalRounds, 0.020, 'Tier 4 (2.51-4.00) should be ~10%');
+        $this->assertEqualsWithDelta(0.07, $tier5Count / $totalRounds, 0.015, 'Tier 5 (4.00-5.00) should be ~7%');
+        $this->assertEqualsWithDelta(0.03, $tier6Count / $totalRounds, 0.015, 'Tier 6 (5.10-15.00) should be ~3%');
     }
 
     public function test_digest_changes_if_any_input_changes(): void
