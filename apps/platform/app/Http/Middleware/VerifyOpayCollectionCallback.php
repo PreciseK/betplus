@@ -49,7 +49,7 @@ class VerifyOpayCollectionCallback
             'endpoint' => $request->path(),
             'signatureScheme' => 'hmac_sha3_512',
             'reference' => is_array($payload) && is_string($payload['reference'] ?? null) ? $payload['reference'] : null,
-            'outcome' => 'rejected_' . $reason,
+            'outcome' => substr('rejected_' . $reason, 0, 50),
             'latencyMs' => 0,
             'requestBody' => $request->all(),
             'responseBody' => null,
