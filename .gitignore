@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 **/config.php
+!apps/ussd/src/Config.php
 !**/config.example.php
 *.pem
 *.key
