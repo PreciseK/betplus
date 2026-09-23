@@ -11,6 +11,8 @@ use App\Domain\Games\Draw\StubDrawPartnerAdapter;
 use App\Domain\Games\Heritage\HeritageEngineClient;
 use App\Domain\Jurisdiction\Signals\LocationSignalProvider;
 use App\Domain\Jurisdiction\Signals\StubLocationSignalProvider;
+use App\Domain\Payments\Providers\Opay\OpayCollectionGateway;
+use App\Domain\Payments\Providers\Opay\OpayCollectionSigner;
 use App\Domain\Payments\Providers\Opay\OpayGateway;
 use App\Domain\Payments\Providers\Opay\OpayPayoutCallbackVerifier;
 use App\Domain\Payments\Providers\Opay\OpayPayoutSigner;
@@ -33,6 +35,15 @@ class AppServiceProvider extends ServiceProvider
             $app->make(OpayPayoutSigner::class),
             (string) config('opay.base_url'),
             (string) config('opay.merchant_id'),
+        ));
+
+        $this->app->singleton(OpayCollectionSigner::class, fn () => new OpayCollectionSigner((string) config('opay.collection_secret_key')));
+
+        $this->app->singleton(OpayCollectionGateway::class, fn ($app) => new OpayCollectionGateway(
+            $app->make(OpayCollectionSigner::class),
+            (string) config('opay.collection_base_url'),
+            (string) config('opay.collection_merchant_id'),
+            (string) config('opay.collection_callback_url'),
         ));
 
         $this->app->singleton(VaultCipher::class, fn () => new VaultCipher((string) config('vault.encryption_key')));

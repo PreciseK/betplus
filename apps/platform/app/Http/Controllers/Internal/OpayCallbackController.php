@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Internal;
 
 use App\Domain\Payout\SettlePayoutStatus;
+use App\Domain\Wallet\FundingService;
 use App\Http\Controllers\Controller;
+use App\Models\Collection;
 use App\Models\Payout;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * POST /internal/opay/callback/payout (Betplus_PRD.md §12.4 / OPay Payout API
- * Developer Guide §2.3). Signature/IP verification happens in the route's
- * middleware before this runs.
+ * Handles incoming webhook callbacks from OPay:
+ * - POST /internal/opay/callback/payout: Outbound disbursement settlement (RSA-SHA256)
+ * - POST /internal/opay/callback/collection: Inbound payment settlement (HMAC-SHA3-512)
  *
- * There used to be a .../payin sibling for a Collections callback — removed along
- * with FundingService's invented Collections mechanism (see that class's doc
- * comment). Nothing calls this controller for deposits any more.
+ * Signature & IP allowlist verification happens in middleware prior to invocation.
  */
 class OpayCallbackController extends Controller
 {
@@ -27,27 +27,20 @@ class OpayCallbackController extends Controller
     }
 
     /**
-     * REQ-PAY-011/REQ-PO-011 — the payout callback reports amount in Naira, unlike the
-     * kobo request; that unit is not used here at all, deliberately — the confirmed
-     * amount is always read from the payout row this platform created, never trusted
-     * from the callback body, so a unit mismatch in the payload can't corrupt the
-     * ledger. See PayoutStatusMapper::nairaStringToKobo for the one place that
-     * conversion is exercised (comparison logging only).
+     * POST /internal/opay/callback/payout
      */
     public function payout(Request $request): JsonResponse
     {
         $payload = $request->input('payload');
         $merchantOrderNo = is_array($payload) ? (string) ($payload['reference'] ?? '') : '';
         $providerStatus = is_array($payload) ? strtoupper((string) ($payload['status'] ?? '')) : '';
-        // §2.3.3's status values are "successful"/"failed" — remapped to the
-        // createSingleOrder/queryorder enumeration PayoutStatusMapper already handles.
+
         $providerStatus = match ($providerStatus) {
             'SUCCESSFUL' => 'SUCCESS',
             'FAILED' => 'FAIL',
             default => $providerStatus,
         };
 
-        // merchantOrderNo is the payout's own id, zero-padded (DispatchPayout::numericOrderNo) — reversible directly.
         $payoutId = ctype_digit($merchantOrderNo) ? (int) ltrim($merchantOrderNo, '0') : 0;
         $payout = $payoutId > 0 ? Payout::find($payoutId) : null;
         if ($payout === null) {
@@ -57,5 +50,34 @@ class OpayCallbackController extends Controller
         $this->settlePayout->apply($payout, $providerStatus !== '' ? $providerStatus : 'RETURN');
 
         return response()->json(['received' => true]);
+    }
+
+    /**
+     * POST /internal/opay/callback/collection
+     */
+    public function collection(Request $request, FundingService $funding): JsonResponse
+    {
+        $payload = $request->input('payload');
+        if (!is_array($payload)) {
+            return response()->json(['message' => 'Invalid payload format'], 400);
+        }
+
+        $reference = (string) ($payload['reference'] ?? '');
+        $status = strtoupper((string) ($payload['status'] ?? ''));
+
+        $collection = Collection::where('reference', $reference)->first();
+        if ($collection === null) {
+            return response()->json(['message' => 'Unknown collection reference'], 404);
+        }
+
+        if ($status === 'SUCCESS' || $status === 'SUCCESSFUL') {
+            $funding->confirmCollectionPaid($collection);
+        } elseif (in_array($status, ['FAIL', 'FAILED', 'CLOSE'], true)) {
+            if ($collection->status !== 'paid') {
+                $collection->update(['status' => 'failed']);
+            }
+        }
+
+        return response()->json(['code' => '00000', 'message' => 'SUCCESSFUL']);
     }
 }

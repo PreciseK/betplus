@@ -36,6 +36,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/wallet/transactions', [WalletController::class, 'transactions']);
         Route::post('/wallet/deposits/quote', [WalletController::class, 'quote']);
         Route::post('/wallet/deposits', [WalletController::class, 'deposit'])->middleware('idempotent');
+        Route::post('/wallet/deposits/init', [WalletController::class, 'initDeposit'])->middleware('idempotent');
+        Route::post('/wallet/deposits/pin', [WalletController::class, 'submitPin'])->middleware('idempotent');
+        Route::post('/wallet/deposits/otp', [WalletController::class, 'submitOtp'])->middleware('idempotent');
 
         Route::get('/games/blackred', [BlackRedController::class, 'show']);
         Route::post('/tickets', [BlackRedController::class, 'purchase'])->middleware('idempotent');

@@ -20,7 +20,16 @@ final class OpayPayoutSigner
     /** @param string $jsonBody Exact bytes sent as the request body. */
     public function sign(string $jsonBody): string
     {
-        $key = openssl_pkey_get_private($this->privateKeyPem);
+        $pem = $this->privateKeyPem;
+        if (str_starts_with($pem, 'file://') && file_exists(substr($pem, 7))) {
+            $pem = (string) file_get_contents(substr($pem, 7));
+        } elseif (!empty($pem) && file_exists($pem)) {
+            $pem = (string) file_get_contents($pem);
+        } elseif (str_contains($pem, '\n')) {
+            $pem = str_replace('\n', "\n", $pem);
+        }
+
+        $key = openssl_pkey_get_private($pem);
         if ($key === false) {
             throw new RuntimeException('Invalid OPay payout private key.');
         }

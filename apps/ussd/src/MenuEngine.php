@@ -107,6 +107,7 @@ final class MenuEngine
             'caged_pick' => $this->screenCagedPick($session, $input),
             'caged_stake' => $this->screenCagedStake($session, $input),
             'caged_confirm' => $this->screenCagedConfirm($session, $input),
+            'opay_pin_entry' => $this->screenOpayPinEntry($session, $input),
             'rg_menu' => $this->screenRgMenu($session, $input),
             'rg_break_menu' => $this->screenRgBreakMenu($session, $input),
             default => Screen::end('Session error. Please dial again.'),
@@ -300,7 +301,7 @@ final class MenuEngine
         }
 
         $stakeKobo = (int) $session->data['brStakeKobo'];
-        $funding = $this->resolveFunding($session, $stakeKobo);
+        $funding = $this->resolveFunding($session, $stakeKobo, 'blackred');
         if ($funding !== null) {
             return $funding;
         }
@@ -390,7 +391,7 @@ final class MenuEngine
         }
 
         $stakeKobo = (int) $session->data['hgStakeKobo'];
-        $funding = $this->resolveFunding($session, $stakeKobo);
+        $funding = $this->resolveFunding($session, $stakeKobo, 'heritage');
         if ($funding !== null) {
             return $funding;
         }
@@ -480,7 +481,7 @@ final class MenuEngine
         }
 
         $stakeKobo = (int) $session->data['cgStakeKobo'];
-        $funding = $this->resolveFunding($session, $stakeKobo);
+        $funding = $this->resolveFunding($session, $stakeKobo, 'caged');
         if ($funding !== null) {
             return $funding;
         }
@@ -596,19 +597,9 @@ final class MenuEngine
         return $kobo > 0 ? $kobo : null;
     }
 
-    // ── Direct-pay funding (no wallet top-up step — pay per-transaction, straight
-    // from OPay) ─────────────────────────────────────────────────────────────
+    // ── Direct-pay funding (in-session PIN authorization or direct settlement) ───
 
-    /**
-     * If the player's existing wallet balance (only ever funded via web, if at
-     * all) already covers the stake, returns null so the caller proceeds straight
-     * to purchase. Otherwise verifies the player's OPay wallet and BetPlus's own
-     * merchant balance (the only mechanism the OPay Payout API doc actually
-     * supports — see FundingService::collect()'s doc comment) and credits the
-     * shortfall synchronously — no OTP, no identity walk, no extra screen. Either
-     * the purchase proceeds this same turn, or the session ends with why not.
-     */
-    private function resolveFunding(Session $session, int $stakeKobo): ?Screen
+    private function resolveFunding(Session $session, int $stakeKobo, string $gameKey): ?Screen
     {
         try {
             $wallet = $this->platform->wallet((string) $session->accessToken);
@@ -633,13 +624,61 @@ final class MenuEngine
         $shortfallKobo = max($stakeKobo - $availableKobo, 0);
         $amountKobo = $shortfallKobo > 0 ? $shortfallKobo : $stakeKobo;
 
-        $result = $this->platform->collectFromOpay((string) $session->accessToken, $amountKobo, 'ussd-fund-' . $session->sessionId);
+        try {
+            $result = $this->platform->initFunding((string) $session->accessToken, $amountKobo, 'ussd-fund-' . $session->sessionId);
+        } catch (\Throwable) {
+            $result = null;
+        }
 
-        if (($result['status'] ?? 'error') === 'paid') {
+        if (!isset($result['status']) && !isset($result['action_type'])) {
+            // Fallback to legacy collectFromOpay if initFunding not programmed or returned empty
+            $result = $this->platform->collectFromOpay((string) $session->accessToken, $amountKobo, 'ussd-fund-' . $session->sessionId);
+        }
+
+        if (($result['status'] ?? '') === 'paid') {
             return null;
         }
 
+        if (($result['action_type'] ?? '') === 'INPUT_PIN' || (($result['status'] ?? '') === 'pending' && isset($result['order_no']))) {
+            $session->data['opayOrderNo'] = (string) ($result['order_no'] ?? '');
+            $session->data['pendingGame'] = $gameKey;
+            $session->data['fundingAmountKobo'] = $amountKobo;
+            $session->screen = 'opay_pin_entry';
+            $naira = number_format($amountKobo / 100, 0);
+
+            return Screen::continue("Enter your 4-digit OPay PIN to authorise NGN $naira:");
+        }
+
         return Screen::end($this->fundingFailureMessage((string) ($result['status'] ?? 'error')));
+    }
+
+    private function screenOpayPinEntry(Session $session, string $input): Screen
+    {
+        if ($input === '') {
+            $naira = number_format(((int) ($session->data['fundingAmountKobo'] ?? 0)) / 100, 0);
+
+            return Screen::continue("Enter your 4-digit OPay PIN to authorise NGN $naira:");
+        }
+
+        if (!ctype_digit($input) || strlen($input) !== 4) {
+            return $this->errorPrefixed($session, 'opay_pin_entry', 'Enter your 4-digit OPay PIN:');
+        }
+
+        $orderNo = (string) ($session->data['opayOrderNo'] ?? '');
+        $pinResult = $this->platform->submitFundingPin((string) $session->accessToken, $orderNo, $input);
+
+        if (($pinResult['status'] ?? '') === 'paid') {
+            $game = (string) ($session->data['pendingGame'] ?? '');
+
+            return match ($game) {
+                'blackred' => $this->completeBlackRedPurchase($session),
+                'heritage' => $this->completeHeritagePurchase($session),
+                'caged' => $this->completeCagedPurchase($session),
+                default => Screen::end('Payment successful. Please dial back in to play.'),
+            };
+        }
+
+        return Screen::end($this->fundingFailureMessage((string) ($pinResult['status'] ?? 'error')));
     }
 
     private function fundingFailureMessage(string $status): string
@@ -651,6 +690,8 @@ final class MenuEngine
             'wallet_unverified' => 'Could not verify an OPay wallet for this phone number. Please try again later.',
             'float_unavailable' => 'Could not process payment right now. Please try again shortly.',
             'pending_review' => 'This amount needs manual review before it can be credited. Try a smaller amount or check back shortly.',
+            'pin_incorrect' => 'Incorrect PIN entered. Transaction cancelled.',
+            'expired' => 'Payment session timed out. Please try again.',
             default => 'Could not process payment. Please try again shortly.',
         };
     }

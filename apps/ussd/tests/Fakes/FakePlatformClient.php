@@ -69,6 +69,16 @@ final class FakePlatformClient implements PlatformClientInterface
         return $this->respond(__FUNCTION__, [$token, $amountKobo, $reference]);
     }
 
+    public function initFunding(string $token, int $amountKobo, string $reference): array
+    {
+        return $this->respond(__FUNCTION__, [$token, $amountKobo, $reference]);
+    }
+
+    public function submitFundingPin(string $token, string $orderNo, string $pin): array
+    {
+        return $this->respond(__FUNCTION__, [$token, $orderNo, $pin]);
+    }
+
     public function blackRedDescriptor(string $token): array
     {
         return $this->respond(__FUNCTION__, [$token]);

@@ -65,12 +65,10 @@ class OpaySignerSeparationTest extends TestCase
 
         $signature = (new OpayCollectionSigner($secret))->sign($body);
 
-        $this->assertSame(base64_encode(hash_hmac('sha512', $body, $secret, true)), $signature);
-        // HMAC-SHA512 raw output is 64 bytes -> 88 chars base64 (with padding). An
-        // RSA-SHA256 2048-bit signature is 256 bytes -> 344 chars — structurally
-        // distinct lengths, not just different values, so the two cannot be silently
-        // swapped and coincidentally verify.
-        $this->assertSame(88, strlen($signature));
+        $this->assertSame(hash_hmac('sha512', $body, $secret), $signature);
+        // HMAC-SHA512 hex output is 128 characters. An RSA-SHA256 2048-bit signature is
+        // 256 bytes -> 344 chars base64 — structurally distinct lengths and encodings.
+        $this->assertSame(128, strlen($signature));
     }
 
     public function test_payout_signature_is_genuinely_rsa_sha256_and_verifiable_with_the_public_key(): void
@@ -86,5 +84,36 @@ class OpaySignerSeparationTest extends TestCase
             1,
             openssl_verify($body, base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256),
         );
+    }
+
+    public function test_collection_callback_signature_verification_uses_canonical_hmac_sha3_512(): void
+    {
+        $secret = 'OPAYPRV**************************98453';
+        $signer = new OpayCollectionSigner($secret);
+
+        $payload = [
+            'amount' => '49160',
+            'channel' => 'Web',
+            'country' => 'NG',
+            'currency' => 'NGN',
+            'displayedFailure' => '',
+            'fee' => '737',
+            'feeCurrency' => 'NGN',
+            'instrumentType' => 'BankCard',
+            'reference' => '10023',
+            'refunded' => false,
+            'status' => 'SUCCESS',
+            'timestamp' => '2022-05-07T06:20:46Z',
+            'token' => '220507145660712931829',
+            'transactionId' => '220507145660712931829',
+            'updated_at' => '2022-05-07T07:20:46Z',
+        ];
+
+        // Format according to OPay documentation:
+        $canonical = '{Amount:"49160",Currency:"NGN",Reference:"10023",Refunded:f,Status:"SUCCESS",Timestamp:"2022-05-07T06:20:46Z",Token:"220507145660712931829",TransactionID:"220507145660712931829"}';
+        $validSha = hash_hmac('sha3-512', $canonical, $secret);
+
+        $this->assertTrue($signer->verifyCallback($payload, $validSha));
+        $this->assertFalse($signer->verifyCallback($payload, 'invalid-signature-value'));
     }
 }

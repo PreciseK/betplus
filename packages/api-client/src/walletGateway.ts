@@ -111,4 +111,111 @@ export const walletGateway = {
       ],
     });
   },
+
+  /**
+   * Initialize an OPay collection via Server-Side API.
+   * May complete immediately if paid, or return actionType 'INPUT_PIN' / 'INPUT_OTP' / 'REDIRECT'.
+   */
+  async initDeposit(amountKobo: number, reference?: string): Promise<{
+    status: string;
+    actionType?: "INPUT_PIN" | "INPUT_OTP" | "REDIRECT" | null;
+    orderNo?: string;
+    reference: string;
+    amountKobo: number;
+    cashierUrl?: string | null;
+    creditedKobo?: number;
+  }> {
+    const ref = reference ?? (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `dep-${Date.now()}`);
+    const result = await post<{
+      status: string;
+      action_type?: "INPUT_PIN" | "INPUT_OTP" | "REDIRECT" | null;
+      order_no?: string;
+      reference: string;
+      amount_kobo: number;
+      cashier_url?: string | null;
+      credited_kobo?: number;
+    }>("/wallet/deposits/initiate", { amount_kobo: amountKobo, reference: ref }, { idempotencyKey: ref });
+
+    return {
+      status: result.status,
+      actionType: result.action_type,
+      orderNo: result.order_no,
+      reference: result.reference,
+      amountKobo: result.amount_kobo,
+      cashierUrl: result.cashier_url,
+      creditedKobo: result.credited_kobo,
+    };
+  },
+
+  /**
+   * Submit 4-digit OPay PIN for in-session wallet authorization.
+   */
+  async submitDepositPin(orderNo: string, pin: string): Promise<{
+    status: string;
+    creditedKobo?: number;
+    orderNo: string;
+    reference: string;
+  }> {
+    const result = await post<{
+      status: string;
+      credited_kobo?: number;
+      order_no: string;
+      reference: string;
+    }>("/wallet/deposits/pin", { order_no: orderNo, pin });
+
+    return {
+      status: result.status,
+      creditedKobo: result.credited_kobo,
+      orderNo: result.order_no,
+      reference: result.reference,
+    };
+  },
+
+  /**
+   * Submit SMS OTP if challenged by OPay.
+   */
+  async submitDepositOtp(orderNo: string, otp: string): Promise<{
+    status: string;
+    creditedKobo?: number;
+    orderNo: string;
+    reference: string;
+  }> {
+    const result = await post<{
+      status: string;
+      credited_kobo?: number;
+      order_no: string;
+      reference: string;
+    }>("/wallet/deposits/otp", { order_no: orderNo, otp });
+
+    return {
+      status: result.status,
+      creditedKobo: result.credited_kobo,
+      orderNo: result.order_no,
+      reference: result.reference,
+    };
+  },
+
+  /**
+   * Poll deposit status by reference.
+   */
+  async checkDepositStatus(reference: string): Promise<{
+    status: string;
+    actionType?: string | null;
+    creditedKobo?: number;
+    reference: string;
+  }> {
+    const result = await get<{
+      status: string;
+      action_type?: string | null;
+      credited_kobo?: number;
+      reference: string;
+    }>(`/wallet/deposits/${encodeURIComponent(reference)}/status`);
+
+    return {
+      status: result.status,
+      actionType: result.action_type,
+      creditedKobo: result.credited_kobo,
+      reference: result.reference,
+    };
+  },
 };

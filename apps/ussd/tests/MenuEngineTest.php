@@ -481,6 +481,98 @@ final class MenuEngineTest extends TestCase
         $this->assertNotEmpty($syncCalls);
     }
 
+    // ── OPay In-Session PIN Challenge Flow ──────────────────────────────────
+
+    public function test_shortfall_triggers_opay_pin_entry_and_completes_purchase_on_valid_pin(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // br length
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // 1 pick
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // Black
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // 500 Naira
+
+        $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
+        $this->platform->programResponse('initFunding', [
+            'status' => 'pending',
+            'action_type' => 'INPUT_PIN',
+            'order_no' => '2609230000000001',
+        ]);
+
+        $pinScreen = $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $this->assertTrue($pinScreen->continues);
+        $this->assertStringContainsString('Enter your 4-digit OPay PIN', $pinScreen->render());
+        $this->assertStringContainsString('NGN 500', $pinScreen->render());
+        $this->assertFits($pinScreen);
+
+        $this->platform->programResponse('submitFundingPin', ['status' => 'paid']);
+        $this->platform->programResponse('purchaseBlackRedTicket', ['reference' => 'tkt-opay-1']);
+        $this->platform->programResponse('revealBlackRedTicket', [
+            'won' => true,
+            'net_credit_kobo' => 98_000,
+        ]);
+
+        $finalScreen = $this->engine->handleTurn('sess-1', '+2348031234567', '1234');
+
+        $this->assertFalse($finalScreen->continues);
+        $this->assertStringContainsString('You won! Net credit NGN 980', $finalScreen->render());
+        $this->assertStringContainsString('Ref: tkt-opay-1', $finalScreen->render());
+
+        $pinCalls = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'submitFundingPin'));
+        $this->assertCount(1, $pinCalls);
+        $this->assertSame('2609230000000001', $pinCalls[0]['args'][1]);
+        $this->assertSame('1234', $pinCalls[0]['args'][2]);
+    }
+
+    public function test_invalid_pin_format_prompts_re_entry(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+
+        $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
+        $this->platform->programResponse('initFunding', [
+            'status' => 'pending',
+            'action_type' => 'INPUT_PIN',
+            'order_no' => '2609230000000001',
+        ]);
+
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $retryScreen = $this->engine->handleTurn('sess-1', '+2348031234567', '12');
+
+        $this->assertTrue($retryScreen->continues);
+        $this->assertStringStartsWith('Invalid input.', $retryScreen->text);
+        $this->assertFits($retryScreen);
+    }
+
+    public function test_declined_pin_terminates_with_explanation(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+
+        $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
+        $this->platform->programResponse('initFunding', [
+            'status' => 'pending',
+            'action_type' => 'INPUT_PIN',
+            'order_no' => '2609230000000001',
+        ]);
+
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        $this->platform->programResponse('submitFundingPin', ['status' => 'pin_incorrect']);
+
+        $declinedScreen = $this->engine->handleTurn('sess-1', '+2348031234567', '9999');
+
+        $this->assertFalse($declinedScreen->continues);
+        $this->assertStringContainsString('Incorrect PIN entered', $declinedScreen->render());
+    }
+
     private function signIn(string $sessionId, string $msisdn): void
     {
         $this->platform->programResponse('identify', ['status' => 'signed_in', 'access_token' => 'tok-1', 'registered_name' => 'Ada']);

@@ -31,6 +31,20 @@ interface PlatformClientInterface
      */
     public function collectFromOpay(string $token, int $amountKobo, string $reference): array;
 
+    /**
+     * Initiates an in-session OPay Collection.
+     *
+     * @return array<string, mixed>
+     */
+    public function initFunding(string $token, int $amountKobo, string $reference): array;
+
+    /**
+     * Submits player's 4-digit PIN to authorize funding in real-time.
+     *
+     * @return array<string, mixed>
+     */
+    public function submitFundingPin(string $token, string $orderNo, string $pin): array;
+
     /** @return array<string, mixed> */
     public function blackRedDescriptor(string $token): array;
 

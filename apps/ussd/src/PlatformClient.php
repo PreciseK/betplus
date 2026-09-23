@@ -67,6 +67,22 @@ final class PlatformClient implements PlatformClientInterface
     }
 
     /** @return array<string, mixed> */
+    public function initFunding(string $token, int $amountKobo, string $reference): array
+    {
+        return $this->postAuthed('/v1/wallet/deposits/init', $token, [
+            'amount_kobo' => $amountKobo, 'reference' => $reference,
+        ]);
+    }
+
+    /** @return array<string, mixed> */
+    public function submitFundingPin(string $token, string $orderNo, string $pin): array
+    {
+        return $this->postAuthed('/v1/wallet/deposits/pin', $token, [
+            'order_no' => $orderNo, 'pin' => $pin,
+        ]);
+    }
+
+    /** @return array<string, mixed> */
     public function blackRedDescriptor(string $token): array
     {
         return $this->getAuthed('/v1/games/blackred', $token);

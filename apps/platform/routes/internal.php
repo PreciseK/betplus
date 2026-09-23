@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Internal\OpayCallbackController;
 use App\Http\Controllers\Internal\UssdGatewayController;
+use App\Http\Middleware\VerifyOpayCollectionCallback;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('opay.payout-callback')->group(function () {
     Route::post('/internal/opay/callback/payout', [OpayCallbackController::class, 'payout']);
+});
+
+Route::middleware(VerifyOpayCollectionCallback::class)->group(function () {
+    Route::post('/internal/opay/callback/collection', [OpayCallbackController::class, 'collection']);
 });
 
 // Story 8.1/8.2 — apps/ussd, never the telco aggregator directly (see

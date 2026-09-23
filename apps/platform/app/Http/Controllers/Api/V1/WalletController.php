@@ -12,6 +12,7 @@ use App\Http\Requests\Api\V1\FundingQuoteRequest;
 use App\Models\Collection;
 use App\Models\Player;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class WalletController extends Controller
 {
@@ -52,7 +53,60 @@ class WalletController extends Controller
         return response()->json($this->funding->quote($this->player(), (int) $request->input('amount_kobo')));
     }
 
-    /** POST /v1/wallet/deposits — single step: verify + credit, or reject. No OTP. */
+    /**
+     * POST /v1/wallet/deposits/init — step 1 of OPay Server-Side Collection.
+     * Initiates payment on OPay and returns orderNo and challenge type (INPUT_PIN / INPUT_OTP).
+     */
+    public function initDeposit(Request $request): JsonResponse
+    {
+        $amountKobo = (int) ($request->input('amount_kobo') ?? $request->input('quote_id'));
+        $reference = $request->filled('reference') ? $request->string('reference')->toString() : null;
+
+        $result = $this->funding->initiateFunding($this->player(), $amountKobo, $reference);
+        $ok = in_array($result['status'], ['initiated', 'paid'], true);
+
+        return response()->json($result, $ok ? 200 : 422);
+    }
+
+    /**
+     * POST /v1/wallet/deposits/pin — step 2 of OPay Server-Side Collection (PIN).
+     * Authorizes the pending deposit with the player's 4-digit OPay PIN (USSD / Fast Web).
+     */
+    public function submitPin(Request $request): JsonResponse
+    {
+        $orderNo = $request->string('order_no')->toString();
+        $pin = $request->string('pin')->toString();
+
+        if ($orderNo === '' || $pin === '') {
+            return response()->json(['status' => 'error', 'message' => 'Missing order_no or pin'], 422);
+        }
+
+        $result = $this->funding->submitFundingPin($this->player(), $orderNo, $pin);
+        $ok = $result['status'] === 'paid';
+
+        return response()->json($result, $ok ? 200 : 422);
+    }
+
+    /**
+     * POST /v1/wallet/deposits/otp — step 2 of OPay Server-Side Collection (OTP).
+     * Authorizes the pending deposit with SMS OTP (Web fallback).
+     */
+    public function submitOtp(Request $request): JsonResponse
+    {
+        $orderNo = $request->string('order_no')->toString();
+        $otp = $request->string('otp')->toString();
+
+        if ($orderNo === '' || $otp === '') {
+            return response()->json(['status' => 'error', 'message' => 'Missing order_no or otp'], 422);
+        }
+
+        $result = $this->funding->submitFundingOtp($this->player(), $orderNo, $otp);
+        $ok = $result['status'] === 'paid';
+
+        return response()->json($result, $ok ? 200 : 422);
+    }
+
+    /** POST /v1/wallet/deposits — synchronous verify + credit (legacy / sandbox fallback). */
     public function deposit(CreateDepositRequest $request): JsonResponse
     {
         $amountKobo = (int) $request->string('quote_id')->toString();
@@ -67,12 +121,12 @@ class WalletController extends Controller
     private function transactionShape(Collection $collection): array
     {
         $history = [
-            ['status' => 'Deposit requested', 'at' => $collection->createdAt->toIso8601String(), 'detail' => 'OPay wallet and merchant balance verified.'],
+            ['status' => 'Deposit requested', 'at' => $collection->createdAt->toIso8601String(), 'detail' => 'OPay collection initiated.'],
         ];
         if ($collection->status === 'paid') {
-            $history[] = ['status' => 'Payment confirmed', 'at' => $collection->paidAt->toIso8601String(), 'detail' => 'Play Balance credited immediately.'];
+            $history[] = ['status' => 'Payment confirmed', 'at' => $collection->paidAt?->toIso8601String() ?? $collection->updatedAt->toIso8601String(), 'detail' => 'Play Balance credited successfully.'];
         } elseif ($collection->status === 'failed') {
-            $history[] = ['status' => 'Payment failed', 'at' => $collection->updatedAt->toIso8601String(), 'detail' => 'Could not be verified against OPay.'];
+            $history[] = ['status' => 'Payment failed', 'at' => $collection->updatedAt->toIso8601String(), 'detail' => 'Declined by OPay or user canceled.'];
         } elseif ($collection->status === 'pending_review') {
             $history[] = ['status' => 'Under review', 'at' => $collection->updatedAt->toIso8601String(), 'detail' => 'Amount exceeds the auto-credit threshold; awaiting back-office approval.'];
         }
