@@ -25,6 +25,10 @@ final class OpayPayoutSigner
             $pem = (string) file_get_contents(substr($pem, 7));
         } elseif (!empty($pem) && file_exists($pem)) {
             $pem = (string) file_get_contents($pem);
+        } elseif (!empty($pem) && function_exists('base_path') && file_exists(base_path($pem))) {
+            $pem = (string) file_get_contents(base_path($pem));
+        } elseif (!empty($pem) && function_exists('storage_path') && file_exists(storage_path(preg_replace('#^storage/#', '', $pem)))) {
+            $pem = (string) file_get_contents(storage_path(preg_replace('#^storage/#', '', $pem)));
         } elseif (str_contains($pem, '\n')) {
             $pem = str_replace('\n', "\n", $pem);
         }

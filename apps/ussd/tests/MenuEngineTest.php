@@ -129,16 +129,16 @@ final class MenuEngineTest extends TestCase
 
     // ── BlackRed (REQ-HG-005-principle: identical odds via the same platform API) ─
 
+    // ── BlackRed (REQ-HG-005-principle: identical odds via the same platform API) ─
+
     public function test_a_full_blackred_purchase_flow_calls_the_same_v1_endpoint_web_uses(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // -> blackred_length
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '2'); // 2 picks
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // -> blackred_pick
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '121'); // 121 -> BRB
         $this->assertFits($screen);
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick 1: Black
-        $this->engine->handleTurn('sess-1', '+2348031234567', '2'); // pick 2: Red
         $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // stake
-        $this->assertStringContainsString('BR for NGN 500', $screen->render());
+        $this->assertStringContainsString('BRB for NGN 500', $screen->render());
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 10_000_000]);
         $this->platform->programResponse('purchaseBlackRedTicket', ['reference' => 'tkt-1']);
@@ -149,14 +149,48 @@ final class MenuEngineTest extends TestCase
         $this->assertFalse($result->continues);
         $this->assertStringContainsString('You won', $result->render());
         $purchaseCall = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseBlackRedTicket'))[0];
-        $this->assertSame(['B', 'R'], $purchaseCall['args'][1]);
+        $this->assertSame(['B', 'R', 'B'], $purchaseCall['args'][1]);
         $this->assertSame(50_000, $purchaseCall['args'][2]);
+    }
+
+    public function test_blackred_pick_maps_combinations_correctly(): void
+    {
+        $i = 0;
+        foreach ([
+            '121' => 'BRB',
+            '212' => 'RBR',
+            '221' => 'RRB',
+            '1' => 'B',
+            '2' => 'R',
+            '12121' => 'BRBRB',
+        ] as $input => $expected) {
+            $i++;
+            $inputStr = (string) $input;
+            $msisdn = '+234803111000' . $i;
+            $sessId = 'sess-br-' . $i;
+            $this->signIn($sessId, $msisdn);
+            $this->engine->handleTurn($sessId, $msisdn, '1');
+            $screen = $this->engine->handleTurn($sessId, $msisdn, $inputStr);
+            $this->assertFits($screen);
+            $confirm = $this->engine->handleTurn($sessId, $msisdn, '200');
+            $this->assertStringContainsString("Confirm: $expected for NGN 200", $confirm->render());
+        }
+    }
+
+    public function test_blackred_pick_rejects_invalid_inputs(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+
+        foreach (['3', '123', '0', '121212', 'abc'] as $invalid) {
+            $screen = $this->engine->handleTurn('sess-1', '+2348031234567', $invalid);
+            $this->assertStringStartsWith('Invalid input.', $screen->text);
+        }
     }
 
     public function test_blackred_confirm_funds_from_opay_and_purchases_when_play_balance_is_insufficient(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '500');
@@ -180,7 +214,6 @@ final class MenuEngineTest extends TestCase
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '500');
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
@@ -196,7 +229,6 @@ final class MenuEngineTest extends TestCase
     public function test_blackred_confirm_ends_the_session_when_deposit_needs_manual_review(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '500');
@@ -216,7 +248,6 @@ final class MenuEngineTest extends TestCase
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '500');
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
@@ -233,10 +264,8 @@ final class MenuEngineTest extends TestCase
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '2'); // -> heritage_pick
 
-        foreach (['1', '2', '3', '4', '5'] as $digit) {
-            $screen = $this->engine->handleTurn('sess-1', '+2348031234567', $digit);
-            $this->assertFits($screen);
-        }
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '18734'); // 18734 -> positions [0, 7, 6, 2, 3]
+        $this->assertFits($screen);
         $this->engine->handleTurn('sess-1', '+2348031234567', '1000'); // stake
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 10_000_000]);
@@ -252,18 +281,28 @@ final class MenuEngineTest extends TestCase
         $this->assertStringNotContainsString('0 of 5', $result->render());
 
         $purchaseCall = array_values(array_filter($this->platform->calls, fn ($c) => $c['method'] === 'purchaseHeritageTicket'))[0];
-        $this->assertSame([0, 1, 2, 3, 4], $purchaseCall['args'][1]); // positions are 0-indexed internally
+        $this->assertSame([0, 7, 6, 2, 3], $purchaseCall['args'][1]); // positions are 0-indexed internally
     }
 
     public function test_heritage_pick_rejects_a_repeated_position(): void
     {
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '2');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
 
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // repeat
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '18731'); // repeat of position 1
 
         $this->assertStringStartsWith('Invalid input.', $screen->text);
+    }
+
+    public function test_heritage_pick_rejects_invalid_length_or_digits(): void
+    {
+        $this->signIn('sess-1', '+2348031234567');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '2');
+
+        foreach (['1873', '187345', '18730', 'abcde', '0', '99999'] as $invalid) {
+            $screen = $this->engine->handleTurn('sess-1', '+2348031234567', $invalid);
+            $this->assertStringStartsWith('Invalid input.', $screen->text);
+        }
     }
 
     // ── Caged (Option B — Escape Count) ──────────────────────────────────────
@@ -486,9 +525,8 @@ final class MenuEngineTest extends TestCase
     public function test_shortfall_triggers_opay_pin_entry_and_completes_purchase_on_valid_pin(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // br length
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // 1 pick
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // Black
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_pick
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick Black
         $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // 500 Naira
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
@@ -529,7 +567,6 @@ final class MenuEngineTest extends TestCase
         $this->signIn('sess-1', '+2348031234567');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '500');
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
@@ -551,7 +588,6 @@ final class MenuEngineTest extends TestCase
     public function test_declined_pin_terminates_with_explanation(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '1');
         $this->engine->handleTurn('sess-1', '+2348031234567', '500');

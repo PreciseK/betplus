@@ -190,15 +190,16 @@ final class MenuEngine
     private function screenMainMenu(Session $session, string $input): Screen
     {
         if ($input === '1') {
-            $session->screen = 'blackred_length';
+            $session->screen = 'blackred_pick';
+            $session->data['brPicks'] = [];
 
-            return Screen::continue("BlackRed\nHow many picks? (1-5)");
+            return Screen::continue("BlackRed (1=Black, 2=Red)\nEnter 1-5 picks (e.g. 121 for BRB):");
         }
         if ($input === '2') {
             $session->screen = 'heritage_pick';
             $session->data['heritagePicks'] = [];
 
-            return Screen::continue("Heritage\nPick 5 of 9 positions (1-9), one at a time.\nEnter position 1 of 5:");
+            return Screen::continue("Heritage\nEnter 5 positions (1-9, e.g. 18734):");
         }
         if ($input === '3') {
             $session->screen = 'caged_pick';
@@ -233,39 +234,30 @@ final class MenuEngine
 
     private function screenBlackRedLength(Session $session, string $input): Screen
     {
-        $length = (int) $input;
-        if ($length < 1 || $length > 5) {
-            return $this->errorPrefixed($session, 'blackred_length', 'How many picks? Enter 1-5.');
-        }
-
-        $session->data['brLength'] = $length;
-        $session->data['brPicks'] = [];
         $session->screen = 'blackred_pick';
+        $session->data['brPicks'] = [];
 
-        return Screen::continue("Pick 1 of $length: 1=Black 2=Red");
+        return $this->screenBlackRedPick($session, $input);
     }
 
     private function screenBlackRedPick(Session $session, string $input): Screen
     {
+        if ($input === '') {
+            return Screen::continue("BlackRed (1=Black, 2=Red)\nEnter 1-5 picks (e.g. 121 for BRB):");
+        }
+
+        $raw = trim($input);
+        $cleaned = strtoupper((string) preg_replace('/[\s,]+/', '', $raw));
+        $mapped = strtr($cleaned, ['1' => 'B', '2' => 'R']);
+
+        if (!preg_match('/^[BR]{1,5}$/', $mapped)) {
+            return $this->errorPrefixed($session, 'blackred_pick', "Enter 1-5 picks (1=Black, 2=Red, e.g. 121):");
+        }
+
         /** @var list<string> $picks */
-        $picks = $session->data['brPicks'];
-        $length = (int) $session->data['brLength'];
-
-        if ($input !== '1' && $input !== '2') {
-            $next = count($picks) + 1;
-
-            return $this->errorPrefixed($session, 'blackred_pick', "Pick $next of $length: 1=Black 2=Red");
-        }
-
-        $picks[] = $input === '1' ? 'B' : 'R';
+        $picks = str_split($mapped);
         $session->data['brPicks'] = $picks;
-
-        if (count($picks) < $length) {
-            $next = count($picks) + 1;
-
-            return Screen::continue("Pick $next of $length: 1=Black 2=Red");
-        }
-
+        $session->data['brLength'] = count($picks);
         $session->screen = 'blackred_stake';
 
         return Screen::continue('Enter stake in Naira (e.g. 500):');
@@ -338,25 +330,25 @@ final class MenuEngine
 
     private function screenHeritagePick(Session $session, string $input): Screen
     {
+        if ($input === '') {
+            return Screen::continue("Heritage\nEnter 5 positions (1-9, e.g. 18734):");
+        }
+
+        $raw = trim($input);
+        $cleaned = (string) preg_replace('/[\s,]+/', '', $raw);
+
+        if (!preg_match('/^[1-9]{5}$/', $cleaned)) {
+            return $this->errorPrefixed($session, 'heritage_pick', "Enter 5 unique positions (1-9, e.g. 18734):");
+        }
+
+        $digits = str_split($cleaned);
+        if (count(array_unique($digits)) !== 5) {
+            return $this->errorPrefixed($session, 'heritage_pick', "Positions must be unique (1-9, e.g. 18734):");
+        }
+
         /** @var list<int> $picks */
-        $picks = $session->data['heritagePicks'];
-        $position = (int) $input - 1; // player enters 1-9, board positions are 0-8
-
-        if ($input === '' || $position < 0 || $position > 8 || in_array($position, $picks, true)) {
-            $next = count($picks) + 1;
-
-            return $this->errorPrefixed($session, 'heritage_pick', "Enter position $next of 5 (1-9, no repeats):");
-        }
-
-        $picks[] = $position;
+        $picks = array_map(fn (string $d) => ((int) $d) - 1, $digits);
         $session->data['heritagePicks'] = $picks;
-
-        if (count($picks) < 5) {
-            $next = count($picks) + 1;
-
-            return Screen::continue("Enter position $next of 5 (1-9, no repeats):");
-        }
-
         $session->screen = 'heritage_stake';
 
         return Screen::continue('Enter stake in Naira (e.g. 500):');
