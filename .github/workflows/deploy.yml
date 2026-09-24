@@ -47,6 +47,11 @@ jobs:
           cd apps/platform
           composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
+      - name: Install USSD Production Dependencies
+        run: |
+          cd apps/ussd
+          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
       - name: Prepare SSH Key
         run: |
           mkdir -p ~/.ssh

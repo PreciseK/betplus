@@ -37,10 +37,11 @@ fi
 
 echo "Using PHP binary: $PHP_BIN ($($PHP_BIN -v 2>/dev/null | head -n 1 || echo 'unknown'))"
 
-# 2. Symlink shared .env into platform
+# 2. Symlink shared .env into platform and ussd
 if [ -f "$REMOTE_BASE/shared/.env" ]; then
   ln -sfn "$REMOTE_BASE/shared/.env" "$CURRENT_RELEASE/apps/platform/.env"
-  echo "Linked shared/.env into apps/platform/.env"
+  ln -sfn "$REMOTE_BASE/shared/.env" "$CURRENT_RELEASE/apps/ussd/.env"
+  echo "Linked shared/.env into apps/platform/.env and apps/ussd/.env"
   
   # Ensure APP_KEY line exists in shared/.env
   if ! grep -q "^APP_KEY=" "$REMOTE_BASE/shared/.env"; then
@@ -111,8 +112,34 @@ if [ -f "$REMOTE_BASE/shared/.env" ]; then
     fi
     echo "Configured VAULT_ENCRYPTION_KEY in shared/.env"
   fi
+
+  # Generate USSD_GATEWAY_SHARED_SECRET if missing or empty
+  if ! grep -qE '^USSD_GATEWAY_SHARED_SECRET=[A-Za-z0-9+/=]{30,}' "$REMOTE_BASE/shared/.env"; then
+    USSD_SECRET=$($PHP_BIN -r 'echo bin2hex(random_bytes(32));')
+    if grep -q "^USSD_GATEWAY_SHARED_SECRET=" "$REMOTE_BASE/shared/.env"; then
+      sed -i "s|^USSD_GATEWAY_SHARED_SECRET=.*|USSD_GATEWAY_SHARED_SECRET=$USSD_SECRET|" "$REMOTE_BASE/shared/.env"
+    else
+      echo "USSD_GATEWAY_SHARED_SECRET=$USSD_SECRET" >> "$REMOTE_BASE/shared/.env"
+    fi
+    echo "Configured USSD_GATEWAY_SHARED_SECRET in shared/.env"
+  fi
+
+  # Ensure USSD session directory exists
+  mkdir -p "$REMOTE_BASE/shared/ussd-sessions"
+  chmod -R 777 "$REMOTE_BASE/shared/ussd-sessions"
+  if ! grep -q "^USSD_SESSION_STORE_DIR=" "$REMOTE_BASE/shared/.env"; then
+    echo "USSD_SESSION_STORE_DIR=$REMOTE_BASE/shared/ussd-sessions" >> "$REMOTE_BASE/shared/.env"
+  fi
 else
   echo "WARNING: $REMOTE_BASE/shared/.env does not exist yet. Please create it on the server."
+fi
+
+# Ensure USSD vendor autoloader exists (fallback if CI runner did not build it)
+if [ ! -f "$CURRENT_RELEASE/apps/ussd/vendor/autoload.php" ]; then
+  echo "Notice: apps/ussd/vendor/autoload.php missing. Attempting server-side composer install..."
+  if command -v composer >/dev/null 2>&1; then
+    (cd "$CURRENT_RELEASE/apps/ussd" && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader) || true
+  fi
 fi
 
 # 3. Symlink shared storage
@@ -273,8 +300,9 @@ echo "Linked api.$MAIN_DOMAIN document roots -> $REMOTE_BASE/current/apps/platfo
 
 # Explicitly assign PHP 8.4 via cPanel LangPHP module
 if command -v uapi >/dev/null 2>&1; then
-  echo "Assigning ea-php84 to api.$MAIN_DOMAIN and $MAIN_DOMAIN..."
+  echo "Assigning ea-php84 to api.$MAIN_DOMAIN, ussd.$MAIN_DOMAIN and $MAIN_DOMAIN..."
   uapi LangPHP php_set_vhost_versions vhost="api.$MAIN_DOMAIN" version="ea-php84" 2>/dev/null || true
+  uapi LangPHP php_set_vhost_versions vhost="ussd.$MAIN_DOMAIN" version="ea-php84" 2>/dev/null || true
   uapi LangPHP php_set_vhost_versions vhost="$MAIN_DOMAIN" version="ea-php84" 2>/dev/null || true
 fi
 
@@ -289,11 +317,12 @@ if command -v uapi >/dev/null 2>&1; then
   fi
 fi
 
-mkdir -p "$REMOTE_BASE/current/apps/ussd"
+mkdir -p "$REMOTE_BASE/current/apps/ussd/public"
 rm -rf "/home/$USER/public_html/ussd"
-ln -sfn "$REMOTE_BASE/current/apps/ussd" "/home/$USER/public_html/ussd"
+ln -sfn "$REMOTE_BASE/current/apps/ussd/public" "/home/$USER/public_html/ussd"
 rm -rf "/home/$USER/ussd.$MAIN_DOMAIN"
-ln -sfn "$REMOTE_BASE/current/apps/ussd" "/home/$USER/ussd.$MAIN_DOMAIN"
+ln -sfn "$REMOTE_BASE/current/apps/ussd/public" "/home/$USER/ussd.$MAIN_DOMAIN"
+echo "Linked ussd.$MAIN_DOMAIN document roots -> $REMOTE_BASE/current/apps/ussd/public"
 
 echo "=========================================================="
 echo "cPanel Domains and Subdomains Summary:"

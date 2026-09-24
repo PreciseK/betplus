@@ -18,10 +18,14 @@ final class Config
             return;
         }
 
+        $currentUser = getenv('USER') ?: (function_exists('get_current_user') ? get_current_user() : '');
         $candidates = array_filter([
             $path,
             __DIR__ . '/../.env',
             dirname(__DIR__, 2) . '/.env',
+            dirname(__DIR__, 3) . '/shared/.env',
+            dirname(__DIR__, 4) . '/shared/.env',
+            $currentUser !== '' ? "/home/{$currentUser}/betplus/shared/.env" : null,
             '/home/betplus/betplus/shared/.env',
         ]);
 
