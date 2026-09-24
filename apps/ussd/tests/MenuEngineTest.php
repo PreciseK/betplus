@@ -134,11 +134,21 @@ final class MenuEngineTest extends TestCase
     public function test_a_full_blackred_purchase_flow_calls_the_same_v1_endpoint_web_uses(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // -> blackred_pick
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '121'); // 121 -> BRB
-        $this->assertFits($screen);
-        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // stake
-        $this->assertStringContainsString('BRB for NGN 500', $screen->render());
+        $screen1 = $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_length
+        $this->assertFits($screen1);
+        $this->assertStringContainsString('How many picks? (1-5):', $screen1->render());
+
+        $screen2 = $this->engine->handleTurn('sess-1', '+2348031234567', '3'); // selects 3 picks -> blackred_pick
+        $this->assertFits($screen2);
+        $this->assertStringContainsString('Enter 3 picks', $screen2->render());
+
+        $screen3 = $this->engine->handleTurn('sess-1', '+2348031234567', '121'); // 121 -> BRB -> blackred_stake
+        $this->assertFits($screen3);
+        $this->assertStringContainsString('Enter stake in Naira', $screen3->render());
+
+        $screen4 = $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // stake -> blackred_confirm
+        $this->assertFits($screen4);
+        $this->assertStringContainsString('BRB for NGN 500', $screen4->render());
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 10_000_000]);
         $this->platform->programResponse('purchaseBlackRedTicket', ['reference' => 'tkt-1']);
@@ -166,24 +176,39 @@ final class MenuEngineTest extends TestCase
         ] as $input => $expected) {
             $i++;
             $inputStr = (string) $input;
+            $len = (string) strlen($inputStr);
             $msisdn = '+234803111000' . $i;
             $sessId = 'sess-br-' . $i;
             $this->signIn($sessId, $msisdn);
-            $this->engine->handleTurn($sessId, $msisdn, '1');
-            $screen = $this->engine->handleTurn($sessId, $msisdn, $inputStr);
-            $this->assertFits($screen);
-            $confirm = $this->engine->handleTurn($sessId, $msisdn, '200');
+            $screen1 = $this->engine->handleTurn($sessId, $msisdn, '1'); // main menu -> blackred_length
+            $this->assertFits($screen1);
+            $screen2 = $this->engine->handleTurn($sessId, $msisdn, $len); // choose length -> blackred_pick
+            $this->assertFits($screen2);
+            $screen3 = $this->engine->handleTurn($sessId, $msisdn, $inputStr); // enter sequence -> blackred_stake
+            $this->assertFits($screen3);
+            $confirm = $this->engine->handleTurn($sessId, $msisdn, '200'); // enter stake -> blackred_confirm
             $this->assertStringContainsString("Confirm: $expected for NGN 200", $confirm->render());
+            $this->assertFits($confirm);
         }
     }
 
     public function test_blackred_pick_rejects_invalid_inputs(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_length
 
-        foreach (['3', '123', '0', '121212', 'abc'] as $invalid) {
-            $screen = $this->engine->handleTurn('sess-1', '+2348031234567', $invalid);
+        foreach (['0', '6', '9', 'abc'] as $invalidLen) {
+            $screen = $this->engine->handleTurn('sess-1', '+2348031234567', $invalidLen);
+            $this->assertStringStartsWith('Invalid input.', $screen->text);
+        }
+
+        // Choose 3 picks
+        $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '3');
+        $this->assertStringContainsString('Enter 3 picks', $screen->render());
+
+        // Test invalid pick inputs for length 3 (wrong length or invalid characters)
+        foreach (['12', '1212', '123', 'abc', '0'] as $invalidPick) {
+            $screen = $this->engine->handleTurn('sess-1', '+2348031234567', $invalidPick);
             $this->assertStringStartsWith('Invalid input.', $screen->text);
         }
     }
@@ -191,9 +216,10 @@ final class MenuEngineTest extends TestCase
     public function test_blackred_confirm_funds_from_opay_and_purchases_when_play_balance_is_insufficient(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_length
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // length 1 -> blackred_pick
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick '1' -> blackred_stake
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // stake -> blackred_confirm
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
         $this->platform->programResponse('collectFromOpay', ['status' => 'paid']);
@@ -212,9 +238,10 @@ final class MenuEngineTest extends TestCase
     public function test_blackred_confirm_ends_the_session_when_opay_wallet_cannot_be_verified(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_length
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // length 1 -> blackred_pick
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick '1' -> blackred_stake
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // stake -> blackred_confirm
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
         $this->platform->programResponse('collectFromOpay', ['status' => 'wallet_unverified']);
@@ -229,9 +256,10 @@ final class MenuEngineTest extends TestCase
     public function test_blackred_confirm_ends_the_session_when_deposit_needs_manual_review(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_length
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // length 1 -> blackred_pick
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick '1' -> blackred_stake
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // stake -> blackred_confirm
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
         $this->platform->programResponse('collectFromOpay', ['status' => 'pending_review']);
@@ -246,9 +274,10 @@ final class MenuEngineTest extends TestCase
     public function test_cancelling_at_blackred_confirm_returns_to_the_main_menu(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_length
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // length 1 -> blackred_pick
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick '1' -> blackred_stake
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // stake -> blackred_confirm
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
         $screen = $this->engine->handleTurn('sess-1', '+2348031234567', '2');
@@ -525,9 +554,10 @@ final class MenuEngineTest extends TestCase
     public function test_shortfall_triggers_opay_pin_entry_and_completes_purchase_on_valid_pin(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_pick
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick Black
-        $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // 500 Naira
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_length
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // length 1 -> blackred_pick
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick Black -> blackred_stake
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // 500 Naira -> blackred_confirm
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0, 'bonus_balance_kobo' => 0]);
         $this->platform->programResponse('initFunding', [
@@ -565,9 +595,10 @@ final class MenuEngineTest extends TestCase
     public function test_invalid_pin_format_prompts_re_entry(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_length
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // length 1 -> blackred_pick
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick Black -> blackred_stake
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // 500 Naira -> blackred_confirm
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
         $this->platform->programResponse('initFunding', [
@@ -588,9 +619,10 @@ final class MenuEngineTest extends TestCase
     public function test_declined_pin_terminates_with_explanation(): void
     {
         $this->signIn('sess-1', '+2348031234567');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '1');
-        $this->engine->handleTurn('sess-1', '+2348031234567', '500');
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // main menu -> blackred_length
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // length 1 -> blackred_pick
+        $this->engine->handleTurn('sess-1', '+2348031234567', '1'); // pick Black -> blackred_stake
+        $this->engine->handleTurn('sess-1', '+2348031234567', '500'); // 500 Naira -> blackred_confirm
 
         $this->platform->programResponse('wallet', ['play_balance_kobo' => 0]);
         $this->platform->programResponse('initFunding', [

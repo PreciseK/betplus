@@ -190,10 +190,11 @@ final class MenuEngine
     private function screenMainMenu(Session $session, string $input): Screen
     {
         if ($input === '1') {
-            $session->screen = 'blackred_pick';
+            $session->screen = 'blackred_length';
             $session->data['brPicks'] = [];
+            unset($session->data['brLength']);
 
-            return Screen::continue("BlackRed (1=Black, 2=Red)\nEnter 1-5 picks (e.g. 121 for BRB):");
+            return Screen::continue("BlackRed\nHow many picks? (1-5):");
         }
         if ($input === '2') {
             $session->screen = 'heritage_pick';
@@ -234,30 +235,69 @@ final class MenuEngine
 
     private function screenBlackRedLength(Session $session, string $input): Screen
     {
-        $session->screen = 'blackred_pick';
-        $session->data['brPicks'] = [];
+        if ($input === '') {
+            return Screen::continue("BlackRed\nHow many picks? (1-5):");
+        }
 
-        return $this->screenBlackRedPick($session, $input);
+        $raw = trim($input);
+        if (!ctype_digit($raw)) {
+            return $this->errorPrefixed($session, 'blackred_length', "How many picks? Enter 1-5:");
+        }
+
+        $length = (int) $raw;
+        if ($length < 1 || $length > 5) {
+            return $this->errorPrefixed($session, 'blackred_length', "How many picks? Enter 1-5:");
+        }
+
+        $session->data['brLength'] = $length;
+        $session->data['brPicks'] = [];
+        $session->screen = 'blackred_pick';
+
+        $example = match ($length) {
+            1 => '1 for Black',
+            2 => '12 for BR',
+            3 => '121 for BRB',
+            4 => '1212 for BRBR',
+            5 => '12121 for BRBRB',
+        };
+        $noun = $length === 1 ? '1 pick' : "$length picks";
+
+        return Screen::continue("BlackRed (1=Black, 2=Red)\nEnter $noun (e.g. $example):");
     }
 
     private function screenBlackRedPick(Session $session, string $input): Screen
     {
+        $length = (int) ($session->data['brLength'] ?? 0);
+        if ($length < 1 || $length > 5) {
+            $session->screen = 'blackred_length';
+
+            return Screen::continue("BlackRed\nHow many picks? (1-5):");
+        }
+
+        $example = match ($length) {
+            1 => '1 for Black',
+            2 => '12 for BR',
+            3 => '121 for BRB',
+            4 => '1212 for BRBR',
+            5 => '12121 for BRBRB',
+        };
+        $noun = $length === 1 ? '1 pick' : "$length picks";
+
         if ($input === '') {
-            return Screen::continue("BlackRed (1=Black, 2=Red)\nEnter 1-5 picks (e.g. 121 for BRB):");
+            return Screen::continue("BlackRed (1=Black, 2=Red)\nEnter $noun (e.g. $example):");
         }
 
         $raw = trim($input);
         $cleaned = strtoupper((string) preg_replace('/[\s,]+/', '', $raw));
         $mapped = strtr($cleaned, ['1' => 'B', '2' => 'R']);
 
-        if (!preg_match('/^[BR]{1,5}$/', $mapped)) {
-            return $this->errorPrefixed($session, 'blackred_pick', "Enter 1-5 picks (1=Black, 2=Red, e.g. 121):");
+        if (!preg_match('/^[BR]{' . $length . '}$/', $mapped)) {
+            return $this->errorPrefixed($session, 'blackred_pick', "Enter exactly $noun (1=Black, 2=Red, e.g. $example):");
         }
 
         /** @var list<string> $picks */
         $picks = str_split($mapped);
         $session->data['brPicks'] = $picks;
-        $session->data['brLength'] = count($picks);
         $session->screen = 'blackred_stake';
 
         return Screen::continue('Enter stake in Naira (e.g. 500):');
