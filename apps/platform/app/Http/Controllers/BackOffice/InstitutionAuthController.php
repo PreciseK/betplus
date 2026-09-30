@@ -10,6 +10,7 @@ use App\Http\Requests\BackOffice\InstitutionMfaRequest;
 use App\Http\Requests\BackOffice\InstitutionSignInRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class InstitutionAuthController extends Controller
 {
@@ -35,11 +36,25 @@ class InstitutionAuthController extends Controller
         if ($result['status'] === 'ip_not_allowlisted') {
             return response()->json(['message' => 'This role requires signing in from an allowlisted IP.'], 403);
         }
+        if ($result['status'] === 'ip_allowlist_not_configured') {
+            return response()->json(['message' => 'This account requires an IP allowlist configured by a system administrator before sign-in is permitted.'], 403);
+        }
         if ($result['status'] === 'too_many_attempts') {
             return response()->json(['message' => 'Too many sign-in attempts. Try again later.'], 429);
         }
 
         return response()->json($result);
+    }
+
+    /** POST /backoffice/v1/auth/sign-out */
+    public function signOut(Request $request): Response
+    {
+        $token = $request->bearerToken() ?? '';
+        if ($token !== '') {
+            $this->auth->signOut($token);
+        }
+
+        return response()->noContent();
     }
 
     /** POST /backoffice/v1/auth/mfa */

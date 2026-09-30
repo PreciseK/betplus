@@ -10,8 +10,8 @@ return [
     'allowed_methods' => ['*'],
     'allowed_origins' => array_filter(array_map('trim', explode(',', (string) env('CORS_ALLOWED_ORIGINS', 'https://betplus.com.ng')))),
     'allowed_origins_patterns' => [
-        '#^https?://(www\.)?betplus\.com\.ng$#',
-        '#^https?://(www\.)?betplus\.ng$#',
+        '#^https://(www\.)?betplus\.com\.ng$#',
+        '#^https://(www\.)?betplus\.ng$#',
     ],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],

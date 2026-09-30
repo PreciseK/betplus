@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Domain\Notifications\SmsSender;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Player;
@@ -11,6 +12,7 @@ use App\Models\PlayerSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * The player-facing "who am I" read the dashboard/greeting needs. Distinct from
@@ -20,6 +22,10 @@ use Illuminate\Support\Facades\Cache;
  */
 class PlayerProfileController extends Controller
 {
+    public function __construct(private readonly SmsSender $sms)
+    {
+    }
+
     /** GET /v1/me */
     public function show(): JsonResponse
     {
@@ -36,8 +42,9 @@ class PlayerProfileController extends Controller
 
     /**
      * POST /v1/account/deactivate
-     * Compliant account deactivation with a 6-month inactive cooling-off period
-     * and statutory 7-year regulatory transaction data retention (NLRC & AML/CFT).
+     * Two-step deactivation: pass `send_otp: true` to receive a confirmation code,
+     * then re-call with `otp_code` to complete. Compliant 6-month cooling-off period
+     * and 7-year regulatory data retention (NLRC & AML/CFT).
      */
     public function deactivate(Request $request): JsonResponse
     {
@@ -50,6 +57,40 @@ class PlayerProfileController extends Controller
                 'deactivated_at' => $player->deletedAt?->toIso8601String(),
             ]);
         }
+
+        // Step 1: client requests an OTP be sent to their phone.
+        if ($request->boolean('send_otp')) {
+            $rateLimiterKey = "deactivate-otp-send:{$player->id}";
+            if (RateLimiter::tooManyAttempts($rateLimiterKey, 3)) {
+                return response()->json(['message' => 'Too many OTP requests. Please wait before trying again.'], 429);
+            }
+            RateLimiter::hit($rateLimiterKey, 3600);
+
+            $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            Cache::put("deactivate-confirm:{$player->id}", hash('sha256', $code), 300);
+            $this->sms->send($player->msisdn, 'deactivate.confirm.v1', ['code' => $code]);
+
+            return response()->json(['status' => 'otp_sent', 'expires_in' => 300]);
+        }
+
+        // Step 2: client supplies the OTP to confirm intent.
+        $otpCode = $request->string('otp_code')->toString();
+        $verifyKey = "deactivate-otp-verify:{$player->id}";
+
+        if (RateLimiter::tooManyAttempts($verifyKey, 5)) {
+            Cache::forget("deactivate-confirm:{$player->id}");
+            return response()->json(['message' => 'Too many failed attempts. Request a new confirmation code.'], 429);
+        }
+
+        $storedHash = Cache::get("deactivate-confirm:{$player->id}");
+
+        if ($otpCode === '' || $storedHash === null || !hash_equals($storedHash, hash('sha256', $otpCode))) {
+            RateLimiter::hit($verifyKey, 300);
+            return response()->json(['message' => 'A valid confirmation code is required. Call this endpoint with send_otp: true to receive one.'], 422);
+        }
+
+        RateLimiter::clear($verifyKey);
+        Cache::forget("deactivate-confirm:{$player->id}");
 
         $now = now();
         $gracePeriodEndsAt = $now->copy()->addMonths(6);

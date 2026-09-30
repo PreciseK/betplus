@@ -16,6 +16,9 @@ class VerifyOpayPayoutCallback
     public function handle(Request $request, Closure $next): Response
     {
         $allowlist = array_filter(explode(',', (string) config('opay.callback_ip_allowlist')));
+        if ($allowlist === []) {
+            logger()->warning('OPay payout callback IP allowlist is not configured — relying on HMAC signature only. Set OPAY_CALLBACK_IP_ALLOWLIST in production.');
+        }
         if ($allowlist !== [] && !in_array($request->ip(), $allowlist, true)) {
             $this->rejectAndLog($request, 'ip_not_allowlisted');
 

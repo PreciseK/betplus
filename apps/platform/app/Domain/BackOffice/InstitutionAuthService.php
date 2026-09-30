@@ -26,6 +26,7 @@ use Illuminate\Support\Str;
 final class InstitutionAuthService
 {
     private const ACCESS_TOKEN_TTL_SECONDS = 28800; // 8 hours — supports operator shift length (was 15 min)
+    private const IDLE_TIMEOUT_SECONDS = 1800;       // 30-minute inactivity window within the 8-hour session
     private const MFA_CHALLENGE_TTL_SECONDS = 300;
     private const MAX_SIGN_IN_ATTEMPTS_PER_ACCOUNT = 5;
     private const MAX_SIGN_IN_ATTEMPTS_PER_IP = 20;
@@ -67,8 +68,13 @@ final class InstitutionAuthService
         if ($user->status !== 'active') {
             return ['status' => 'account_suspended'];
         }
-        if ($this->requiresIpAllowlist($user) && !$this->ipAllowed($user, $ipAddress)) {
-            return ['status' => 'ip_not_allowlisted'];
+        if (in_array($user->role, self::PRIVILEGED_ROLES, true)) {
+            if ($user->ipAllowlist === null) {
+                return ['status' => 'ip_allowlist_not_configured'];
+            }
+            if (!$this->ipAllowed($user, $ipAddress)) {
+                return ['status' => 'ip_not_allowlisted'];
+            }
         }
 
         $challengeId = (string) Str::ulid();
@@ -126,20 +132,36 @@ final class InstitutionAuthService
 
         $accessToken = bin2hex(random_bytes(32));
         Cache::put("institution-token:$accessToken", $user->id, self::ACCESS_TOKEN_TTL_SECONDS);
+        Cache::put("institution-token-activity:$accessToken", true, self::IDLE_TIMEOUT_SECONDS);
 
         return ['status' => 'ok', 'access_token' => $accessToken, 'expires_in' => self::ACCESS_TOKEN_TTL_SECONDS, 'role' => $user->role];
+    }
+
+    public function signOut(string $accessToken): void
+    {
+        Cache::forget("institution-token:$accessToken");
+        Cache::forget("institution-token-activity:$accessToken");
     }
 
     public function resolveToken(string $accessToken): ?InstitutionUser
     {
         $userId = Cache::get("institution-token:$accessToken");
+        if ($userId === null) {
+            return null;
+        }
 
-        return $userId === null ? null : InstitutionUser::find($userId);
-    }
+        // Idle timeout: expire the session if there has been no activity within the window.
+        $activityKey = "institution-token-activity:$accessToken";
+        if (!Cache::has($activityKey)) {
+            Cache::forget("institution-token:$accessToken");
 
-    private function requiresIpAllowlist(InstitutionUser $user): bool
-    {
-        return in_array($user->role, self::PRIVILEGED_ROLES, true) && $user->ipAllowlist !== null;
+            return null;
+        }
+
+        // Slide the activity window forward on every authenticated request.
+        Cache::put($activityKey, true, self::IDLE_TIMEOUT_SECONDS);
+
+        return InstitutionUser::find($userId);
     }
 
     private function ipAllowed(InstitutionUser $user, ?string $ipAddress): bool

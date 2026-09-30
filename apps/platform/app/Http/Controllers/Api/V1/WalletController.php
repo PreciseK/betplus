@@ -13,6 +13,7 @@ use App\Models\Collection;
 use App\Models\Player;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class WalletController extends Controller
 {
@@ -81,10 +82,20 @@ class WalletController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Missing order_no or pin'], 422);
         }
 
-        $result = $this->funding->submitFundingPin($this->player(), $orderNo, $pin);
-        $ok = $result['status'] === 'paid';
+        $player = $this->player();
+        $rateLimiterKey = "deposit-pin:{$player->id}:{$orderNo}";
+        if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
+            return response()->json(['status' => 'error', 'message' => 'Too many PIN attempts. Please initiate a new deposit.'], 429);
+        }
 
-        return response()->json($result, $ok ? 200 : 422);
+        $result = $this->funding->submitFundingPin($player, $orderNo, $pin);
+        if ($result['status'] !== 'paid') {
+            RateLimiter::hit($rateLimiterKey, 600);
+        } else {
+            RateLimiter::clear($rateLimiterKey);
+        }
+
+        return response()->json($result, $result['status'] === 'paid' ? 200 : 422);
     }
 
     /**
@@ -100,10 +111,20 @@ class WalletController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Missing order_no or otp'], 422);
         }
 
-        $result = $this->funding->submitFundingOtp($this->player(), $orderNo, $otp);
-        $ok = $result['status'] === 'paid';
+        $player = $this->player();
+        $rateLimiterKey = "deposit-otp:{$player->id}:{$orderNo}";
+        if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
+            return response()->json(['status' => 'error', 'message' => 'Too many OTP attempts. Please initiate a new deposit.'], 429);
+        }
 
-        return response()->json($result, $ok ? 200 : 422);
+        $result = $this->funding->submitFundingOtp($player, $orderNo, $otp);
+        if ($result['status'] !== 'paid') {
+            RateLimiter::hit($rateLimiterKey, 600);
+        } else {
+            RateLimiter::clear($rateLimiterKey);
+        }
+
+        return response()->json($result, $result['status'] === 'paid' ? 200 : 422);
     }
 
     /** POST /v1/wallet/deposits — synchronous verify + credit (legacy / sandbox fallback). */

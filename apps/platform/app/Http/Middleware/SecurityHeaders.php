@@ -24,7 +24,7 @@ class SecurityHeaders
         $csp = "default-src 'none'; frame-ancestors 'none'";
         $contentType = (string) $response->headers->get('Content-Type', '');
         if (str_contains($contentType, 'text/html')) {
-            $csp = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; frame-ancestors 'none'";
+            $csp = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'";
         }
 
         $response->headers->set('X-Content-Type-Options', 'nosniff');

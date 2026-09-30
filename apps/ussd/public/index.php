@@ -33,9 +33,9 @@ use Betplus\Ussd\Session\FileSessionStore;
 
 header('Content-Type: text/plain');
 
-$sessionId = (string) ($_POST['sessionId'] ?? $_GET['sessionId'] ?? '');
-$phoneNumber = (string) ($_POST['phoneNumber'] ?? $_GET['phoneNumber'] ?? '');
-$text = (string) ($_POST['text'] ?? $_GET['text'] ?? '');
+$sessionId = (string) ($_POST['sessionId'] ?? '');
+$phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
+$text = (string) ($_POST['text'] ?? '');
 
 if ($sessionId === '' && $phoneNumber === '') {
     $rawInput = file_get_contents('php://input');
@@ -60,7 +60,7 @@ try {
         Config::gatewaySharedSecret(),
         new HttpClient(Config::requestTimeoutSeconds())
     );
-    $sessions = new FileSessionStore(Config::sessionStoreDir());
+    $sessions = new FileSessionStore(Config::sessionStoreDir(), Config::sessionEncryptionKey());
     $engine = new MenuEngine($platform, $sessions);
 
     echo $engine->handleTurn($sessionId, $phoneNumber, $text)->render();

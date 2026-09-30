@@ -6,7 +6,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, develop]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -48,6 +48,9 @@ jobs:
           key: composer-platform-${{ hashFiles('apps/platform/composer.lock') }}
       - run: composer install --no-interaction --prefer-dist
         working-directory: apps/platform
+      - name: Composer security audit (A03/A08)
+        run: composer audit
+        working-directory: apps/platform
       - name: PHPStan
         # The `stan` script runs with --debug (see phpstan.neon.dist — a confirmed workaround
         # for a Windows-specific hang some contributors hit locally). --error-format=github
@@ -87,6 +90,9 @@ jobs:
           php-version: ${{ env.PHP_VERSION }}
           extensions: curl
       - run: composer install --no-interaction --prefer-dist
+        working-directory: apps/ussd
+      - name: Composer security audit (A03/A08)
+        run: composer audit
         working-directory: apps/ussd
       - run: composer stan
         working-directory: apps/ussd

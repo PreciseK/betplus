@@ -42,6 +42,8 @@ final class HttpClient
             CURLOPT_HTTPHEADER => $headerLines,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => $this->timeoutSeconds,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
         ]);
 
         $raw = curl_exec($ch);
@@ -79,6 +81,8 @@ final class HttpClient
             CURLOPT_HTTPHEADER => $headerLines,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => $this->timeoutSeconds,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
         ]);
 
         $raw = curl_exec($ch);

@@ -80,6 +80,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if ($this->app->environment('production')) {
+            $testnetHost = 'testapi.opaycheckout.com';
+            foreach (['base_url', 'collection_base_url', 'payout_base_url'] as $key) {
+                if (str_contains((string) config("opay.$key"), $testnetHost)) {
+                    logger()->critical("OPay config key 'opay.$key' still points to the test environment in production. Set the correct OPAY_*_BASE_URL environment variable.");
+                }
+            }
+        }
     }
 }

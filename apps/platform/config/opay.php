@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 return [
-    // Base & Common
+    // Base & Common — default is the OPay test environment. OPAY_BASE_URL must be
+    // explicitly set to the production URL in production; a boot check in
+    // AppServiceProvider warns when this default is still active.
     'base_url' => env('OPAY_BASE_URL', 'https://testapi.opaycheckout.com'),
     'merchant_id' => env('OPAY_MERCHANT_ID'),
     'public_key' => env('OPAY_PUBLIC_KEY'),

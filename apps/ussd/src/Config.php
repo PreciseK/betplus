@@ -68,12 +68,43 @@ final class Config
     {
         self::loadEnv();
 
-        return getenv('USSD_GATEWAY_SHARED_SECRET') ?: '';
+        $secret = getenv('USSD_GATEWAY_SHARED_SECRET');
+        if ($secret === false || $secret === '') {
+            throw new \RuntimeException('USSD_GATEWAY_SHARED_SECRET is not configured. Set it to a strong random secret shared with the platform.');
+        }
+
+        return $secret;
     }
 
     public static function sessionStoreDir(): string
     {
-        return getenv('USSD_SESSION_STORE_DIR') ?: sys_get_temp_dir() . '/betplus-ussd-sessions';
+        $configured = getenv('USSD_SESSION_STORE_DIR');
+        if ($configured !== false && $configured !== '') {
+            return $configured;
+        }
+
+        // Fall back to a sub-directory of sys_get_temp_dir(). Session files contain
+        // raw platform access tokens; set USSD_SESSION_STORE_DIR to a dedicated path
+        // outside the system temp directory (e.g. /var/lib/betplus-ussd/sessions)
+        // with permissions owned exclusively by the web-server process user.
+        $default = sys_get_temp_dir() . '/betplus-ussd-sessions';
+        error_log('[USSD Config] USSD_SESSION_STORE_DIR is not set. Using default path "' . $default . '". Sessions contain access tokens — set a dedicated secure path in production.');
+
+        return $default;
+    }
+
+    public static function sessionEncryptionKey(): ?string
+    {
+        self::loadEnv();
+
+        $key = getenv('USSD_SESSION_ENCRYPTION_KEY');
+        if ($key === false || $key === '') {
+            error_log('[USSD Config] USSD_SESSION_ENCRYPTION_KEY is not set. Session files will be stored unencrypted. Set a 32-byte random secret in production.');
+
+            return null;
+        }
+
+        return $key;
     }
 
     public static function requestTimeoutSeconds(): int

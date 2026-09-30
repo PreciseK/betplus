@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('backoffice/v1')->group(function () {
     Route::post('/auth/sign-in', [InstitutionAuthController::class, 'signIn']);
     Route::post('/auth/mfa', [InstitutionAuthController::class, 'verifyMfa']);
+    Route::post('/auth/sign-out', [InstitutionAuthController::class, 'signOut']);
 
     // Story 6.9 / REQ-BO-023 — the download link is bearer-free by design: possession
     // of the signed URL IS the authorization, exactly like every other signed route in

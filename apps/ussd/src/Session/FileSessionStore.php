@@ -16,8 +16,10 @@ namespace Betplus\Ussd\Session;
  */
 final class FileSessionStore implements SessionStore
 {
-    public function __construct(private readonly string $directory)
-    {
+    public function __construct(
+        private readonly string $directory,
+        private readonly ?string $encryptionKey = null,
+    ) {
         if (!is_dir($this->directory)) {
             mkdir($this->directory, 0700, true);
         }
@@ -38,9 +40,14 @@ final class FileSessionStore implements SessionStore
             return;
         }
 
+        $payload = json_encode($session->toArray(), JSON_THROW_ON_ERROR);
+        if ($this->encryptionKey !== null) {
+            $payload = $this->encryptPayload($payload);
+        }
+
         flock($fh, LOCK_EX);
         ftruncate($fh, 0);
-        fwrite($fh, json_encode($session->toArray(), JSON_THROW_ON_ERROR));
+        fwrite($fh, $payload);
         fflush($fh);
         flock($fh, LOCK_UN);
         fclose($fh);
@@ -95,8 +102,18 @@ final class FileSessionStore implements SessionStore
             return null;
         }
 
+        // Decrypt if a key is configured. Falls back to plaintext for files written
+        // before encryption was enabled (migration-safe: plaintext JSON starts with '{').
+        $json = $raw;
+        if ($this->encryptionKey !== null && !str_starts_with(trim($raw), '{')) {
+            $json = $this->decryptPayload($raw);
+            if ($json === null) {
+                return null;
+            }
+        }
+
         /** @var array{sessionId:string,msisdn:string,screen:string,data:array<string,mixed>,accessToken:?string,lastTouchedAt:int}|null $row */
-        $row = json_decode($raw, true);
+        $row = json_decode($json, true);
 
         return $row !== null ? Session::fromArray($row) : null;
     }
@@ -104,5 +121,30 @@ final class FileSessionStore implements SessionStore
     private function pathFor(string $msisdn): string
     {
         return $this->directory . '/' . hash('sha256', $msisdn) . '.json';
+    }
+
+    private function encryptPayload(string $json): string
+    {
+        /** @var string $key non-null: callers check before calling */
+        $key = $this->encryptionKey;
+        $iv = random_bytes(16);
+        $ciphertext = openssl_encrypt($json, 'aes-256-cbc', hash('sha256', $key, true), OPENSSL_RAW_DATA, $iv);
+
+        return base64_encode($iv . $ciphertext);
+    }
+
+    private function decryptPayload(string $data): ?string
+    {
+        /** @var string $key */
+        $key = $this->encryptionKey;
+        $raw = base64_decode($data, true);
+        if ($raw === false || strlen($raw) < 17) {
+            return null;
+        }
+        $iv = substr($raw, 0, 16);
+        $ciphertext = substr($raw, 16);
+        $result = openssl_decrypt($ciphertext, 'aes-256-cbc', hash('sha256', $key, true), OPENSSL_RAW_DATA, $iv);
+
+        return $result === false ? null : $result;
     }
 }
