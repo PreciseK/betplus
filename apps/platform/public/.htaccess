@@ -5,6 +5,18 @@
 </IfModule>
 # php -- END cPanel-generated handler, do not edit
 
+# Block direct access to sensitive files
+<FilesMatch "(\.env|composer\.(json|lock)|phpunit\.xml|\.git)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block access to hidden files and directories (dot-files)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

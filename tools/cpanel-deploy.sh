@@ -124,9 +124,20 @@ if [ -f "$REMOTE_BASE/shared/.env" ]; then
     echo "Configured USSD_GATEWAY_SHARED_SECRET in shared/.env"
   fi
 
-  # Ensure USSD session directory exists
+  # Generate USSD_SESSION_ENCRYPTION_KEY if missing or empty
+  if ! grep -qE '^USSD_SESSION_ENCRYPTION_KEY=[A-Za-z0-9+/=]{40,}' "$REMOTE_BASE/shared/.env"; then
+    USSD_ENC_KEY=$($PHP_BIN -r 'echo base64_encode(random_bytes(32));')
+    if grep -q "^USSD_SESSION_ENCRYPTION_KEY=" "$REMOTE_BASE/shared/.env"; then
+      sed -i "s|^USSD_SESSION_ENCRYPTION_KEY=.*|USSD_SESSION_ENCRYPTION_KEY=$USSD_ENC_KEY|" "$REMOTE_BASE/shared/.env"
+    else
+      echo "USSD_SESSION_ENCRYPTION_KEY=$USSD_ENC_KEY" >> "$REMOTE_BASE/shared/.env"
+    fi
+    echo "Configured USSD_SESSION_ENCRYPTION_KEY in shared/.env"
+  fi
+
+  # Ensure USSD session directory exists — 700 so only the web-server user can read session files
   mkdir -p "$REMOTE_BASE/shared/ussd-sessions"
-  chmod -R 777 "$REMOTE_BASE/shared/ussd-sessions"
+  chmod 700 "$REMOTE_BASE/shared/ussd-sessions"
   if ! grep -q "^USSD_SESSION_STORE_DIR=" "$REMOTE_BASE/shared/.env"; then
     echo "USSD_SESSION_STORE_DIR=$REMOTE_BASE/shared/ussd-sessions" >> "$REMOTE_BASE/shared/.env"
   fi
@@ -147,14 +158,16 @@ mkdir -p "$REMOTE_BASE/shared/storage/framework/sessions"
 mkdir -p "$REMOTE_BASE/shared/storage/framework/views"
 mkdir -p "$REMOTE_BASE/shared/storage/framework/cache"
 mkdir -p "$REMOTE_BASE/shared/storage/logs"
-chmod -R 777 "$REMOTE_BASE/shared/storage"
+chmod -R 750 "$REMOTE_BASE/shared/storage"
 ln -sfn "$REMOTE_BASE/shared/storage" "$CURRENT_RELEASE/apps/platform/storage"
 
 # 4. Ensure persistent database files exist across releases
 mkdir -p "$REMOTE_BASE/shared/database"
 touch "$REMOTE_BASE/shared/database/database.sqlite"
 touch "$REMOTE_BASE/shared/database/vault.sqlite"
-chmod -R 777 "$REMOTE_BASE/shared/database"
+chmod 700 "$REMOTE_BASE/shared/database"
+chmod 600 "$REMOTE_BASE/shared/database/database.sqlite"
+chmod 600 "$REMOTE_BASE/shared/database/vault.sqlite"
 mkdir -p "$CURRENT_RELEASE/apps/platform/database"
 ln -sfn "$REMOTE_BASE/shared/database/database.sqlite" "$CURRENT_RELEASE/apps/platform/database/database.sqlite"
 ln -sfn "$REMOTE_BASE/shared/database/vault.sqlite" "$CURRENT_RELEASE/apps/platform/database/vault.sqlite"
@@ -174,36 +187,39 @@ echo "Seeding initial game data..."
 $PHP_BIN artisan db:seed --force || echo "Notice: Seeding completed or skipped"
 
 echo "Ensuring Back-Office Admin user exists..."
-$PHP_BIN -r '
-require "vendor/autoload.php";
-$app = require_once "bootstrap/app.php";
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-$kernel->bootstrap();
+# Generate a one-time random password — printed once here in the deploy log (accessible
+# only to repository admins via GitHub Actions). Change it immediately after first login.
+ADMIN_PASS=$($PHP_BIN -r 'echo bin2hex(random_bytes(12));')
+$PHP_BIN -r "
+require 'vendor/autoload.php';
+\$app = require_once 'bootstrap/app.php';
+\$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class);
+\$kernel->bootstrap();
 try {
-    if (!\App\Models\InstitutionUser::where("email", "admin@betplus.com.ng")->exists()) {
-        $cipher = $app->make(\App\Domain\BackOffice\MfaSecretCipher::class);
-        $totp = $app->make(\App\Domain\BackOffice\TotpService::class);
-        $secret = $totp->generateSecret();
+    if (!\App\Models\InstitutionUser::where('email', 'admin@betplus.com.ng')->exists()) {
+        \$cipher = \$app->make(\App\Domain\BackOffice\MfaSecretCipher::class);
+        \$totp = \$app->make(\App\Domain\BackOffice\TotpService::class);
+        \$secret = \$totp->generateSecret();
         \App\Models\InstitutionUser::create([
-            "email" => "admin@betplus.com.ng",
-            "displayName" => "System Administrator",
-            "passwordHash" => password_hash("AdminPass123!", PASSWORD_BCRYPT),
-            "role" => "system_admin",
-            "status" => "active",
-            "mfaSecretEncrypted" => $cipher->encrypt($secret),
+            'email' => 'admin@betplus.com.ng',
+            'displayName' => 'System Administrator',
+            'passwordHash' => password_hash('$ADMIN_PASS', PASSWORD_BCRYPT),
+            'role' => 'system_admin',
+            'status' => 'active',
+            'mfaSecretEncrypted' => \$cipher->encrypt(\$secret),
         ]);
-        echo "\n>>> INITIAL ADMIN CREATED <<<\n";
-        echo "Email: admin@betplus.com.ng\n";
-        echo "Password: AdminPass123!\n";
-        echo "TOTP Secret: " . $secret . "\n";
-        echo ">>> =================== <<<\n\n";
+        echo \"\n>>> INITIAL ADMIN CREATED — CHANGE PASSWORD IMMEDIATELY <<<\n\";
+        echo \"Email: admin@betplus.com.ng\n\";
+        echo \"Password: $ADMIN_PASS\n\";
+        echo \"TOTP Secret: \" . \$secret . \"\n\";
+        echo \">>> ============================================== <<<\n\n\";
     } else {
-        echo "Admin user admin@betplus.com.ng is already configured.\n";
+        echo \"Admin user admin@betplus.com.ng is already configured.\n\";
     }
-} catch (\Throwable $e) {
-    echo "Notice: Admin seeding skipped: " . $e->getMessage() . "\n";
+} catch (\Throwable \$e) {
+    echo \"Notice: Admin seeding skipped: \" . \$e->getMessage() . \"\n\";
 }
-' || true
+" || true
 
 echo "Warming production caches..."
 $PHP_BIN artisan config:cache || true

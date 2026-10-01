@@ -1,14 +1,14 @@
 name: Deploy to Production via FTP (cPanel)
 
 on:
-  workflow_dispatch: # Manual trigger from GitHub Actions tab
-  # Uncomment to automatically deploy on push to main:
-  # push:
-  #   branches: [main]
+  workflow_dispatch: # Manual trigger only — FTP deploy is a fallback; primary deploy uses SSH/rsync (deploy.yml)
 
 concurrency:
   group: deploy-ftp-production
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   build-and-deploy-ftp:
@@ -49,19 +49,19 @@ jobs:
           composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
       # Deploy Frontend Static Export
-      - name: 📂 Deploy Frontend to cPanel via FTP
+      - name: 📂 Deploy Frontend to cPanel via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.CPANEL_FTP_HOST || secrets.CPANEL_SSH_HOST }}
           username: ${{ secrets.CPANEL_FTP_USER || secrets.CPANEL_SSH_USER }}
           password: ${{ secrets.CPANEL_FTP_PASSWORD }}
           port: ${{ secrets.CPANEL_FTP_PORT || 21 }}
-          protocol: ftp
+          protocol: ftps
           local-dir: ./apps/web/out/
           server-dir: ${{ secrets.CPANEL_FTP_WEB_DIR || 'public_html/' }}
 
       # Deploy Backend API (optional / configurable directory)
-      - name: 📂 Deploy Backend API to cPanel via FTP
+      - name: 📂 Deploy Backend API to cPanel via FTPS
         env:
           FTP_API_DIR: ${{ secrets.CPANEL_FTP_API_DIR }}
         if: env.FTP_API_DIR != ''
@@ -71,7 +71,7 @@ jobs:
           username: ${{ secrets.CPANEL_FTP_USER || secrets.CPANEL_SSH_USER }}
           password: ${{ secrets.CPANEL_FTP_PASSWORD }}
           port: ${{ secrets.CPANEL_FTP_PORT || 21 }}
-          protocol: ftp
+          protocol: ftps
           local-dir: ./apps/platform/
           server-dir: ${{ secrets.CPANEL_FTP_API_DIR }}
           exclude: |

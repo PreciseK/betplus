@@ -9,6 +9,9 @@ concurrency:
   group: deploy-production
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   build-and-deploy:
     name: Build & Atomic Deploy
@@ -59,14 +62,17 @@ jobs:
           echo "${{ secrets.CPANEL_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           echo "" >> ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          # Pin the server's host key — prevents MITM during deploy.
+          # To get this value: ssh-keyscan -p <PORT> <HOST> then store as CPANEL_SSH_KNOWN_HOST.
+          echo "${{ secrets.CPANEL_SSH_KNOWN_HOST }}" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
           cat << 'EOF' > ~/.ssh/config
           Host cpanel-target
             HostName ${{ secrets.CPANEL_SSH_HOST }}
             User ${{ secrets.CPANEL_SSH_USER }}
             Port ${{ secrets.CPANEL_SSH_PORT || '22' }}
             IdentityFile ~/.ssh/id_rsa
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
+            StrictHostKeyChecking yes
             ServerAliveInterval 30
             ServerAliveCountMax 5
             ConnectTimeout 30
