@@ -141,6 +141,22 @@ if [ -f "$REMOTE_BASE/shared/.env" ]; then
   if ! grep -q "^USSD_SESSION_STORE_DIR=" "$REMOTE_BASE/shared/.env"; then
     echo "USSD_SESSION_STORE_DIR=$REMOTE_BASE/shared/ussd-sessions" >> "$REMOTE_BASE/shared/.env"
   fi
+
+  # Ensure Cloudflare & R2 Object Storage credentials exist in shared/.env
+  if ! grep -q "^CLOUDFLARE_ACCOUNT_ID=" "$REMOTE_BASE/shared/.env"; then
+    if [ -f "$CURRENT_RELEASE/apps/platform/.env" ]; then
+      grep -E '^(CLOUDFLARE_|AWS_|NEXT_PUBLIC_CLOUDFLARE_)' "$CURRENT_RELEASE/apps/platform/.env" >> "$REMOTE_BASE/shared/.env" || true
+      echo "Synchronized Cloudflare credentials from apps/platform/.env to shared/.env"
+    fi
+  fi
+
+  # Ensure CORS includes backoffice subdomain in shared/.env
+  if grep -q "^CORS_ALLOWED_ORIGINS=" "$REMOTE_BASE/shared/.env"; then
+    if ! grep -q "backoffice\." "$REMOTE_BASE/shared/.env"; then
+      sed -i 's|^CORS_ALLOWED_ORIGINS=.*|&,https://backoffice.betplus.com.ng|' "$REMOTE_BASE/shared/.env"
+      echo "Appended backoffice subdomain to CORS_ALLOWED_ORIGINS in shared/.env"
+    fi
+  fi
 else
   echo "WARNING: $REMOTE_BASE/shared/.env does not exist yet. Please create it on the server."
 fi
@@ -253,6 +269,52 @@ if command -v uapi >/dev/null 2>&1; then
 fi
 echo "Target Main Domain: $MAIN_DOMAIN"
 
+apply_origin_lockdown() {
+  local target_file="$1"
+  if [ -f "$REMOTE_BASE/shared/.env" ]; then
+    local lockdown
+    lockdown=$(grep -E '^\s*CLOUDFLARE_ORIGIN_LOCKDOWN=' "$REMOTE_BASE/shared/.env" | cut -d'=' -f2- | tr -d '"'\'' ' || true)
+    if [ "$lockdown" = "true" ] || [ "$lockdown" = "1" ]; then
+      echo "Injecting Cloudflare Origin Lockdown rules into $target_file..."
+      cat << 'CF_LOCK_EOF' >> "$target_file"
+
+# === Cloudflare Origin Lockdown (Blocks Direct Origin IP Access) ===
+<IfModule mod_authz_core.c>
+  <RequireAny>
+    Require ip 127.0.0.1
+    Require ip ::1
+    Require ip 216.120.200.40
+    # Cloudflare Edge IPv4
+    Require ip 173.245.48.0/20
+    Require ip 103.21.244.0/22
+    Require ip 103.22.200.0/22
+    Require ip 103.31.4.0/22
+    Require ip 141.101.64.0/18
+    Require ip 108.162.192.0/18
+    Require ip 190.93.240.0/20
+    Require ip 188.114.96.0/20
+    Require ip 197.234.240.0/22
+    Require ip 198.41.128.0/17
+    Require ip 162.158.0.0/15
+    Require ip 104.16.0.0/13
+    Require ip 104.24.0.0/14
+    Require ip 172.64.0.0/13
+    Require ip 131.0.72.0/22
+    # Cloudflare Edge IPv6
+    Require ip 2400:cb00::/32
+    Require ip 2606:4700::/32
+    Require ip 2803:f800::/32
+    Require ip 2405:b500::/32
+    Require ip 2405:8100::/32
+    Require ip 2a06:98c0::/29
+    Require ip 2c0f:f248::/32
+  </RequireAny>
+</IfModule>
+CF_LOCK_EOF
+    fi
+  fi
+}
+
 # --- A. FRONTEND: Publish to public_html ---
 echo "Publishing Next.js static export to public_html..."
 mkdir -p "/home/$USER/public_html"
@@ -260,17 +322,20 @@ chmod 755 "/home/$USER"
 chmod 755 "/home/$USER/public_html"
 
 if [ -d "$REMOTE_BASE/current/apps/web/out" ]; then
-  # Sync static build assets into public_html without wiping subdomains or ssl directories
+  # Sync static build assets into public_html without wiping subdomains or ssl directories,
+  # excluding back-office (isolated to dedicated backoffice subdomain)
   rsync -av \
     --exclude 'api*' \
     --exclude 'ussd*' \
+    --exclude 'backoffice*' \
+    --exclude 'back-office*' \
     --exclude '.well-known*' \
     --exclude 'cgi-bin*' \
     "$REMOTE_BASE/current/apps/web/out/" "/home/$USER/public_html/"
   echo "Frontend files synchronized to public_html."
 fi
 
-# Ensure clean routing and HTTPS in public_html
+# Ensure clean routing, HTTPS and back-office isolation in public_html
 cat << 'HTACCESS_EOF' > "/home/$USER/public_html/.htaccess"
 <IfModule mod_rewrite.c>
   RewriteEngine On
@@ -279,6 +344,9 @@ cat << 'HTACCESS_EOF' > "/home/$USER/public_html/.htaccess"
   # Force HTTPS
   RewriteCond %{HTTPS} off
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Back office isolation — redirect any back-office requests to dedicated protected subdomain
+  RewriteRule ^back-office/?(.*)$ https://backoffice.%{HTTP_HOST}/$1 [L,R=301]
 
   # Serve HTML file if exists (e.g. /games -> /games.html)
   RewriteCond %{REQUEST_FILENAME} !-f
@@ -292,6 +360,7 @@ cat << 'HTACCESS_EOF' > "/home/$USER/public_html/.htaccess"
   RewriteRule ^ index.html [L]
 </IfModule>
 HTACCESS_EOF
+apply_origin_lockdown "/home/$USER/public_html/.htaccess"
 chmod 644 "/home/$USER/public_html/.htaccess"
 
 # --- B. BACKEND: Create & Configure api.$MAIN_DOMAIN ---
@@ -312,13 +381,15 @@ ln -sfn "$REMOTE_BASE/current/apps/platform/public" "/home/$USER/public_html/api
 
 rm -rf "/home/$USER/api.$MAIN_DOMAIN"
 ln -sfn "$REMOTE_BASE/current/apps/platform/public" "/home/$USER/api.$MAIN_DOMAIN"
+apply_origin_lockdown "$REMOTE_BASE/current/apps/platform/public/.htaccess"
 echo "Linked api.$MAIN_DOMAIN document roots -> $REMOTE_BASE/current/apps/platform/public"
 
 # Explicitly assign PHP 8.4 via cPanel LangPHP module
 if command -v uapi >/dev/null 2>&1; then
-  echo "Assigning ea-php84 to api.$MAIN_DOMAIN, ussd.$MAIN_DOMAIN and $MAIN_DOMAIN..."
+  echo "Assigning ea-php84 to api.$MAIN_DOMAIN, ussd.$MAIN_DOMAIN, backoffice.$MAIN_DOMAIN and $MAIN_DOMAIN..."
   uapi LangPHP php_set_vhost_versions vhost="api.$MAIN_DOMAIN" version="ea-php84" 2>/dev/null || true
   uapi LangPHP php_set_vhost_versions vhost="ussd.$MAIN_DOMAIN" version="ea-php84" 2>/dev/null || true
+  uapi LangPHP php_set_vhost_versions vhost="backoffice.$MAIN_DOMAIN" version="ea-php84" 2>/dev/null || true
   uapi LangPHP php_set_vhost_versions vhost="$MAIN_DOMAIN" version="ea-php84" 2>/dev/null || true
 fi
 
@@ -339,6 +410,112 @@ ln -sfn "$REMOTE_BASE/current/apps/ussd/public" "/home/$USER/public_html/ussd"
 rm -rf "/home/$USER/ussd.$MAIN_DOMAIN"
 ln -sfn "$REMOTE_BASE/current/apps/ussd/public" "/home/$USER/ussd.$MAIN_DOMAIN"
 echo "Linked ussd.$MAIN_DOMAIN document roots -> $REMOTE_BASE/current/apps/ussd/public"
+
+# --- D. BACKOFFICE: Create & Configure backoffice.$MAIN_DOMAIN ---
+echo "Configuring backoffice.$MAIN_DOMAIN..."
+if command -v uapi >/dev/null 2>&1; then
+  if ! uapi DomainInfo list_domains 2>/dev/null | grep -q "backoffice\.$MAIN_DOMAIN"; then
+    echo "Adding subdomain backoffice.$MAIN_DOMAIN via cPanel UAPI..."
+    uapi SubDomain addsubdomain domain=backoffice rootdomain="$MAIN_DOMAIN" dir="backoffice.$MAIN_DOMAIN" || true
+  else
+    echo "Subdomain backoffice.$MAIN_DOMAIN is already registered in cPanel."
+  fi
+fi
+
+BACKOFFICE_DOCROOT="/home/$USER/backoffice.$MAIN_DOMAIN"
+mkdir -p "$BACKOFFICE_DOCROOT"
+chmod 755 "$BACKOFFICE_DOCROOT"
+
+if [ -d "$REMOTE_BASE/current/apps/web/out/back-office" ]; then
+  # Option A: sync back-office static export into dedicated document root
+  rsync -av \
+    --delete \
+    "$REMOTE_BASE/current/apps/web/out/back-office/" "$BACKOFFICE_DOCROOT/"
+
+  # Ensure static Next.js assets (_next, assets) and favicon are accessible on backoffice subdomain
+  if [ -d "$REMOTE_BASE/current/apps/web/out/_next" ]; then
+    rm -rf "$BACKOFFICE_DOCROOT/_next"
+    ln -sfn "$REMOTE_BASE/current/apps/web/out/_next" "$BACKOFFICE_DOCROOT/_next"
+  fi
+  if [ -d "$REMOTE_BASE/current/apps/web/out/assets" ]; then
+    rm -rf "$BACKOFFICE_DOCROOT/assets"
+    ln -sfn "$REMOTE_BASE/current/apps/web/out/assets" "$BACKOFFICE_DOCROOT/assets"
+  fi
+  if [ -f "$REMOTE_BASE/current/apps/web/out/favicon.ico" ]; then
+    cp -f "$REMOTE_BASE/current/apps/web/out/favicon.ico" "$BACKOFFICE_DOCROOT/favicon.ico"
+  fi
+  echo "Backoffice files synchronized to $BACKOFFICE_DOCROOT."
+fi
+
+# Link public_html/backoffice in case cPanel virtual host references public_html path
+rm -rf "/home/$USER/public_html/backoffice"
+ln -sfn "$BACKOFFICE_DOCROOT" "/home/$USER/public_html/backoffice"
+
+# Deploy hardened .htaccess for backoffice with clean root routing, security headers & optional IP allowlist
+cat << 'BO_HTACCESS_EOF' > "$BACKOFFICE_DOCROOT/.htaccess"
+# Betplus Back Office — Hardened Security & Clean Root Routing (Option A)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # 1. Force HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # 2. Option A clean routing: normalize legacy /back-office/* URLs to clean root paths
+  RewriteRule ^back-office/?$ / [L,R=301]
+  RewriteRule ^back-office/(.*)$ /$1 [L,R=301]
+
+  # 3. Serve directory index.html if exists (e.g. /overview -> /overview/index.html)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
+  RewriteRule ^(.*)/?$ $1/index.html [L]
+
+  # 4. Serve HTML file if exists (e.g. /overview -> /overview.html)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^(.*)$ $1.html [L]
+
+  # 5. SPA Fallback to root index.html (Operator Sign-In)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Security Headers: anti-framing, strict MIME type sniffing protection, strict referrer
+<IfModule mod_headers.c>
+  Header always set X-Frame-Options "DENY"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Block access to hidden, environment, or configuration files
+<FilesMatch "^\.|\.(env|log|sqlite|json|md|sh)$">
+  Require all denied
+</FilesMatch>
+BO_HTACCESS_EOF
+
+# Optional IP allowlist injection if BACKOFFICE_ALLOWED_IPS is configured in shared/.env
+if [ -f "$REMOTE_BASE/shared/.env" ]; then
+  BO_IPS=$(grep -E '^\s*BACKOFFICE_ALLOWED_IPS=' "$REMOTE_BASE/shared/.env" | cut -d'=' -f2- | tr -d '"'\''')
+  if [ -n "$BO_IPS" ]; then
+    echo "Injecting IP allowlist into backoffice .htaccess: $BO_IPS"
+    cat << ALLOW_EOF >> "$BACKOFFICE_DOCROOT/.htaccess"
+
+# Strict IP Allowlist Protection (from shared/.env BACKOFFICE_ALLOWED_IPS)
+<RequireAny>
+$(for ip in $(echo "$BO_IPS" | tr ',' ' '); do echo "  Require ip $ip"; done)
+</RequireAny>
+ALLOW_EOF
+  fi
+fi
+apply_origin_lockdown "$BACKOFFICE_DOCROOT/.htaccess"
+chmod 644 "$BACKOFFICE_DOCROOT/.htaccess"
+echo "Linked backoffice.$MAIN_DOMAIN document roots -> $BACKOFFICE_DOCROOT"
+
 
 echo "=========================================================="
 echo "cPanel Domains and Subdomains Summary:"

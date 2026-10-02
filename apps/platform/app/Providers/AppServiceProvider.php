@@ -73,6 +73,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(DrawPartnerAdapter::class, match (config('heritage.draw_partner_driver', 'stub')) {
             default => StubDrawPartnerAdapter::class,
         });
+
+        $this->app->singleton(\App\Domain\Security\TurnstileVerifier::class, fn () => \App\Domain\Security\TurnstileVerifier::make());
     }
 
     /**

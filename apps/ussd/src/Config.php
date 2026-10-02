@@ -113,4 +113,26 @@ final class Config
 
         return $value !== false ? (int) $value : 10;
     }
+
+    /**
+     * @return string[]
+     */
+    public static function aggregatorIpAllowlist(): array
+    {
+        self::loadEnv();
+        $ips = getenv('USSD_AGGREGATOR_IP_ALLOWLIST');
+        if ($ips === false || trim($ips) === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $ips))));
+    }
+
+    public static function aggregatorSecret(): ?string
+    {
+        self::loadEnv();
+        $secret = getenv('USSD_AGGREGATOR_SECRET');
+
+        return ($secret !== false && $secret !== '') ? $secret : null;
+    }
 }

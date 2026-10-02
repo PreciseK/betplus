@@ -33,6 +33,33 @@ use Betplus\Ussd\Session\FileSessionStore;
 
 header('Content-Type: text/plain');
 
+// Security Check 1: Aggregator IP allowlist (when configured)
+$allowedIps = Config::aggregatorIpAllowlist();
+$clientIp = $_SERVER['REMOTE_ADDR'] ?? '';
+if (!empty($allowedIps) && !in_array($clientIp, $allowedIps, true)) {
+    http_response_code(403);
+    echo "END Access forbidden.";
+    exit;
+}
+
+// Security Check 2: Aggregator webhook authentication / signature (when configured)
+$aggregatorSecret = Config::aggregatorSecret();
+if ($aggregatorSecret !== null) {
+    $headerSig = (string) ($_SERVER['HTTP_X_AGGREGATOR_SIGNATURE'] ?? $_SERVER['HTTP_X_USSD_SIGNATURE'] ?? '');
+    $apiKey = (string) ($_POST['apiKey'] ?? $_POST['token'] ?? '');
+    $rawInput = file_get_contents('php://input');
+    $expectedHmac = hash_hmac('sha256', (string) $rawInput, $aggregatorSecret);
+
+    $validSig = ($headerSig !== '' && hash_equals($expectedHmac, $headerSig));
+    $validToken = ($apiKey !== '' && hash_equals($aggregatorSecret, $apiKey));
+
+    if (!$validSig && !$validToken) {
+        http_response_code(401);
+        echo "END Unauthorized gateway request.";
+        exit;
+    }
+}
+
 $sessionId = (string) ($_POST['sessionId'] ?? '');
 $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
 $text = (string) ($_POST['text'] ?? '');

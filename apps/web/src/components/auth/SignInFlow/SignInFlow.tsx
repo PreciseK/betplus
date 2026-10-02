@@ -8,6 +8,7 @@ import { TextField } from "@/components/ui/TextField/TextField";
 import { InlineMessage } from "@/components/ui/feedback/InlineMessage/InlineMessage";
 import { maskNigerianPhone, normalizeNigerianPhone } from "@/lib/phone";
 import { mockSessionGateway, type SessionGateway } from "@/mocks/session";
+import { TurnstileWidget } from "@/components/ui/TurnstileWidget";
 import styles from "./SignInFlow.module.css";
 
 type SignInStep = "phone" | "code" | "signed-in" | "session-ended";
@@ -317,6 +318,8 @@ export function SignInFlow({
                       Need help?
                     </button>
                   </div>
+
+                  <TurnstileWidget />
 
                   <button
                     type="submit"

@@ -8,10 +8,12 @@ declare(strict_types=1);
 return [
     'paths' => ['v1/*', 'backoffice/*', 'internal/*', 'up'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => array_filter(array_map('trim', explode(',', (string) env('CORS_ALLOWED_ORIGINS', 'https://betplus.com.ng')))),
+    'allowed_origins' => array_filter(array_map('trim', explode(',', (string) env('CORS_ALLOWED_ORIGINS', 'https://betplus.com.ng,https://backoffice.betplus.com.ng')))),
     'allowed_origins_patterns' => [
         '#^https://(www\.)?betplus\.com\.ng$#',
         '#^https://(www\.)?betplus\.ng$#',
+        '#^https://(www\.)?backoffice\.betplus\.com\.ng$#',
+        '#^https://(www\.)?backoffice\.betplus\.ng$#',
     ],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],

@@ -69,6 +69,15 @@ async function request<T>(
     ...(options?.headers ?? {}),
   };
 
+  const turnstileToken =
+    typeof window !== "undefined"
+      ? (window as unknown as { __betplus_turnstile_token?: string }).__betplus_turnstile_token
+      : undefined;
+
+  if (turnstileToken && !headers["X-Turnstile-Token"]) {
+    headers["X-Turnstile-Token"] = turnstileToken;
+  }
+
   if (options?.idempotencyKey) {
     headers["Idempotency-Key"] = options.idempotencyKey;
   }

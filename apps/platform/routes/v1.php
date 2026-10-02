@@ -17,11 +17,11 @@ use App\Http\Controllers\Api\V1\WalletController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    Route::post('/auth/register', [RegistrationController::class, 'register']);
+    Route::post('/auth/register', [RegistrationController::class, 'register'])->middleware('turnstile');
     Route::post('/auth/register/verify', [RegistrationController::class, 'verify']);
     Route::post('/auth/register/confirm-identity', [RegistrationController::class, 'confirmIdentity']);
     Route::post('/auth/register/complete', [RegistrationController::class, 'complete']);
-    Route::post('/auth/sign-in/complete', [SessionController::class, 'complete']);
+    Route::post('/auth/sign-in/complete', [SessionController::class, 'complete'])->middleware('turnstile');
     Route::post('/auth/refresh', [SessionController::class, 'refresh']);
     Route::post('/auth/sign-out', [SessionController::class, 'signOut']);
 

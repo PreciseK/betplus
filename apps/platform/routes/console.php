@@ -51,3 +51,6 @@ Schedule::job(new \App\Domain\Promotions\Jobs\ExpireBonusBalancesJob())->dailyAt
 Schedule::command('economics:draw-blackred-pool')->everyFiveMinutes();
 Schedule::command('economics:draw-heritage-pool')->everyFiveMinutes();
 Schedule::command('economics:draw-caged-pool')->everyFiveMinutes();
+
+// Cloudflare R2 Automated Encrypted Database Backup — runs daily at 02:30 WAT
+Schedule::command('backup:database-r2')->dailyAt('02:30');

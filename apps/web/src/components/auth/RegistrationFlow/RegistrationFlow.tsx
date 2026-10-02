@@ -10,6 +10,7 @@ import { maskNigerianPhone, normalizeNigerianPhone } from "@/lib/phone";
 import { formatKobo } from "@/lib/money";
 import { parseNigerianDateInput } from "@/lib/date";
 import { mockRegistrationGateway, type RegistrationGateway } from "@/mocks/registration";
+import { TurnstileWidget } from "@/components/ui/TurnstileWidget";
 import styles from "./RegistrationFlow.module.css";
 
 type Step = "phone" | "otp" | "opay" | "identity" | "opay-missing" | "opay-confirmed" | "kyc" | "tier-one" | "underage";
@@ -457,6 +458,8 @@ export function RegistrationFlow({ gateway = mockRegistrationGateway }: { gatewa
                       ))}
                     </div>
                   </div>
+
+                  <TurnstileWidget />
 
                   <Button type="submit" status={pending ? "loading" : "idle"} statusLabel="Sending code…">
                     Send verification code

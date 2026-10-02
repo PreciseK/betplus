@@ -33,7 +33,7 @@
 Betplus is deployed using a decoupled, high-performance subdomain topology:
 
 ```
-betplus.com.ng (Public Web Frontend)
+betplus.com.ng (Public Player Portal)
     │
     ├── (Client API calls) ──> api.betplus.com.ng (Platform Backend API)
     │                               │
@@ -44,11 +44,16 @@ betplus.com.ng (Public Web Frontend)
     └── (Telco USSD turns) ──> ussd.betplus.com.ng (USSD Microservice)
                                     │
                                     └──> api.betplus.com.ng (Platform API)
+
+backoffice.betplus.com.ng (Restricted Operations Console — Isolated & Protected)
+    │
+    └── (MFA Attributed Calls) ──> api.betplus.com.ng/backoffice/v1
 ```
 
 | Subdomain | Description | Technology |
 |---|---|---|
-| **`betplus.com.ng`** | Player portal, interactive game clients, landing page, and operations console | Next.js (Static Export) |
+| **`betplus.com.ng`** | Player portal, interactive game clients, and landing page | Next.js (Static Export) |
+| **`backoffice.betplus.com.ng`** | Restricted back-office operations console (MFA, IP allowlist, Cloudflare Access) | Next.js (Static Export) |
 | **`api.betplus.com.ng`** | Core platform API: identity, double-entry wallet, ticket lifecycle, taxes & OPay orchestrator | Laravel 11 / PHP 8.4 |
 | **`ussd.betplus.com.ng`** | Telco aggregator gateway (Africa's Talking / Hubtel webhook receiver) | Lightweight PHP 8.4 |
 | **`heritage-api.betplus.com.ng`** | Heritage game math engine (binds to loopback `http://127.0.0.1:8100` in production) | Python / FastAPI / Uvicorn |

@@ -27,4 +27,14 @@ final class SecurityHeadersTest extends TestCase
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('X-Frame-Options', 'DENY');
     }
+
+    public function test_cors_allows_backoffice_subdomain_origin(): void
+    {
+        $response = $this->withHeaders([
+            'Origin' => 'https://backoffice.betplus.com.ng',
+            'Access-Control-Request-Method' => 'GET',
+        ])->json('OPTIONS', '/backoffice/v1/jurisdictions');
+
+        $response->assertHeader('Access-Control-Allow-Origin', 'https://backoffice.betplus.com.ng');
+    }
 }

@@ -42,4 +42,10 @@ return [
         'sandbox' => env('AFRICASTALKING_SANDBOX', true),
     ],
 
+    'cloudflare' => [
+        'turnstile_secret_key' => env('CLOUDFLARE_TURNSTILE_SECRET_KEY', ''),
+        'turnstile_enabled' => (bool) env('CLOUDFLARE_TURNSTILE_ENABLED', false),
+        'r2_backup_encrypt' => (bool) env('CLOUDFLARE_R2_BACKUP_ENCRYPT', true),
+    ],
+
 ];

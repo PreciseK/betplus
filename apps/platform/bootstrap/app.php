@@ -39,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'institution.auth' => \App\Http\Middleware\EnsureInstitutionUser::class,
             'institution.role' => \App\Http\Middleware\EnsureInstitutionRole::class,
             'ussd.gateway' => \App\Http\Middleware\VerifyUssdGatewaySignature::class,
+            'turnstile' => \App\Http\Middleware\VerifyTurnstile::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
