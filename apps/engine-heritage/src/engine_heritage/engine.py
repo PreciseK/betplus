@@ -9,7 +9,13 @@ from __future__ import annotations
 from engine_heritage import board as boardmod
 from engine_heritage import digest as digestmod
 from engine_heritage import tiers as tiersmod
-from engine_heritage.models import DrawPoolResponse, EngineState, PlayerInput, PrizeTierIn, ResolveResponse
+from engine_heritage.models import (
+    DrawPoolResponse,
+    EngineState,
+    PlayerInput,
+    PrizeTierIn,
+    ResolveResponse,
+)
 
 ENGINE_VERSION = "heritage-1.0.0"
 

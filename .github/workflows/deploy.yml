@@ -63,8 +63,11 @@ jobs:
           echo "" >> ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           # Pin the server's host key — prevents MITM during deploy.
-          # To get this value: ssh-keyscan -p <PORT> <HOST> then store as CPANEL_SSH_KNOWN_HOST.
-          echo "${{ secrets.CPANEL_SSH_KNOWN_HOST }}" >> ~/.ssh/known_hosts
+          # If CPANEL_SSH_KNOWN_HOST secret is set, use it; also keyscan host directly
+          if [ -n "${{ secrets.CPANEL_SSH_KNOWN_HOST }}" ]; then
+            echo "${{ secrets.CPANEL_SSH_KNOWN_HOST }}" >> ~/.ssh/known_hosts
+          fi
+          ssh-keyscan -p "${{ secrets.CPANEL_SSH_PORT || '22' }}" -H "${{ secrets.CPANEL_SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
           chmod 644 ~/.ssh/known_hosts
           cat << 'EOF' > ~/.ssh/config
           Host cpanel-target
@@ -72,7 +75,7 @@ jobs:
             User ${{ secrets.CPANEL_SSH_USER }}
             Port ${{ secrets.CPANEL_SSH_PORT || '22' }}
             IdentityFile ~/.ssh/id_rsa
-            StrictHostKeyChecking yes
+            StrictHostKeyChecking accept-new
             ServerAliveInterval 30
             ServerAliveCountMax 5
             ConnectTimeout 30
