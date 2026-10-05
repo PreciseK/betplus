@@ -3,10 +3,11 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-interface BirdEscape3DStageProps {
+export interface Caged3DStageProps {
   roundPhase: "betting" | "flying" | "crashed";
   multiplier: number;
 }
+export type BirdEscape3DStageProps = Caged3DStageProps;
 
 interface BirdInstance {
   meshGroup: THREE.Group;
@@ -20,7 +21,7 @@ interface BirdInstance {
   crashVel?: THREE.Vector3;
 }
 
-export function BirdEscape3DStage({ roundPhase, multiplier }: BirdEscape3DStageProps) {
+export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -60,7 +61,7 @@ export function BirdEscape3DStage({ roundPhase, multiplier }: BirdEscape3DStageP
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     } catch (error) {
-      console.warn("BirdEscape3DStage: WebGL unavailable, 3D stage disabled.", error);
+      console.warn("Caged3DStage: WebGL unavailable, 3D stage disabled.", error);
       return;
     }
 
@@ -642,3 +643,5 @@ export function BirdEscape3DStage({ roundPhase, multiplier }: BirdEscape3DStageP
     />
   );
 }
+
+export const BirdEscape3DStage = Caged3DStage;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Games\BirdEscape;
+namespace App\Domain\Games\CagedCrash;
 
 /**
- * Named starting points for a BirdEscape crash-config draft, same spirit as
+ * Named starting points for a Caged crash-config draft, same spirit as
  * PrizeTablePresetLibrary — pre-filled menu options for whoever drafts a config, not
  * the live config itself. Every preset still goes through the same draft ->
  * CrashConfigPublicationGate -> maker-checker -> publish pipeline as a hand-typed one.
@@ -15,7 +15,7 @@ namespace App\Domain\Games\BirdEscape;
  * - "good" was recalibrated 2026-09-14 (750bp -> 1500bp house edge, i.e. 92.50% ->
  *   85.00% RTP) to clear the tightened 8800bp RTP ceiling (RtpCeiling::BASIS_POINTS) —
  *   the old 750bp value produced 9250bp RTP, which this same gate now rejects, matching
- *   BirdEscapeGameSeeder's own already-recalibrated seeded value. Interim placeholder
+ *   CagedCrashGameSeeder's own already-recalibrated seeded value. Interim placeholder
  *   pending real Finance/actuarial redesign, same category as BlackRed's and Caged's
  *   recalibrations.
  * - "best" is a flat 30% house edge — highest house revenue ratio, still inside the
@@ -31,6 +31,12 @@ final class CrashConfigPresetLibrary
         'good' => 1_500,
         'best' => 3_000,
     ];
+
+    /** @return list<array{key:string, label:string, house_edge_basis_points:int, modelled_rtp_basis_points:int}> */
+    public function forCaged(): array
+    {
+        return $this->forBirdEscape();
+    }
 
     /** @return list<array{key:string, label:string, house_edge_basis_points:int, modelled_rtp_basis_points:int}> */
     public function forBirdEscape(): array
@@ -49,3 +55,5 @@ final class CrashConfigPresetLibrary
         ], array_keys(self::PRESETS));
     }
 }
+
+class_alias(CrashConfigPresetLibrary::class, 'App\Domain\Games\BirdEscape\CrashConfigPresetLibrary');

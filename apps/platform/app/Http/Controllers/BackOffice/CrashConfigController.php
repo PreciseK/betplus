@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\BackOffice;
 
-use App\Domain\Games\BirdEscape\CrashConfigPresetLibrary;
-use App\Domain\Games\BirdEscape\CrashConfigPublicationGate;
+use App\Domain\Games\CagedCrash\CrashConfigPresetLibrary;
+use App\Domain\Games\CagedCrash\CrashConfigPublicationGate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BackOffice\CreateCrashConfigDraftRequest;
 use App\Http\Requests\BackOffice\UpdateCrashConfigDraftRequest;
@@ -16,7 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * BirdEscape's analogue of GameRegistryController's prize-table section. Publication
+ * Caged crash analogue of GameRegistryController's prize-table section. Publication
  * itself does not happen here — a draft is proposed for publication through
  * ReviewableChangeController (change_type='crash_config_publish'), which is what runs
  * CrashConfigPublicationGate at approval time (CrashConfigPublishApplier).
@@ -46,11 +46,12 @@ class CrashConfigController extends Controller
      */
     public function presets(Request $request): JsonResponse
     {
-        if ($request->query('game_code') !== 'BIRDESCAPE') {
+        $code = strtoupper((string) $request->query('game_code'));
+        if (!in_array($code, ['BIRDESCAPE', 'CAGED'], true)) {
             return response()->json(['presets' => []]);
         }
 
-        return response()->json(['presets' => $this->presets->forBirdEscape()]);
+        return response()->json(['presets' => $this->presets->forCaged()]);
     }
 
     /** GET /backoffice/v1/crash-configs/{id} */

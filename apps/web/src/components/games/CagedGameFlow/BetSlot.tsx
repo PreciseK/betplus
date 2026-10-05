@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import styles from "./BirdEscapeGameFlow.module.css";
+import styles from "./CagedGameFlow.module.css";
 
 export interface BetSlotState {
   stake: number; // Naira

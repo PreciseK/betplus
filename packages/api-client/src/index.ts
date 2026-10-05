@@ -3,13 +3,21 @@ export { sessionGateway } from "./sessionGateway";
 export { walletGateway } from "./walletGateway";
 export { blackRedGateway, BlackRedGatewayError, type BlackRedEligibilityCode } from "./blackRedGateway";
 export {
+  cagedGateway,
+  CagedGatewayError,
+  CagedCashoutError,
+  type CagedEligibilityCode,
+  type CagedCashoutCode,
   birdEscapeGateway,
   BirdEscapeGatewayError,
   BirdEscapeCashoutError,
   type BirdEscapeEligibilityCode,
   type BirdEscapeCashoutCode,
-} from "./birdEscapeGateway";
-export { multiplierHundredthsAtElapsedMs as birdEscapeMultiplierHundredthsAtElapsedMs } from "./birdEscapeMath";
+} from "./cagedGateway";
+export {
+  cagedMultiplierHundredthsAtElapsedMs,
+  multiplierHundredthsAtElapsedMs as birdEscapeMultiplierHundredthsAtElapsedMs,
+} from "./cagedMath";
 export { heritageGateway, HeritageGatewayError, type HeritageGatewayErrorCode } from "./heritageGateway";
 export { payoutGateway } from "./payoutGateway";
 export { responsiblePlayGateway } from "./responsiblePlayGateway";

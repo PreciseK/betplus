@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Domain\Games\BirdEscape\PlaceCrashBet;
-use App\Domain\Games\BirdEscape\RoundLifecycleService;
+use App\Domain\Games\CagedCrash\PlaceCrashBet;
+use App\Domain\Games\CagedCrash\RoundLifecycleService;
 use App\Domain\Ticket\TicketEligibilityException;
 use App\Models\FloatSnapshot;
 use App\Models\GameEconomicsConfig;
 use App\Models\Player;
 use App\Models\SignupSession;
-use Database\Seeders\BirdEscapeGameSeeder;
+use Database\Seeders\CagedCrashGameSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-final class BirdEscapeEconomicsCapTest extends TestCase
+final class CagedCrashEconomicsCapTest extends TestCase
 {
     use RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(BirdEscapeGameSeeder::class);
+        $this->seed(CagedCrashGameSeeder::class);
         FloatSnapshot::create(['opayBalanceKobo' => 100_000_000, 'alertState' => 'ok', 'polledAt' => now()]);
         GameEconomicsConfig::create([
             'gameCode' => 'BIRDESCAPE', 'version' => 'GEC-BE-1', 'status' => 'published',
@@ -51,10 +51,10 @@ final class BirdEscapeEconomicsCapTest extends TestCase
         $round = app(RoundLifecycleService::class)->startRound('BIRDESCAPE');
         $player = $this->fundedPlayer();
 
-        // Worst case for 10,000 kobo = 350,000 kobo, well under the 5,000,000 cap.
+        // Worst case for 10,000 kobo = 150,000 kobo (15.00x max multiplier), well under the 5,000,000 cap.
         app(PlaceCrashBet::class)->place($player, $round, 10_000, null, 'idem-be-accept-1');
 
-        $this->assertSame(350_000, $round->refresh()->exposureKobo);
+        $this->assertSame(150_000, $round->refresh()->exposureKobo);
     }
 
     public function test_a_bet_over_the_exposure_cap_is_rejected(): void
@@ -62,10 +62,10 @@ final class BirdEscapeEconomicsCapTest extends TestCase
         $round = app(RoundLifecycleService::class)->startRound('BIRDESCAPE');
         $player = $this->fundedPlayer();
 
-        // Worst case for 200,000 kobo = 7,000,000 kobo > 5,000,000 cap.
+        // Worst case for 400,000 kobo = 6,000,000 kobo (15.00x max multiplier) > 5,000,000 cap.
         $this->expectException(TicketEligibilityException::class);
         try {
-            app(PlaceCrashBet::class)->place($player, $round, 200_000, null, 'idem-be-reject-1');
+            app(PlaceCrashBet::class)->place($player, $round, 400_000, null, 'idem-be-reject-1');
         } catch (TicketEligibilityException $e) {
             $this->assertSame('ROUND_EXPOSURE_CAP', $e->errorCode);
             throw $e;
@@ -76,11 +76,11 @@ final class BirdEscapeEconomicsCapTest extends TestCase
     {
         $round = app(RoundLifecycleService::class)->startRound('BIRDESCAPE');
         $player = $this->fundedPlayer();
-        // First bet: worst case 3,500,000 kobo (100,000 stake) — accepted, exposure now 3,500,000.
-        app(PlaceCrashBet::class)->place($player, $round, 100_000, null, 'idem-be-first-1');
+        // First bet: worst case 3,000,000 kobo (200,000 stake @ 15.00x) — accepted, exposure now 3,000,000.
+        app(PlaceCrashBet::class)->place($player, $round, 200_000, null, 'idem-be-first-1');
 
-        // Second bet: worst case 1,750,000 kobo (50,000 stake) — 3,500,000 + 1,750,000 = 5,250,000 > 5,000,000 cap.
+        // Second bet: worst case 3,000,000 kobo (200,000 stake @ 15.00x) — 3,000,000 + 3,000,000 = 6,000,000 > 5,000,000 cap.
         $this->expectException(TicketEligibilityException::class);
-        app(PlaceCrashBet::class)->place($player, $round, 50_000, null, 'idem-be-second-1');
+        app(PlaceCrashBet::class)->place($player, $round, 200_000, null, 'idem-be-second-1');
     }
 }

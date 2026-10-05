@@ -29,14 +29,14 @@ interface GameItem {
 
 const GAMES: GameItem[] = [
   {
-    id: "birdescape",
+    id: "caged",
     title: "Caged",
     category: "Live Multiplayer Crash",
     badge: "Crash Multiplier",
     description: "Watch birds escape the golden cage. Cash out your stake with dual-bet slots before the cage drops!",
     multiplier: "1.00× – 100×+",
     stakeRange: "₦10 – ₦10,000",
-    route: "/games/birdescape",
+    route: "/games/caged",
     emblemText: "🦅",
     accentColor: "#f5b731",
   },

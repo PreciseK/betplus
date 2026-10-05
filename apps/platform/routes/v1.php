@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\V1\BirdEscapeController;
+use App\Http\Controllers\Api\V1\CagedCrashController;
 use App\Http\Controllers\Api\V1\BlackRedController;
 use App\Http\Controllers\Api\V1\CagedController;
 use App\Http\Controllers\Api\V1\HeritageController;
@@ -60,9 +60,14 @@ Route::prefix('v1')->group(function () {
 
         // Live multiplayer crash game — one shared round, not a per-play ticket, so
         // its routes shape differs from the resolve-once ticket pattern above.
-        Route::get('/birdescape/rounds/current', [BirdEscapeController::class, 'currentRound']);
-        Route::post('/birdescape/rounds/{round}/bets', [BirdEscapeController::class, 'placeBet'])->middleware('idempotent');
-        Route::post('/birdescape/bets/{bet}/cashout', [BirdEscapeController::class, 'cashout'])->middleware('idempotent');
+        Route::get('/caged/rounds/current', [CagedCrashController::class, 'currentRound']);
+        Route::post('/caged/rounds/{round}/bets', [CagedCrashController::class, 'placeBet'])->middleware('idempotent');
+        Route::post('/caged/bets/{bet}/cashout', [CagedCrashController::class, 'cashout'])->middleware('idempotent');
+
+        // Backwards compatibility aliases
+        Route::get('/birdescape/rounds/current', [CagedCrashController::class, 'currentRound']);
+        Route::post('/birdescape/rounds/{round}/bets', [CagedCrashController::class, 'placeBet'])->middleware('idempotent');
+        Route::post('/birdescape/bets/{bet}/cashout', [CagedCrashController::class, 'cashout'])->middleware('idempotent');
 
         // Story 8.5 (REQ-USSD-005/REQ-NOT-008) — game-agnostic, USSD-triggered.
         Route::post('/tickets/{reference}/notify-sms', [TicketNotificationController::class, 'notifySms']);

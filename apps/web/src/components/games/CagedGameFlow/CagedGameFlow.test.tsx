@@ -1,11 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { BirdEscapeGateway, BirdEscapeRoundState } from "@/mocks/birdescape";
-import { BirdEscapeGameFlow } from "./BirdEscapeGameFlow";
+import type { CagedGateway, CagedRoundState } from "@/mocks/caged";
+import { CagedGameFlow } from "./CagedGameFlow";
 
-function baseRound(overrides: Partial<BirdEscapeRoundState> = {}): BirdEscapeRoundState {
+function baseRound(overrides: Partial<CagedRoundState> = {}): CagedRoundState {
   return {
-    gameCode: "BIRDESCAPE",
+    gameCode: "CAGED",
     serverTime: new Date().toISOString(),
     roundId: 1,
     roundNumber: 42,
@@ -28,7 +28,7 @@ function baseRound(overrides: Partial<BirdEscapeRoundState> = {}): BirdEscapeRou
   };
 }
 
-function fakeGateway(overrides: Partial<BirdEscapeGateway> = {}): BirdEscapeGateway {
+function fakeGateway(overrides: Partial<CagedGateway> = {}): CagedGateway {
   return {
     loadCurrentRound: vi.fn().mockResolvedValue(baseRound()),
     placeBet: vi.fn(),
@@ -37,10 +37,10 @@ function fakeGateway(overrides: Partial<BirdEscapeGateway> = {}): BirdEscapeGate
   };
 }
 
-describe("BirdEscapeGameFlow", () => {
+describe("CagedGameFlow", () => {
   it("renders the balance from the gateway response, never invents it", async () => {
     const gateway = fakeGateway();
-    render(<BirdEscapeGameFlow gateway={gateway} />);
+    render(<CagedGameFlow gateway={gateway} />);
 
     // The balance renders three times (header pill + both bet slots), all sourced
     // from the same gateway response.
@@ -59,7 +59,7 @@ describe("BirdEscapeGameFlow", () => {
         status: "placed",
       }),
     });
-    render(<BirdEscapeGameFlow gateway={gateway} />);
+    render(<CagedGameFlow gateway={gateway} />);
     await screen.findAllByRole("button", { name: "Place Bet" });
 
     fireEvent.click(screen.getAllByRole("button", { name: "Place Bet" })[0]);
@@ -72,7 +72,7 @@ describe("BirdEscapeGameFlow", () => {
     const gateway = fakeGateway({
       placeBet: vi.fn().mockRejectedValue(new Error("Stake exceeds Play Balance.")),
     });
-    render(<BirdEscapeGameFlow gateway={gateway} />);
+    render(<CagedGameFlow gateway={gateway} />);
     await screen.findAllByRole("button", { name: "Place Bet" });
 
     fireEvent.click(screen.getAllByRole("button", { name: "Place Bet" })[0]);
@@ -121,7 +121,7 @@ describe("BirdEscapeGameFlow", () => {
         winningsBalanceAfterKobo: 23_750,
       }),
     });
-    render(<BirdEscapeGameFlow gateway={gateway} />);
+    render(<CagedGameFlow gateway={gateway} />);
     await screen.findAllByRole("button", { name: "Place Bet" });
 
     fireEvent.click(screen.getAllByRole("button", { name: "Place Bet" })[0]);

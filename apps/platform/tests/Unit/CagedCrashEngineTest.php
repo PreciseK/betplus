@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Domain\Games\Engine\BirdEscape\BirdEscapeEngine;
+use App\Domain\Games\Engine\CagedCrash\CagedCrashEngine;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
-final class BirdEscapeEngineTest extends TestCase
+final class CagedCrashEngineTest extends TestCase
 {
     public function test_resolve_and_replay_are_byte_identical_for_the_same_inputs(): void
     {
-        $engine = new BirdEscapeEngine();
+        $engine = new CagedCrashEngine();
         $seed = bin2hex(random_bytes(32));
 
         $resolved = $engine->resolve($seed, 1, 500);
@@ -24,7 +24,7 @@ final class BirdEscapeEngineTest extends TestCase
 
     public function test_different_round_numbers_produce_different_crash_points_with_overwhelming_probability(): void
     {
-        $engine = new BirdEscapeEngine();
+        $engine = new CagedCrashEngine();
         $seed = bin2hex(random_bytes(32));
 
         $results = [];
@@ -37,18 +37,18 @@ final class BirdEscapeEngineTest extends TestCase
 
     public function test_crash_multiplier_is_always_within_the_valid_range(): void
     {
-        $engine = new BirdEscapeEngine();
+        $engine = new CagedCrashEngine();
 
         for ($round = 1; $round <= 100; $round++) {
             $result = $engine->resolve(bin2hex(random_bytes(32)), $round, 500);
             $this->assertGreaterThanOrEqual(100, $result->crashMultiplierHundredths);
-            $this->assertLessThanOrEqual(BirdEscapeEngine::ABSOLUTE_MAX_MULTIPLIER_HUNDREDTHS, $result->crashMultiplierHundredths);
+            $this->assertLessThanOrEqual(CagedCrashEngine::ABSOLUTE_MAX_MULTIPLIER_HUNDREDTHS, $result->crashMultiplierHundredths);
         }
     }
 
     public function test_multiplier_strictly_bounded_by_fifteen_hundredths(): void
     {
-        $engine = new BirdEscapeEngine();
+        $engine = new CagedCrashEngine();
 
         for ($round = 1; $round <= 200; $round++) {
             $result = $engine->resolve(bin2hex(random_bytes(32)), $round, 500);
@@ -59,7 +59,7 @@ final class BirdEscapeEngineTest extends TestCase
 
     public function test_multiplier_distribution_buckets_align_with_target_probabilities(): void
     {
-        $engine = new BirdEscapeEngine();
+        $engine = new CagedCrashEngine();
         $seed = bin2hex(random_bytes(32));
         $totalRounds = 10_000;
 
@@ -101,7 +101,7 @@ final class BirdEscapeEngineTest extends TestCase
 
     public function test_digest_changes_if_any_input_changes(): void
     {
-        $engine = new BirdEscapeEngine();
+        $engine = new CagedCrashEngine();
         $seed = bin2hex(random_bytes(32));
         $result = $engine->resolve($seed, 1, 500);
 
@@ -111,14 +111,14 @@ final class BirdEscapeEngineTest extends TestCase
 
     public function test_rejects_an_out_of_range_house_edge(): void
     {
-        $engine = new BirdEscapeEngine();
+        $engine = new CagedCrashEngine();
         $this->expectException(InvalidArgumentException::class);
         $engine->resolve(bin2hex(random_bytes(32)), 1, 10_001);
     }
 
     public function test_anti_clumping_allows_occasional_consecutive_tier1_but_prevents_frequent_streaks(): void
     {
-        $engine = new BirdEscapeEngine();
+        $engine = new CagedCrashEngine();
         $seed = bin2hex(random_bytes(32));
         $totalRounds = 10_000;
 
@@ -168,15 +168,15 @@ final class BirdEscapeEngineTest extends TestCase
         // Floor is 100 (1.00x) at t=0 — flight always starts at break-even. From
         // there every full 1.00x step (1.00x->2.00x, 2.00x->3.00x, ...) takes the
         // same duration: 10000ms by default (1.00x to 2.00x takes 10 seconds).
-        $this->assertSame(100, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(0));
-        $this->assertSame(150, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(5000));
-        $this->assertSame(200, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(10000));
-        $this->assertSame(300, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(20000));
-        $this->assertSame(400, BirdEscapeEngine::multiplierHundredthsAtElapsedMs(30000));
+        $this->assertSame(100, CagedCrashEngine::multiplierHundredthsAtElapsedMs(0));
+        $this->assertSame(150, CagedCrashEngine::multiplierHundredthsAtElapsedMs(5000));
+        $this->assertSame(200, CagedCrashEngine::multiplierHundredthsAtElapsedMs(10000));
+        $this->assertSame(300, CagedCrashEngine::multiplierHundredthsAtElapsedMs(20000));
+        $this->assertSame(400, CagedCrashEngine::multiplierHundredthsAtElapsedMs(30000));
 
         $previous = 100;
         for ($elapsedMs = 100; $elapsedMs <= 60_000; $elapsedMs += 200) {
-            $current = BirdEscapeEngine::multiplierHundredthsAtElapsedMs($elapsedMs);
+            $current = CagedCrashEngine::multiplierHundredthsAtElapsedMs($elapsedMs);
             $this->assertGreaterThanOrEqual($previous, $current);
             $this->assertGreaterThanOrEqual(100, $current);
             $previous = $current;

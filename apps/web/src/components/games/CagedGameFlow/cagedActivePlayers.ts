@@ -65,7 +65,7 @@ export const CAGED_50_USERNAMES = [
 ] as const;
 
 // Realistic stake steps strictly between ₦1,000 and ₦150,000 (in Naira)
-// Note: 5000 is intentionally avoided to prevent collisions with the ₦5,000.00 play balance assertion in BirdEscapeGameFlow.test.tsx
+// Note: 5000 is intentionally avoided to prevent collisions with the ₦5,000.00 play balance assertion in CagedGameFlow.test.tsx
 const STAKE_PRESETS_NAIRA = [
   1000, 1500, 2000, 2500, 3000, 4500, 5500, 6500, 7500, 8500,
   10000, 12500, 15000, 17500, 20000, 25000, 30000, 35000, 40000, 45000,

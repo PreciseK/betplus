@@ -1,19 +1,19 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { birdEscapeMultiplierHundredthsAtElapsedMs as multiplierHundredthsAtElapsedMs } from "@betplus/api-client";
-import styles from "./BirdEscapeGameFlow.module.css";
-import { BirdEscape3DStage } from "./BirdEscape3DStage";
+import { cagedMultiplierHundredthsAtElapsedMs as multiplierHundredthsAtElapsedMs } from "@betplus/api-client";
+import styles from "./CagedGameFlow.module.css";
+import { Caged3DStage } from "./Caged3DStage";
 import { BetSlot, type BetSlotState } from "./BetSlot";
 import { gameAudio } from "@/lib/gameAudio";
 import {
-  mockBirdEscapeGateway,
-  BirdEscapeCashoutError,
-  type BirdEscapeGateway,
-  type BirdEscapeRoundState,
+  mockCagedGateway,
+  CagedCashoutError,
+  type CagedGateway,
+  type CagedRoundState,
   MOCK_CHAT_MESSAGES,
   ChatMessage,
-} from "@/mocks/birdescape";
+} from "@/mocks/caged";
 import {
   type CagedActivePlayer,
   createInitial50Players,
@@ -29,9 +29,10 @@ const PRESET_CHIPS_NAIRA = [100, 500, 2500, 10000];
 // is 10s per 1.00x, 1000ms is accurate and smooth while reducing server load by 80%.
 const FLYING_POLL_INTERVAL_MS = 1000;
 
-export interface BirdEscapeGameFlowProps {
-  gateway?: BirdEscapeGateway;
+export interface CagedGameFlowProps {
+  gateway?: CagedGateway;
 }
+export type BirdEscapeGameFlowProps = CagedGameFlowProps;
 
 function idleSlot(stake: number, autoCashoutMult: number): BetSlotState {
   return { stake, autoCashout: false, autoCashoutMult, status: "idle" };
@@ -51,7 +52,7 @@ function generateUUID(): string {
 function syncSlotFromServer(
   setSlot: React.Dispatch<React.SetStateAction<BetSlotState>>,
   slot: BetSlotState,
-  result: BirdEscapeRoundState,
+  result: CagedRoundState,
   slotIndex: number,
 ): void {
   // Never override these — they are terminal or in-progress states already controlled by cashout/bet handlers
@@ -104,8 +105,8 @@ function syncSlotFromServer(
   }
 }
 
-export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEscapeGameFlowProps) {
-  const [roundState, setRoundState] = useState<BirdEscapeRoundState | null>(null);
+export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps) {
+  const [roundState, setRoundState] = useState<CagedRoundState | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [clockOffsetMs, setClockOffsetMs] = useState(0);
   const [liveMultiplierHundredths, setLiveMultiplierHundredths] = useState(100);
@@ -598,7 +599,7 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
       } catch (error) {
         // On network/server error, restore to prior state so player can retry
         const isRoundCrashed =
-          error instanceof BirdEscapeCashoutError && error.code === "TOO_LATE_ROUND_CRASHED";
+          error instanceof CagedCashoutError && error.code === "TOO_LATE_ROUND_CRASHED";
         if (isRoundCrashed) {
           roundCrashedRef.current = true;
           triggerImmediatePollRef.current?.();
@@ -918,7 +919,7 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
               </div>
             )}
 
-            <BirdEscape3DStage
+            <Caged3DStage
               roundPhase={roundState.status === "BETTING" ? "betting" : roundState.status === "FLYING" ? "flying" : "crashed"}
               multiplier={liveMultiplierHundredths / 100}
             />
@@ -1144,3 +1145,5 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
     </div>
   );
 }
+
+export const BirdEscapeGameFlow = CagedGameFlow;

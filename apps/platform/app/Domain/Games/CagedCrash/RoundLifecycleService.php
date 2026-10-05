@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Games\BirdEscape;
+namespace App\Domain\Games\CagedCrash;
 
 use App\Domain\Fairness\SeedIssuer;
-use App\Domain\Games\Engine\BirdEscape\BirdEscapeEngine;
+use App\Domain\Games\Engine\CagedCrash\CagedCrashEngine;
 use App\Models\CrashBet;
 use App\Models\CrashRound;
 use Illuminate\Database\QueryException;
@@ -23,15 +23,15 @@ use RuntimeException;
  * again), so every reader — a loop tick or a player's cashout request arriving at the
  * exact same instant — computes off identical, stable values with no lock needed to
  * read them. The only genuine race is many writers touching one CrashBet row at once,
- * and that's closed in BirdEscapeSettlement's conditional UPDATE, not here.
+ * and that's closed in CagedCrashSettlement's conditional UPDATE, not here.
  */
 final class RoundLifecycleService
 {
     public function __construct(
         private readonly SeedIssuer $seedIssuer,
         private readonly CrashConfigResolver $configs,
-        private readonly BirdEscapeEngine $engine,
-        private readonly BirdEscapeSettlement $settlement,
+        private readonly CagedCrashEngine $engine,
+        private readonly CagedCrashSettlement $settlement,
     ) {
     }
 
@@ -161,7 +161,7 @@ final class RoundLifecycleService
     private function tickFlight(CrashRound $round): CrashRound
     {
         $elapsedMs = (int) $round->flightStartedAt->diffInMilliseconds(now());
-        $currentMultiplier = BirdEscapeEngine::multiplierHundredthsAtElapsedMs($elapsedMs, $round->growthRateConstant);
+        $currentMultiplier = CagedCrashEngine::multiplierHundredthsAtElapsedMs($elapsedMs, $round->growthRateConstant);
 
         // 1. Auto-cashout sweep first — a bet whose threshold has already been crossed
         //    must settle as a win even in the same tick the round crashes.
@@ -195,3 +195,6 @@ final class RoundLifecycleService
         return $round->refresh();
     }
 }
+
+class_alias(RoundLifecycleService::class, 'App\Domain\Games\BirdEscape\RoundLifecycleService');
+

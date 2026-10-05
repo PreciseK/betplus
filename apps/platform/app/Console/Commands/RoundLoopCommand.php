@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Domain\Games\BirdEscape\RoundLifecycleService;
+use App\Domain\Games\CagedCrash\RoundLifecycleService;
 use Illuminate\Console\Command;
 use Throwable;
 
@@ -17,9 +17,11 @@ use Throwable;
  */
 class RoundLoopCommand extends Command
 {
-    protected $signature = 'birdescape:round-loop {--once : Run a single tick and exit, instead of looping forever}';
+    protected $signature = 'caged:round-loop {--once : Run a single tick and exit, instead of looping forever}';
 
-    protected $description = 'Advance the live BirdEscape round (betting -> flying -> crashed -> next round) on a tight loop.';
+    protected $aliases = ['birdescape:round-loop'];
+
+    protected $description = 'Advance the live Caged crash round (betting -> flying -> crashed -> next round) on a tight loop.';
 
     private const TICK_INTERVAL_MICROSECONDS = 200_000; // 200ms
 

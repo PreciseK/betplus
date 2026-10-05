@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Domain\Games\BirdEscape\CrashConfigPublicationGate;
+use App\Domain\Games\CagedCrash\CrashConfigPublicationGate;
 use App\Models\CrashConfig;
 use App\Models\ExclusionRegistry;
 use App\Models\GameRegistry;
@@ -13,14 +13,14 @@ use Illuminate\Database\Seeder;
 use RuntimeException;
 
 /**
- * The minimum configuration BirdEscape needs to be playable in dev/staging — mirrors
+ * The minimum configuration Caged Crash needs to be playable in dev/staging — mirrors
  * BlackRedGameSeeder exactly: a game registry entry, the same Lagos exclusion-registry
  * and state-licence gates AttributionService requires (safe to seed alongside
  * BlackRedGameSeeder — both use updateOrCreate on the same natural key), and one
  * published crashConfig. Real publication (maker-checker, actuarial cert) is the
  * BackOffice flow; this seeder writes the same shape the gate would accept.
  */
-class BirdEscapeGameSeeder extends Seeder
+class CagedCrashGameSeeder extends Seeder
 {
     public function run(): void
     {
@@ -84,3 +84,6 @@ class BirdEscapeGameSeeder extends Seeder
         $config->update(['status' => 'published', 'publishedAt' => now()]);
     }
 }
+
+class_alias(CagedCrashGameSeeder::class, 'Database\Seeders\BirdEscapeGameSeeder');
+

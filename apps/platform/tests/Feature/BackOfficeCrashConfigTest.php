@@ -8,12 +8,13 @@ use App\Domain\BackOffice\MfaSecretCipher;
 use App\Domain\BackOffice\TotpService;
 use App\Models\CrashConfig;
 use App\Models\InstitutionUser;
-use Database\Seeders\BirdEscapeGameSeeder;
+use Database\Seeders\CagedCrashGameSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
-/** Mirrors BackOfficeOperationsTest's prize-table + maker-checker sections, for BirdEscape's crash config. */
+/** Mirrors BackOfficeOperationsTest's prize-table + maker-checker sections, for Caged's crash config. */
 final class BackOfficeCrashConfigTest extends TestCase
 {
     use RefreshDatabase;
@@ -21,19 +22,25 @@ final class BackOfficeCrashConfigTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(BirdEscapeGameSeeder::class);
+        RateLimiter::clear('institution-signin-ip:127.0.0.1');
+        RateLimiter::clear('institution-signin-ip:unknown');
+        $this->seed(CagedCrashGameSeeder::class);
         Queue::fake();
     }
 
     private function institutionToken(string $role): string
     {
+        RateLimiter::clear('institution-signin-ip:127.0.0.1');
+        RateLimiter::clear('institution-signin-ip:unknown');
         $secret = app(TotpService::class)->generateSecret();
         $user = InstitutionUser::create([
             'email' => strtolower($role) . random_int(1000, 9999) . '@betplus.test',
             'displayName' => 'Operator', 'passwordHash' => password_hash('x', PASSWORD_BCRYPT),
             'role' => $role, 'status' => 'active',
             'mfaSecretEncrypted' => app(MfaSecretCipher::class)->encrypt($secret),
+            'ipAllowlist' => '127.0.0.1',
         ]);
+        RateLimiter::clear("institution-signin:{$user->email}");
         $signIn = $this->postJson('/backoffice/v1/auth/sign-in', ['email' => $user->email, 'password' => 'x'])->json();
         $mfa = $this->postJson('/backoffice/v1/auth/mfa', ['challenge_id' => $signIn['challenge_id'], 'code' => app(TotpService::class)->currentCode($secret)])->json();
 

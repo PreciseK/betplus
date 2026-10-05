@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Games\BirdEscape;
+namespace App\Domain\Games\CagedCrash;
 
 use App\Domain\Games\Economics\RtpCeiling;
 use App\Models\CrashConfig;
 
 /**
- * BirdEscape's analogue of PrizeTablePublicationGate — the structural half of the
+ * Caged's analogue of PrizeTablePublicationGate — the structural half of the
  * publication gate for a crash game's single house-edge parameter (no per-tier
  * probability check applies here; the crash-point distribution's expected RTP is a
- * direct function of houseEdgeBasisPoints by construction of BirdEscapeEngine's
+ * direct function of houseEdgeBasisPoints by construction of CagedCrashEngine's
  * formula, not something separately measured per config).
  *
  * Not built here, deliberately, for the same reasons as PrizeTablePublicationGate:
@@ -52,3 +52,5 @@ final class CrashConfigPublicationGate
         return $errors;
     }
 }
+
+class_alias(CrashConfigPublicationGate::class, 'App\Domain\Games\BirdEscape\CrashConfigPublicationGate');

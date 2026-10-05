@@ -1,12 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { BirdEscapeGateway, BirdEscapeRoundState } from "@/mocks/birdescape";
-import { BirdEscapeGameFlow } from "./BirdEscapeGameFlow";
+import type { CagedGateway, CagedRoundState } from "@/mocks/caged";
+import { CagedGameFlow } from "./CagedGameFlow";
 import { CAGED_50_USERNAMES } from "./cagedActivePlayers";
 
-function baseRound(overrides: Partial<BirdEscapeRoundState> = {}): BirdEscapeRoundState {
+function baseRound(overrides: Partial<CagedRoundState> = {}): CagedRoundState {
   return {
-    gameCode: "BIRDESCAPE",
+    gameCode: "CAGED",
     serverTime: new Date().toISOString(),
     roundId: 1,
     roundNumber: 42,
@@ -29,7 +29,7 @@ function baseRound(overrides: Partial<BirdEscapeRoundState> = {}): BirdEscapeRou
   };
 }
 
-function fakeGateway(overrides: Partial<BirdEscapeGateway> = {}): BirdEscapeGateway {
+function fakeGateway(overrides: Partial<CagedGateway> = {}): CagedGateway {
   return {
     loadCurrentRound: vi.fn().mockResolvedValue(baseRound()),
     placeBet: vi.fn(),
@@ -38,10 +38,10 @@ function fakeGateway(overrides: Partial<BirdEscapeGateway> = {}): BirdEscapeGate
   };
 }
 
-describe("BirdEscapeGameFlow Leaderboard & Active Players", () => {
+describe("CagedGameFlow Leaderboard & Active Players", () => {
   it("defaults to the Leaderboard tab and displays 50 live players", async () => {
     const gateway = fakeGateway();
-    render(<BirdEscapeGameFlow gateway={gateway} />);
+    render(<CagedGameFlow gateway={gateway} />);
 
     // Verify subheader and active player badge
     expect(await screen.findByText("50 Live Players")).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe("BirdEscapeGameFlow Leaderboard & Active Players", () => {
       ),
     });
 
-    render(<BirdEscapeGameFlow gateway={gateway} />);
+    render(<CagedGameFlow gateway={gateway} />);
 
     // Total players reflects simulated + real player (50 + 1 = 51)
     expect(await screen.findByText("51 Live Players")).toBeInTheDocument();

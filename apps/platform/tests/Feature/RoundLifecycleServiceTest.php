@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Domain\Fairness\SeedIssuer;
-use App\Domain\Games\BirdEscape\RoundLifecycleService;
+use App\Domain\Games\CagedCrash\RoundLifecycleService;
 use App\Domain\Wallet\WalletService;
 use App\Models\CrashBet;
 use App\Models\CrashConfig;
 use App\Models\CrashRound;
 use App\Models\Player;
-use Database\Seeders\BirdEscapeGameSeeder;
+use Database\Seeders\CagedCrashGameSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +21,7 @@ use Tests\TestCase;
  * Drives RoundLifecycleService directly — no HTTP, no loop process — using
  * Carbon::setTestNow() to fast-forward and hand-crafted rounds with a known crash
  * point, so these tests are deterministic regardless of the engine's real RNG (that's
- * covered separately in BirdEscapeEngineTest).
+ * covered separately in CagedCrashEngineTest).
  */
 final class RoundLifecycleServiceTest extends TestCase
 {
@@ -30,7 +30,7 @@ final class RoundLifecycleServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(BirdEscapeGameSeeder::class);
+        $this->seed(CagedCrashGameSeeder::class);
     }
 
     protected function tearDown(): void
@@ -208,7 +208,7 @@ final class RoundLifecycleServiceTest extends TestCase
      * The genuine race-guard test: two callers invoking settlement for the same bet
      * back-to-back (a double-click, a client retry, the loop's sweep and a manual
      * cashout landing at once) must settle it exactly once — this is
-     * BirdEscapeSettlement's conditional `UPDATE ... WHERE status='PLACED'` guard,
+     * CagedCrashSettlement's conditional `UPDATE ... WHERE status='PLACED'` guard,
      * the actual primitive the crash-vs-cashout race safety rests on. PHPUnit/sqlite
      * is single-connection and cannot fork true parallel requests, so this proves the
      * guard clause is correct, not that a true concurrent race is impossible under
@@ -220,7 +220,7 @@ final class RoundLifecycleServiceTest extends TestCase
         $round = $this->craftFlyingRound(crashMultiplierHundredths: 200, growthRateConstant: 1);
         $bet = $this->placedBet($round->id, stakeKobo: 100_000);
 
-        $settlement = app(\App\Domain\Games\BirdEscape\BirdEscapeSettlement::class);
+        $settlement = app(\App\Domain\Games\CagedCrash\CagedCrashSettlement::class);
         $first = $settlement->settleLoss($bet);
         $second = $settlement->settleLoss($bet->fresh());
 

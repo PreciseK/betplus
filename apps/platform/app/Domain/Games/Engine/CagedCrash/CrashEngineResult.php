@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Games\Engine\BirdEscape;
+namespace App\Domain\Games\Engine\CagedCrash;
 
 /** resolve/replay response shape, as a plain value object — mirrors BlackRed's EngineResult. */
 final readonly class CrashEngineResult
@@ -14,3 +14,5 @@ final readonly class CrashEngineResult
     ) {
     }
 }
+
+class_alias(CrashEngineResult::class, 'App\Domain\Games\Engine\BirdEscape\CrashEngineResult');

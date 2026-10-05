@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Games\BirdEscape;
+namespace App\Domain\Games\CagedCrash;
 
 use App\Domain\Games\Economics\GameDailyLedgerService;
 use App\Domain\Tax\TaxEngine;
@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\DB;
  * writer's UPDATE can ever affect the row; every other concurrent caller sees 0 rows
  * affected and treats that as "already settled by someone else", never as an error.
  */
-final class BirdEscapeSettlement
+final class CagedCrashSettlement
 {
     private const GAME_CODE = 'BIRDESCAPE';
 
@@ -92,3 +92,7 @@ final class BirdEscapeSettlement
         });
     }
 }
+
+class_alias(CagedCrashSettlement::class, 'App\Domain\Games\BirdEscape\BirdEscapeSettlement');
+class_alias(CagedCrashSettlement::class, 'App\Domain\Games\CagedCrash\BirdEscapeSettlement');
+

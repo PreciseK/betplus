@@ -1,10 +1,10 @@
 "use client";
 
 const SOUNDS = {
-  gameStart:  "/sounds/birdescape/game-start.mp3",
-  gameOver:   "/sounds/birdescape/game-over.mp3",
-  musicLoop1: "/sounds/birdescape/music-loop-1.mp3", // During game (FLYING)
-  musicLoop2: "/sounds/birdescape/music-loop-2.mp3", // In-between games (BETTING/IDLE)
+  gameStart:  "/sounds/caged/game-start.mp3",
+  gameOver:   "/sounds/caged/game-over.mp3",
+  musicLoop1: "/sounds/caged/music-loop-1.mp3", // During game (FLYING)
+  musicLoop2: "/sounds/caged/music-loop-2.mp3", // In-between games (BETTING/IDLE)
 } as const;
 
 type MusicMode = "game" | "inbetween" | "none";
@@ -22,7 +22,7 @@ class SoundManager {
 
   constructor() {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("birdescape_sound_muted");
+      const stored = localStorage.getItem("caged_sound_muted") ?? localStorage.getItem("birdescape_sound_muted");
       this.isMuted = stored === "true";
     }
   }
@@ -48,7 +48,7 @@ class SoundManager {
   public toggleMute(): boolean {
     this.isMuted = !this.isMuted;
     if (typeof window !== "undefined") {
-      localStorage.setItem("birdescape_sound_muted", String(this.isMuted));
+      localStorage.setItem("caged_sound_muted", String(this.isMuted));
     }
 
     if (this.isMuted) {

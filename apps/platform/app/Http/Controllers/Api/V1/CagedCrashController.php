@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Domain\Games\BirdEscape\BirdEscapeSettlement;
-use App\Domain\Games\BirdEscape\PlaceCrashBet;
-use App\Domain\Games\BirdEscape\RoundLifecycleService;
-use App\Domain\Games\Engine\BirdEscape\BirdEscapeEngine;
+use App\Domain\Games\CagedCrash\CagedCrashSettlement;
+use App\Domain\Games\CagedCrash\PlaceCrashBet;
+use App\Domain\Games\CagedCrash\RoundLifecycleService;
+use App\Domain\Games\Engine\CagedCrash\CagedCrashEngine;
 use App\Domain\Ticket\TicketEligibilityException;
 use App\Domain\Wallet\WalletService;
 use App\Http\Controllers\Controller;
@@ -19,7 +19,7 @@ use App\Models\Player;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 
-class BirdEscapeController extends Controller
+class CagedCrashController extends Controller
 {
     private const GAME_CODE = 'BIRDESCAPE';
     private const RECENT_ROUNDS_LIMIT = 25;
@@ -29,7 +29,7 @@ class BirdEscapeController extends Controller
         private readonly WalletService $wallet,
         private readonly RoundLifecycleService $lifecycle,
         private readonly PlaceCrashBet $placeCrashBet,
-        private readonly BirdEscapeSettlement $settlement,
+        private readonly CagedCrashSettlement $settlement,
     ) {
     }
 
@@ -130,7 +130,7 @@ class BirdEscapeController extends Controller
         }
 
         $elapsedMs = (int) $round->flightStartedAt->diffInMilliseconds(now());
-        $requestMultiplier = BirdEscapeEngine::multiplierHundredthsAtElapsedMs($elapsedMs, $round->growthRateConstant);
+        $requestMultiplier = CagedCrashEngine::multiplierHundredthsAtElapsedMs($elapsedMs, $round->growthRateConstant);
 
         if ($requestMultiplier >= $round->crashMultiplierHundredths || $round->status === 'CRASHED') {
             // Too late — the round should already be crashed even if nothing has
@@ -241,3 +241,6 @@ class BirdEscapeController extends Controller
         return $player;
     }
 }
+
+class_alias(CagedCrashController::class, 'App\Http\Controllers\Api\V1\BirdEscapeController');
+

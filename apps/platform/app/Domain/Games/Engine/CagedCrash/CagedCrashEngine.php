@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Games\Engine\BirdEscape;
+namespace App\Domain\Games\Engine\CagedCrash;
 
 use InvalidArgumentException;
 
@@ -14,7 +14,7 @@ use InvalidArgumentException;
  * One seed is issued per ROUND, not per bet — many players' bets share one round's
  * crash point, unlike BlackRed where the engine resolves once per ticket.
  */
-final class BirdEscapeEngine
+final class CagedCrashEngine
 {
     public const VERSION = 'birdescape-1.0.0';
 
@@ -97,8 +97,10 @@ final class BirdEscapeEngine
             $pTier1 = 0.0;
         } elseif ($consecutiveTier1Count === 1) {
             $pTier1 = 0.25; // Occasional consecutive Tier 1 (1 in 4 after Tier 1)
+        } elseif ($lastCrashMultiplierHundredths !== null) {
+            $pTier1 = 8.0 / 15.0; // ~53.33% after non-Tier 1 in sequential mode
         } else {
-            $pTier1 = 8.0 / 15.0; // ~53.33% after non-Tier 1
+            $pTier1 = 0.40; // Unconditional draw: exact 40% target
         }
 
         if ($r < $pTier1) {
@@ -196,3 +198,7 @@ final class BirdEscapeEngine
         ];
     }
 }
+
+class_alias(CagedCrashEngine::class, 'App\Domain\Games\Engine\BirdEscape\BirdEscapeEngine');
+class_alias(CagedCrashEngine::class, 'App\Domain\Games\Engine\CagedCrash\BirdEscapeEngine');
+

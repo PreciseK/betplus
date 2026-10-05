@@ -9,20 +9,20 @@ use App\Models\CrashBet;
 use App\Models\CrashRound;
 use App\Models\Player;
 use App\Models\SignupSession;
-use Database\Seeders\BirdEscapeGameSeeder;
+use Database\Seeders\CagedCrashGameSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
-final class BirdEscapeRoundTest extends TestCase
+final class CagedCrashRoundTest extends TestCase
 {
     use RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(BirdEscapeGameSeeder::class);
+        $this->seed(CagedCrashGameSeeder::class);
         Queue::fake();
     }
 
@@ -52,7 +52,7 @@ final class BirdEscapeRoundTest extends TestCase
     /** Reads /rounds/current once (lazily creating the round if none exists) and returns the fresh model. */
     private function currentRound(string $token): CrashRound
     {
-        $this->withToken($token)->getJson('/v1/birdescape/rounds/current');
+        $this->withToken($token)->getJson('/v1/caged/rounds/current');
 
         return CrashRound::where('gameCode', 'BIRDESCAPE')->firstOrFail();
     }
@@ -61,7 +61,7 @@ final class BirdEscapeRoundTest extends TestCase
     {
         [, $token] = $this->signedInPlayer();
 
-        $response = $this->withToken($token)->getJson('/v1/birdescape/rounds/current');
+        $response = $this->withToken($token)->getJson('/v1/caged/rounds/current');
 
         $response->assertOk();
         $body = $response->json();
@@ -78,7 +78,7 @@ final class BirdEscapeRoundTest extends TestCase
         $round = $this->currentRound($token);
         $round->update(['status' => 'CRASHED', 'crashedAt' => now()]);
 
-        $response = $this->withToken($token)->getJson('/v1/birdescape/rounds/current');
+        $response = $this->withToken($token)->getJson('/v1/caged/rounds/current');
 
         $response->assertOk();
         $body = $response->json();
@@ -92,7 +92,7 @@ final class BirdEscapeRoundTest extends TestCase
         [, $token] = $this->signedInPlayer(fundedKobo: 500_000);
         $round = $this->currentRound($token);
 
-        $response = $this->withToken($token)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $response = $this->withToken($token)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 50_000,
             'idempotency_key' => 'bet-1',
         ]);
@@ -113,7 +113,7 @@ final class BirdEscapeRoundTest extends TestCase
         $round = $this->currentRound($token);
         $round->update(['status' => 'FLYING', 'flightStartedAt' => now()]);
 
-        $response = $this->withToken($token)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $response = $this->withToken($token)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 50_000,
             'idempotency_key' => 'bet-refused',
         ]);
@@ -127,7 +127,7 @@ final class BirdEscapeRoundTest extends TestCase
         [$player, $token] = $this->signedInPlayer(fundedKobo: 5_000);
         $round = $this->currentRound($token);
 
-        $response = $this->withToken($token)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $response = $this->withToken($token)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 100_000,
             'idempotency_key' => 'balance-gate',
         ]);
@@ -143,10 +143,10 @@ final class BirdEscapeRoundTest extends TestCase
         [$player, $token] = $this->signedInPlayer(fundedKobo: 500_000);
         $round = $this->currentRound($token);
 
-        $first = $this->withToken($token)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $first = $this->withToken($token)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 50_000, 'idempotency_key' => 'replay-key',
         ])->json();
-        $second = $this->withToken($token)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $second = $this->withToken($token)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 50_000, 'idempotency_key' => 'replay-key',
         ])->json();
 
@@ -159,7 +159,7 @@ final class BirdEscapeRoundTest extends TestCase
         [, $token] = $this->signedInPlayer(fundedKobo: 500_000);
         $round = $this->currentRound($token);
 
-        $bet = $this->withToken($token)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $bet = $this->withToken($token)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 100_000, 'idempotency_key' => 'cashout-win',
         ])->json();
 
@@ -170,7 +170,7 @@ final class BirdEscapeRoundTest extends TestCase
             'crashMultiplierHundredths' => 100_000, 'growthRateConstant' => 500_000,
         ]);
 
-        $response = $this->withToken($token)->postJson("/v1/birdescape/bets/{$bet['bet_id']}/cashout");
+        $response = $this->withToken($token)->postJson("/v1/caged/bets/{$bet['bet_id']}/cashout");
 
         $response->assertOk();
         $body = $response->json();
@@ -184,7 +184,7 @@ final class BirdEscapeRoundTest extends TestCase
         [, $token] = $this->signedInPlayer(fundedKobo: 500_000);
         $round = $this->currentRound($token);
 
-        $bet = $this->withToken($token)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $bet = $this->withToken($token)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 100_000, 'idempotency_key' => 'cashout-late',
         ])->json();
 
@@ -195,7 +195,7 @@ final class BirdEscapeRoundTest extends TestCase
             'crashMultiplierHundredths' => 150, 'growthRateConstant' => 1,
         ]);
 
-        $response = $this->withToken($token)->postJson("/v1/birdescape/bets/{$bet['bet_id']}/cashout");
+        $response = $this->withToken($token)->postJson("/v1/caged/bets/{$bet['bet_id']}/cashout");
 
         // A too-late cashout settles the bet as a normal loss rather than erroring —
         // consistent with the "already settled" idempotent-replay branch just above
@@ -219,12 +219,12 @@ final class BirdEscapeRoundTest extends TestCase
     {
         [, $tokenA] = $this->signedInPlayer('+2348034333333', fundedKobo: 500_000);
         $round = $this->currentRound($tokenA);
-        $betA = $this->withToken($tokenA)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $betA = $this->withToken($tokenA)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 100_000, 'idempotency_key' => 'racer-a',
         ])->json();
 
         [, $tokenB] = $this->signedInPlayer('+2348034444444', fundedKobo: 500_000);
-        $betB = $this->withToken($tokenB)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $betB = $this->withToken($tokenB)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 75_000, 'idempotency_key' => 'racer-b',
         ])->json();
 
@@ -236,7 +236,7 @@ final class BirdEscapeRoundTest extends TestCase
             'crashMultiplierHundredths' => 150, 'growthRateConstant' => 1,
         ]);
 
-        $this->withToken($tokenA)->postJson("/v1/birdescape/bets/{$betA['bet_id']}/cashout")->assertOk();
+        $this->withToken($tokenA)->postJson("/v1/caged/bets/{$betA['bet_id']}/cashout")->assertOk();
 
         // Player B never touched the API again — their bet must still have been
         // settled by player A's cashout request discovering the crash, not left
@@ -255,12 +255,12 @@ final class BirdEscapeRoundTest extends TestCase
     {
         [, $tokenA] = $this->signedInPlayer('+2348034111111', fundedKobo: 500_000);
         $round = $this->currentRound($tokenA);
-        $bet = $this->withToken($tokenA)->postJson("/v1/birdescape/rounds/{$round->id}/bets", [
+        $bet = $this->withToken($tokenA)->postJson("/v1/caged/rounds/{$round->id}/bets", [
             'stake_kobo' => 50_000, 'idempotency_key' => 'owner-bet',
         ])->json();
 
         [, $tokenB] = $this->signedInPlayer('+2348034222222', fundedKobo: 500_000);
-        $response = $this->withToken($tokenB)->postJson("/v1/birdescape/bets/{$bet['bet_id']}/cashout");
+        $response = $this->withToken($tokenB)->postJson("/v1/caged/bets/{$bet['bet_id']}/cashout");
 
         $response->assertStatus(404);
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Games\BirdEscape;
+namespace App\Domain\Games\CagedCrash;
 
 use App\Models\CrashConfig;
 use Carbon\CarbonInterface;
@@ -21,3 +21,5 @@ final class CrashConfigResolver
             ->first();
     }
 }
+
+class_alias(CrashConfigResolver::class, 'App\Domain\Games\BirdEscape\CrashConfigResolver');

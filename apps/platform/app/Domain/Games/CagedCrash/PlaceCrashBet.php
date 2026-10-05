@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Games\BirdEscape;
+namespace App\Domain\Games\CagedCrash;
 
 use App\Domain\Analytics\AnalyticsEventRecorder;
 use App\Domain\Games\Economics\EconomicsConfigResolver;
 use App\Domain\Games\Economics\EconomicsContext;
 use App\Domain\Games\Economics\EconomicsModelStrategyFactory;
-use App\Domain\Games\Engine\BirdEscape\BirdEscapeEngine;
+use App\Domain\Games\Engine\CagedCrash\CagedCrashEngine;
 use App\Domain\Jurisdiction\AttributionService;
 use App\Domain\ResponsibleGaming\LimitsService;
 use App\Domain\ResponsibleGaming\ProtectionService;
@@ -109,7 +109,7 @@ final class PlaceCrashBet
 
             $this->wallet->reserveStake($player, $stakeKobo, 'crash_bet', $bet->id, $attribution['stateCode']);
 
-            $freshRound->increment('exposureKobo', BirdEscapeEngine::worstCaseLiabilityKobo($stakeKobo));
+            $freshRound->increment('exposureKobo', CagedCrashEngine::worstCaseLiabilityKobo($stakeKobo));
 
             return $bet;
         });
@@ -131,3 +131,6 @@ final class PlaceCrashBet
         }
     }
 }
+
+class_alias(PlaceCrashBet::class, 'App\Domain\Games\BirdEscape\PlaceCrashBet');
+
