@@ -132,6 +132,6 @@ describe("BirdEscapeGameFlow", () => {
 
     await waitFor(() => expect(gateway.cashout).toHaveBeenCalledWith(7));
     expect(await screen.findByText(/Cashed Out @ 2\.50×/)).toBeInTheDocument();
-    expect(screen.getByText(/\+₦237\.50/)).toBeInTheDocument();
+    expect(screen.getAllByText(/\+₦237\.50/).length).toBeGreaterThanOrEqual(1);
   }, 10000);
 });

@@ -12,9 +12,16 @@ import {
   type BirdEscapeGateway,
   type BirdEscapeRoundState,
   MOCK_CHAT_MESSAGES,
-  INITIAL_LIVE_WINNERS,
   ChatMessage,
 } from "@/mocks/birdescape";
+import {
+  type CagedActivePlayer,
+  createInitial50Players,
+  startNewRoundBets,
+  updateFlyingCashouts,
+  settleCrashedRound,
+  mergeRealAndSimulatedPlayers,
+} from "./cagedActivePlayers";
 
 const PRESET_CHIPS_NAIRA = [100, 500, 2500, 10000];
 // Polling every 1000ms (1s) during FLYING keeps the single-threaded PHP dev server
@@ -103,12 +110,14 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
   const [clockOffsetMs, setClockOffsetMs] = useState(0);
   const [liveMultiplierHundredths, setLiveMultiplierHundredths] = useState(100);
 
-  const [leftTab, setLeftTab] = useState<"history" | "leaderboard">("history");
+  const [leftTab, setLeftTab] = useState<"history" | "leaderboard">("leaderboard");
   const [feedTab, setFeedTab] = useState<"players" | "chat">("players");
   const [showFairnessModal, setShowFairnessModal] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(MOCK_CHAT_MESSAGES);
   const [chatInput, setChatInput] = useState("");
   const [isMuted, setIsMuted] = useState(() => gameAudio.getMuted());
+  const [simulatedPlayers, setSimulatedPlayers] = useState<CagedActivePlayer[]>(() => createInitial50Players());
+  const lastCheckedMultiplierHundredthsRef = useRef(100);
 
   const [bet1, setBet1] = useState<BetSlotState>(() => idleSlot(100, 2.0));
   const [bet2, setBet2] = useState<BetSlotState>(() => idleSlot(500, 5.0));
@@ -134,6 +143,117 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
     const muted = gameAudio.toggleMute();
     setIsMuted(muted);
   };
+
+  // Real player bets placed by the current user (Slot 1 and Slot 2)
+  const currentUserBetsAsPlayers = useMemo<CagedActivePlayer[]>(() => {
+    const list: CagedActivePlayer[] = [];
+    if (bet1.status === "placed" || bet1.status === "active" || bet1.status === "cashed_out") {
+      const isCashedOut = bet1.status === "cashed_out";
+      const mult = bet1.cashedOutMultiplier ? bet1.cashedOutMultiplier / 100 : bet1.autoCashoutMult;
+      const payout = isCashedOut
+        ? bet1.netCreditKobo ?? Math.round(bet1.stake * (bet1.cashedOutMultiplier ?? 100))
+        : 0;
+      list.push({
+        id: `user_bet_slot_1_${roundState?.roundNumber || 0}`,
+        username: "You",
+        stakeKobo: Math.round(bet1.stake * 100),
+        targetMultiplier: mult,
+        cashedOut: isCashedOut,
+        cashedOutAtMultiplierHundredths: bet1.cashedOutMultiplier ?? null,
+        payoutKobo: payout,
+        isRealPlayer: true,
+        isCurrentUser: true,
+      });
+    }
+
+    if (bet2.status === "placed" || bet2.status === "active" || bet2.status === "cashed_out") {
+      const isCashedOut = bet2.status === "cashed_out";
+      const mult = bet2.cashedOutMultiplier ? bet2.cashedOutMultiplier / 100 : bet2.autoCashoutMult;
+      const payout = isCashedOut
+        ? bet2.netCreditKobo ?? Math.round(bet2.stake * (bet2.cashedOutMultiplier ?? 100))
+        : 0;
+      list.push({
+        id: `user_bet_slot_2_${roundState?.roundNumber || 0}`,
+        username: "You (Bet 2)",
+        stakeKobo: Math.round(bet2.stake * 100),
+        targetMultiplier: mult,
+        cashedOut: isCashedOut,
+        cashedOutAtMultiplierHundredths: bet2.cashedOutMultiplier ?? null,
+        payoutKobo: payout,
+        isRealPlayer: true,
+        isCurrentUser: true,
+      });
+    }
+    return list;
+  }, [bet1, bet2, roundState?.roundNumber]);
+
+  // Other real players connected to this round from the gateway / server
+  const otherRealPlayers = useMemo<CagedActivePlayer[]>(() => {
+    if (!roundState?.players || roundState.players.length === 0) return [];
+    return roundState.players.map((p, idx) => {
+      const isCashedOut = p.status === "CASHED_OUT";
+      const mult = p.cashedOutAtMultiplierHundredths ? p.cashedOutAtMultiplierHundredths / 100 : 2.0;
+      const payout = isCashedOut && p.cashedOutAtMultiplierHundredths
+        ? Math.round((p.stakeKobo * p.cashedOutAtMultiplierHundredths) / 100)
+        : 0;
+      return {
+        id: `real_player_${idx}_${p.stakeKobo}`,
+        username: p.username || `Player #${idx + 1}`,
+        stakeKobo: p.stakeKobo,
+        targetMultiplier: mult,
+        cashedOut: isCashedOut,
+        cashedOutAtMultiplierHundredths: p.cashedOutAtMultiplierHundredths,
+        payoutKobo: payout,
+        isRealPlayer: true,
+      };
+    });
+  }, [roundState?.players]);
+
+  // All active real players in the current round
+  const allCurrentRealPlayers = useMemo<CagedActivePlayer[]>(() => {
+    return [...currentUserBetsAsPlayers, ...otherRealPlayers];
+  }, [currentUserBetsAsPlayers, otherRealPlayers]);
+
+  // Session history of real player wins so celebrated achievements persist on the leaderboard
+  const [realPlayerWinsHistory, setRealPlayerWinsHistory] = useState<CagedActivePlayer[]>([]);
+
+  useEffect(() => {
+    const currentWinners = allCurrentRealPlayers.filter((p) => p.cashedOut && p.payoutKobo > 0);
+    if (currentWinners.length > 0) {
+      setRealPlayerWinsHistory((prev) => {
+        const existingIds = new Set(prev.map((w) => w.id));
+        const newWins = currentWinners.filter((w) => !existingIds.has(w.id));
+        if (newWins.length === 0) return prev;
+        return [...newWins, ...prev].slice(0, 50);
+      });
+    }
+  }, [allCurrentRealPlayers]);
+
+  // Complete merged leaderboard: real players + simulated players seamlessly ranked by winnings
+  const leaderboardPlayers = useMemo<CagedActivePlayer[]>(() => {
+    const mergedReal = [...allCurrentRealPlayers];
+    for (const win of realPlayerWinsHistory) {
+      if (!mergedReal.some((r) => r.id === win.id)) {
+        mergedReal.push(win);
+      }
+    }
+    return mergeRealAndSimulatedPlayers(simulatedPlayers, mergedReal);
+  }, [allCurrentRealPlayers, realPlayerWinsHistory, simulatedPlayers]);
+
+  // Total active players count (50 simulated + real other players + active user bets)
+  const totalActivePlayersCount =
+    simulatedPlayers.length + otherRealPlayers.length + (currentUserBetsAsPlayers.length > 0 ? 1 : 0);
+
+  // Total bets kobo (simulated stakes + other real player stakes + user active bet stakes)
+  const totalBetsKobo =
+    simulatedPlayers.reduce((sum, p) => sum + p.stakeKobo, 0) +
+    otherRealPlayers.reduce((sum, p) => sum + p.stakeKobo, 0) +
+    currentUserBetsAsPlayers.reduce((sum, p) => sum + p.stakeKobo, 0);
+
+  // Right sidebar feed players: real players appear at the top, followed by simulated players
+  const feedPlayers = useMemo(() => {
+    return [...allCurrentRealPlayers, ...simulatedPlayers];
+  }, [allCurrentRealPlayers, simulatedPlayers]);
 
   // Self-scheduling, adaptive polling with in-flight lock to prevent request congestion
   useEffect(() => {
@@ -314,7 +434,7 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
     clockOffsetMs,
   ]);
 
-  // Audio cues on round state transitions
+  // Audio cues on round state transitions & live players simulation update
   useEffect(() => {
     if (!roundState) return;
     const prevStatus = prevRoundStatusRef.current;
@@ -323,14 +443,35 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
     if (prevStatus !== currentStatus) {
       if (currentStatus === "BETTING") {
         gameAudio.playGameStart();
+        // New round betting opens: 50 players place fresh bets (₦1,000 - ₦150,000)
+        setSimulatedPlayers((prev) => startNewRoundBets(prev));
       } else if (currentStatus === "FLYING") {
         gameAudio.playTakeoff();
       } else if (currentStatus === "CRASHED") {
         gameAudio.playCrash();
+        // Round crashed: settle winners and sort leaderboard by winnings
+        const crashMult = roundState.crashMultiplierHundredths ?? liveMultiplierHundredths;
+        setSimulatedPlayers((prev) => settleCrashedRound(prev, crashMult));
       }
       prevRoundStatusRef.current = currentStatus;
     }
-  }, [roundState?.status]);
+  }, [roundState?.status, roundState?.crashMultiplierHundredths, liveMultiplierHundredths]);
+
+  // Live cashouts simulation during FLYING as multiplier rises
+  useEffect(() => {
+    if (roundState?.status !== "FLYING") {
+      lastCheckedMultiplierHundredthsRef.current = 100;
+      return;
+    }
+
+    if (liveMultiplierHundredths - lastCheckedMultiplierHundredthsRef.current >= 5) {
+      lastCheckedMultiplierHundredthsRef.current = liveMultiplierHundredths;
+      setSimulatedPlayers((prev) => {
+        const { players, hasNewCashouts } = updateFlyingCashouts(prev, liveMultiplierHundredths);
+        return hasNewCashouts ? players : prev;
+      });
+    }
+  }, [roundState?.status, liveMultiplierHundredths]);
 
   const countdownSeconds =
     roundState?.status === "BETTING"
@@ -686,20 +827,72 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
                   })
                 )
               ) : (
-                INITIAL_LIVE_WINNERS.map((winner, idx) => (
-                  <div key={winner.id} className={styles.leaderboardRowItem}>
-                    <span className={`${styles.leaderRank} ${idx < 3 ? styles.leaderRankTop : ""}`}>
-                      {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`}
-                    </span>
-                    <div className={styles.leaderUserMeta}>
-                      <span className={styles.leaderUserName}>{winner.username}</span>
+                <>
+                  <div className={styles.leaderboardSubHeader}>
+                    <div className={styles.leaderboardStatusLive}>
+                      <span className={styles.livePulseDot} />
+                      <span>{totalActivePlayersCount} Live Players</span>
                     </div>
-                    <span className={`${styles.historyPill} ${winner.multiplier >= 5.0 ? styles.historyPillHigh : styles.historyPillMid}`}>
-                      {winner.multiplier.toFixed(2)}×
-                    </span>
-                    <span className={styles.leaderPayout}>{formatNaira(winner.amountKobo)}</span>
+                    <span className={styles.leaderboardStakeRange}>₦1k – ₦150k Stakes</span>
                   </div>
-                ))
+                  {leaderboardPlayers.map((player, idx) => {
+                    const mult = player.cashedOutAtMultiplierHundredths
+                      ? player.cashedOutAtMultiplierHundredths / 100
+                      : player.targetMultiplier;
+                    const isWinner = player.cashedOut && player.payoutKobo > 0;
+                    const isTop3 = idx < 3;
+                    const rowClass = `${styles.leaderboardRowItem} ${
+                      player.isCurrentUser
+                        ? styles.leaderboardRowCurrentUser
+                        : player.isRealPlayer
+                        ? styles.leaderboardRowReal
+                        : ""
+                    } ${player.justCashedOut ? styles.leaderboardRowCashedOut : ""}`;
+
+                    return (
+                      <div key={player.id} className={rowClass}>
+                        <span className={`${styles.leaderRank} ${isTop3 ? styles.leaderRankTop : ""}`}>
+                          {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`}
+                        </span>
+                        <div className={styles.leaderUserMeta}>
+                          <div style={{ display: "flex", alignItems: "center" }}>
+                            <span className={styles.leaderUserName}>{player.username}</span>
+                            {player.isCurrentUser && <span className={styles.realPlayerBadge}>YOU</span>}
+                            {player.isRealPlayer && !player.isCurrentUser && (
+                              <span className={styles.realPlayerBadge} style={{ background: "#3b82f6", color: "#fff" }}>
+                                LIVE
+                              </span>
+                            )}
+                          </div>
+                          <span className={styles.leaderStake}>Stake: {formatNaira(player.stakeKobo)}</span>
+                        </div>
+                        {isWinner ? (
+                          <span
+                            className={`${styles.historyPill} ${
+                              mult >= 5.0 ? styles.historyPillHigh : mult >= 2.0 ? styles.historyPillMid : styles.historyPillLow
+                            }`}
+                          >
+                            ✓ {mult.toFixed(2)}×
+                          </span>
+                        ) : roundState?.status === "FLYING" ? (
+                          <span className={styles.liveFlyingPill}>
+                            <span className={styles.flyingDot} />
+                            Flying
+                          </span>
+                        ) : (
+                          <span className={styles.targetPill}>Target {mult.toFixed(2)}×</span>
+                        )}
+                        <span className={`${styles.leaderPayout} ${!isWinner ? styles.leaderPayoutPending : ""}`}>
+                          {isWinner
+                            ? `+${formatNaira(player.payoutKobo)}`
+                            : roundState?.status === "FLYING"
+                            ? formatNaira(Math.round((player.stakeKobo * liveMultiplierHundredths) / 100))
+                            : formatNaira(player.stakeKobo)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </>
               )}
             </div>
           </div>
@@ -839,12 +1032,12 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
             <div className={styles.statMetricsGrid}>
               <div className={styles.metricBlock}>
                 <span className={styles.metricTitle}>Players</span>
-                <span className={styles.metricValue}>{roundState.players.length}</span>
+                <span className={styles.metricValue}>{totalActivePlayersCount}</span>
               </div>
               <div className={styles.metricBlock}>
                 <span className={styles.metricTitle}>Total Bets</span>
                 <span className={`${styles.metricValue} ${styles.highlight}`}>
-                  {formatNaira(roundState.players.reduce((sum, p) => sum + p.stakeKobo, 0))}
+                  {formatNaira(totalBetsKobo)}
                 </span>
               </div>
             </div>
@@ -862,22 +1055,22 @@ export function BirdEscapeGameFlow({ gateway = mockBirdEscapeGateway }: BirdEsca
 
             {feedTab === "players" ? (
               <div className={styles.feedContentList}>
-                {roundState.players.length === 0 && (
-                  <div className={styles.playerRow}>
-                    <span className={styles.playerName}>No other players this round yet</span>
-                  </div>
-                )}
-                {roundState.players.map((player, index) => (
+                {feedPlayers.map((player) => (
                   <div
-                    key={index}
-                    className={`${styles.playerRow} ${player.cashedOutAtMultiplierHundredths !== null ? styles.playerRowCashedOut : ""}`}
+                    key={player.id}
+                    className={`${styles.playerRow} ${player.cashedOut ? styles.playerRowCashedOut : ""} ${
+                      player.isCurrentUser ? styles.leaderboardRowCurrentUser : ""
+                    }`}
                   >
                     <div className={styles.playerLeft}>
-                      <span className={styles.playerName}>Player</span>
+                      <span className={styles.playerName}>
+                        {player.username}
+                        {player.isCurrentUser ? " (You)" : ""}
+                      </span>
                     </div>
                     <div className={styles.playerRight}>
                       <span className={styles.playerStake}>{formatNaira(player.stakeKobo)}</span>
-                      {player.cashedOutAtMultiplierHundredths !== null ? (
+                      {player.cashedOut && player.cashedOutAtMultiplierHundredths !== null ? (
                         <span className={styles.playerMultiplierBadge}>
                           ✓ {(player.cashedOutAtMultiplierHundredths / 100).toFixed(2)}×
                         </span>

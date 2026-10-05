@@ -26,6 +26,7 @@ export class BirdEscapeCashoutError extends Error {
 }
 
 type ApiRoundPlayer = {
+  username?: string | null;
   stake_kobo: number;
   status: "PLACED" | "CASHED_OUT" | "LOST";
   cashed_out_at_multiplier_hundredths: number | null;
@@ -109,7 +110,8 @@ export const birdEscapeGateway = {
         crashMultiplierHundredths: r.crash_multiplier_hundredths,
         crashedAt: r.crashed_at,
       })),
-      players: round.players.map((p) => ({
+      players: round.players.map((p, idx) => ({
+        username: p.username || `Player #${idx + 1}`,
         stakeKobo: p.stake_kobo,
         status: p.status,
         cashedOutAtMultiplierHundredths: p.cashed_out_at_multiplier_hundredths,

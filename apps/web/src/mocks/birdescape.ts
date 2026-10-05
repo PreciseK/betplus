@@ -199,7 +199,7 @@ export interface BirdEscapeRoundState {
   crashMultiplierHundredths: number | null;
   seedHex: string | null;
   recentRounds: { roundNumber: number; crashMultiplierHundredths: number; crashedAt: string }[];
-  players: { stakeKobo: number; status: "PLACED" | "CASHED_OUT" | "LOST"; cashedOutAtMultiplierHundredths: number | null }[];
+  players: { username?: string; stakeKobo: number; status: "PLACED" | "CASHED_OUT" | "LOST"; cashedOutAtMultiplierHundredths: number | null }[];
   myBets: BirdEscapeBet[];
 }
 

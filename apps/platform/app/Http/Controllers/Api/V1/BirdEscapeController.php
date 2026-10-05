@@ -201,10 +201,11 @@ class BirdEscapeController extends Controller
      */
     private function anonymizedPlayers(CrashRound $round, Player $viewer): array
     {
-        return CrashBet::where('roundId', $round->id)
+        return CrashBet::with('player')->where('roundId', $round->id)
             ->where('playerId', '!=', $viewer->id)
             ->get()
             ->map(fn (CrashBet $b) => [
+                'username' => $b->player?->displayName ?: ($b->player ? substr($b->player->msisdn, 0, 5) . '***' . substr($b->player->msisdn, -3) : null),
                 'stake_kobo' => $b->stakeKobo,
                 'status' => $b->status,
                 'cashed_out_at_multiplier_hundredths' => $b->cashedOutAtMultiplierHundredths,

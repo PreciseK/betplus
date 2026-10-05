@@ -357,6 +357,46 @@
   color: #5d8877;
 }
 
+.leaderboardSubHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.65rem;
+  background: rgba(16, 44, 32, 0.45);
+  border-radius: 6px;
+  border: 1px solid #14382a;
+  margin-bottom: 0.25rem;
+}
+
+.leaderboardStatusLive {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #22c55e;
+}
+
+.livePulseDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: pulseDotLive 1.5s infinite;
+}
+
+@keyframes pulseDotLive {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.leaderboardStakeRange {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #8fb8a6;
+}
+
 .leaderboardRowItem {
   display: flex;
   align-items: center;
@@ -366,6 +406,52 @@
   border: 1px solid #112e22;
   border-radius: 6px;
   gap: 0.5rem;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+
+.leaderboardRowItem:hover {
+  border-color: #1a4232;
+  background: #081a13;
+}
+
+.leaderboardRowCashedOut {
+  border-color: rgba(34, 197, 94, 0.45);
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.12) 0%, #06150f 100%);
+  animation: cashoutGlow 0.6s ease-out;
+}
+
+@keyframes cashoutGlow {
+  0% {
+    background-color: rgba(34, 197, 94, 0.28);
+    transform: scale(1.01);
+  }
+  100% {
+    background-color: #06150f;
+    transform: scale(1);
+  }
+}
+
+.leaderboardRowReal {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, #06150f 100%);
+}
+
+.leaderboardRowCurrentUser {
+  border-color: rgba(245, 183, 49, 0.55);
+  background: linear-gradient(90deg, rgba(245, 183, 49, 0.12) 0%, #06150f 100%);
+}
+
+.realPlayerBadge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  background: #f5b731;
+  color: #030a07;
+  letter-spacing: 0.04em;
+  margin-left: 0.35rem;
+  vertical-align: middle;
 }
 
 .leaderRank {
@@ -382,19 +468,60 @@
 
 .leaderUserMeta {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.15rem;
   flex: 1;
   min-width: 0;
 }
 
 .leaderUserName {
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #e2ece8;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.leaderStake {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #79a391;
+  white-space: nowrap;
+}
+
+.liveFlyingPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+}
+
+.flyingDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #60a5fa;
+  box-shadow: 0 0 6px #60a5fa;
+  animation: pulseDotLive 1s infinite;
+}
+
+.targetPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(109, 163, 142, 0.12);
+  border: 1px solid rgba(109, 163, 142, 0.25);
+  color: #8fb8a6;
 }
 
 .leaderPayout {
@@ -403,6 +530,11 @@
   color: #22c55e;
   text-align: right;
   white-space: nowrap;
+}
+
+.leaderPayoutPending {
+  color: #8fb8a6;
+  font-weight: 600;
 }
 
 
