@@ -118,11 +118,22 @@ export function getRandomTargetMultiplierHundredths(): number {
 }
 
 /**
- * Generates the initial pool of 50 active simulated players ready for live round action,
- * sorted strictly from highest stake to lowest stake.
+ * Picks a realistic dynamic active player count between 18 and 38 for the round.
  */
-export function createInitial50Players(): CagedActivePlayer[] {
-  return CAGED_50_USERNAMES.map((username, idx) => {
+export function getRandomActiveCount(min: number = 18, max: number = 38): number {
+  return Math.floor(min + Math.random() * (max - min + 1));
+}
+
+/**
+ * Generates an active cohort of simulated players from the 50 usernames pool.
+ * If count is provided, generates exactly that many players.
+ * If count is omitted, picks a dynamic number between 18 and 38.
+ */
+export function createInitialActivePlayers(count?: number): CagedActivePlayer[] {
+  const targetCount = count ?? getRandomActiveCount(18, 38);
+  const shuffledNames = [...CAGED_50_USERNAMES].sort(() => Math.random() - 0.5).slice(0, targetCount);
+
+  return shuffledNames.map((username, idx) => {
     // Use diverse realistic stakes strictly between ₦1,000 and ₦150,000
     const stakeNaira = STAKE_PRESETS_NAIRA[idx % STAKE_PRESETS_NAIRA.length];
     const stakeKobo = stakeNaira * 100;
@@ -146,31 +157,71 @@ export function createInitial50Players(): CagedActivePlayer[] {
 }
 
 /**
- * Prepares players for a new round: sets fresh stakes (₦1,000 - ₦150,000) and target multipliers,
- * with staggered delays across the betting window so bets stream in dynamically as the session starts,
- * arranged strictly from highest stake to lowest stake.
+ * Alias for createInitialActivePlayers, allowing backwards compatibility.
+ */
+export function createInitial50Players(count?: number): CagedActivePlayer[] {
+  return createInitialActivePlayers(count);
+}
+
+/**
+ * Prepares players for a new round: picks a realistic dynamic active cohort (18 - 38 players)
+ * from the pool so not all 50 players play every time. Players dynamically enter, sit out,
+ * and rotate between sessions. Sets fresh stakes (₦1,000 - ₦150,000) and staggered bet placement delays.
  */
 export function startNewRoundBets(
   prevPlayers: CagedActivePlayer[],
   bettingWindowSeconds: number = 5,
+  targetCount?: number,
 ): CagedActivePlayer[] {
+  const activeCount = targetCount ?? getRandomActiveCount(18, 38);
   const maxDelayMs = Math.max(800, (bettingWindowSeconds || 5) * 1000 - 300);
-  const shuffledIndices = Array.from({ length: prevPlayers.length }, (_, i) => i).sort(
+
+  // Realistic player retention: ~65% of current active players continue into next round,
+  // while the rest sit out and new players from the inactive pool jump in.
+  const prevUsernames = new Set(prevPlayers.map((p) => p.username));
+  const availablePool = [...CAGED_50_USERNAMES];
+
+  // Candidates who played last round vs candidates who sat out
+  const continuingPool = availablePool.filter((name) => prevUsernames.has(name)).sort(() => Math.random() - 0.5);
+  const sittingOutPool = availablePool.filter((name) => !prevUsernames.has(name)).sort(() => Math.random() - 0.5);
+
+  const desiredContinuing = Math.min(continuingPool.length, Math.round(activeCount * 0.65));
+  const desiredNew = activeCount - desiredContinuing;
+
+  const selectedUsernames = [
+    ...continuingPool.slice(0, desiredContinuing),
+    ...sittingOutPool.slice(0, desiredNew),
+  ];
+
+  // If we still need more to meet activeCount, fill from remaining
+  if (selectedUsernames.length < activeCount) {
+    const remaining = availablePool.filter((name) => !selectedUsernames.includes(name));
+    selectedUsernames.push(...remaining.slice(0, activeCount - selectedUsernames.length));
+  }
+
+  const shuffledIndices = Array.from({ length: selectedUsernames.length }, (_, i) => i).sort(
     () => Math.random() - 0.5,
   );
 
-  return prevPlayers
-    .map((player, idx) => {
+  return selectedUsernames
+    .map((username, idx) => {
       const stakeKobo = getRandomStakeKobo();
       const targetHundredths = getRandomTargetMultiplierHundredths();
       const staggerOrder = shuffledIndices[idx];
       // Stagger from 80ms up to maxDelayMs so bets stream in dynamically
       const placeBetDelayMs = Math.floor(
-        80 + (staggerOrder / prevPlayers.length) * (maxDelayMs - 80) + Math.random() * 50,
+        80 + (staggerOrder / selectedUsernames.length) * (maxDelayMs - 80) + Math.random() * 50,
       );
 
+      // Preserve avatar gradient if player was previously active, else pick from list
+      const prev = prevPlayers.find((p) => p.username === username);
+      const avatarColor =
+        prev?.avatarColor ??
+        AVATAR_GRADIENTS[Math.abs(username.charCodeAt(3) || 0) % AVATAR_GRADIENTS.length];
+
       return {
-        ...player,
+        id: `sim_p_${idx + 1}_${username}`,
+        username,
         stakeKobo,
         targetMultiplier: targetHundredths / 100,
         cashedOut: false,
@@ -178,6 +229,7 @@ export function startNewRoundBets(
         cashedOutAtMultiplierHundredths: null,
         payoutKobo: 0,
         justCashedOut: false,
+        avatarColor,
         placeBetDelayMs,
       };
     })

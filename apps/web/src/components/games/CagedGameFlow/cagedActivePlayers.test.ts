@@ -24,9 +24,10 @@ describe("cagedActivePlayers", () => {
     }
   });
 
-  it("creates initial 50 players with valid stakes and winners", () => {
+  it("creates active players within the dynamic 18 to 38 player range by default", () => {
     const players = createInitial50Players();
-    expect(players).toHaveLength(50);
+    expect(players.length).toBeGreaterThanOrEqual(18);
+    expect(players.length).toBeLessThanOrEqual(38);
 
     for (const player of players) {
       expect(player.stakeKobo).toBeGreaterThanOrEqual(100_000);
@@ -34,15 +35,21 @@ describe("cagedActivePlayers", () => {
       expect(player.username).toBeTruthy();
     }
 
-    // Top player should have a payout >= 0 and list should be sorted
-    expect(players[0].payoutKobo).toBeGreaterThanOrEqual(players[1].payoutKobo);
+    // List should be sorted descending by stake
+    expect(players[0].stakeKobo).toBeGreaterThanOrEqual(players[1].stakeKobo);
   });
 
-  it("resets bets on new round with stakes within range", () => {
+  it("can generate a custom count (e.g. 50 players) when requested", () => {
+    const players = createInitial50Players(50);
+    expect(players).toHaveLength(50);
+  });
+
+  it("resets bets on new round with dynamic cohort within 18 to 38 players", () => {
     const initial = createInitial50Players();
     const newRound = startNewRoundBets(initial);
 
-    expect(newRound).toHaveLength(50);
+    expect(newRound.length).toBeGreaterThanOrEqual(18);
+    expect(newRound.length).toBeLessThanOrEqual(38);
     for (const p of newRound) {
       expect(p.cashedOut).toBe(false);
       expect(p.payoutKobo).toBe(0);

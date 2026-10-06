@@ -39,12 +39,13 @@ function fakeGateway(overrides: Partial<CagedGateway> = {}): CagedGateway {
 }
 
 describe("CagedGameFlow Leaderboard & Active Players", () => {
-  it("defaults to the Leaderboard tab and displays 50 live players", async () => {
+  it("defaults to the Leaderboard tab and displays dynamic live players (18-38)", async () => {
     const gateway = fakeGateway();
     render(<CagedGameFlow gateway={gateway} />);
 
     // Verify subheader and active player badge
-    expect(await screen.findByText("50 Live Players")).toBeInTheDocument();
+    const liveHeader = await screen.findByText(/\d+ Live Players/);
+    expect(liveHeader).toBeInTheDocument();
     expect(screen.getByText("₦1k – ₦150k Stakes")).toBeInTheDocument();
 
     // Verify top medal ranks are present
@@ -52,13 +53,10 @@ describe("CagedGameFlow Leaderboard & Active Players", () => {
     expect(screen.getByText("🥈")).toBeInTheDocument();
     expect(screen.getByText("🥉")).toBeInTheDocument();
 
-    // Verify active players from the 50 usernames appear in leaderboard & feed
-    expect(screen.getAllByText(CAGED_50_USERNAMES[0]).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(CAGED_50_USERNAMES[1]).length).toBeGreaterThanOrEqual(1);
-
-    // Verify that displayed stakes match the ₦1,000 to ₦150,000 requirement
+    // Verify active players from the pool appear in leaderboard & feed
     const stakeElements = screen.getAllByTestId("player-stake");
-    expect(stakeElements.length).toBe(50);
+    expect(stakeElements.length).toBeGreaterThanOrEqual(18);
+    expect(stakeElements.length).toBeLessThanOrEqual(38);
 
     for (const el of stakeElements) {
       const match = el.textContent?.match(/^₦([\d,]+)\.00$/);
@@ -89,8 +87,8 @@ describe("CagedGameFlow Leaderboard & Active Players", () => {
 
     render(<CagedGameFlow gateway={gateway} />);
 
-    // Total players reflects simulated + real player (50 + 1 = 51)
-    expect(await screen.findByText("51 Live Players")).toBeInTheDocument();
+    // Total players reflects simulated + real player
+    expect(await screen.findByText(/\d+ Live Players/)).toBeInTheDocument();
 
     // The real player appears in both leaderboard and players feed
     expect(screen.getAllByText("RealVIP_Chidi").length).toBeGreaterThanOrEqual(1);
@@ -130,5 +128,29 @@ describe("CagedGameFlow Leaderboard & Active Players", () => {
 
     // Absolutely no "Target" label should be displayed in the player feed
     expect(screen.queryByText(/Target \d/)).toBeNull();
+  });
+
+  it("supports switching to Chat tab, viewing online users, and sending messages or emoji reactions", async () => {
+    const gateway = fakeGateway();
+    render(<CagedGameFlow gateway={gateway} />);
+
+    // Click the Chat tab
+    const chatTabBtn = await screen.findByRole("button", { name: "Chat" });
+    chatTabBtn.click();
+
+    // Verify online room indicator appears
+    expect(await screen.findByText(/\d+ Online/)).toBeInTheDocument();
+    expect(screen.getByText("Live Room • English")).toBeInTheDocument();
+
+    // Verify reaction emojis are present
+    expect(screen.getByRole("button", { name: "Send 🚀" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send 🔥" })).toBeInTheDocument();
+
+    // Click reaction emoji to post
+    const rocketBtn = screen.getByRole("button", { name: "Send 🚀" });
+    rocketBtn.click();
+
+    // Verify message with 🚀 was sent into chat
+    expect(screen.getByText("🚀")).toBeInTheDocument();
   });
 });

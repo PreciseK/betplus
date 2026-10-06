@@ -11,8 +11,6 @@ import {
   CagedCashoutError,
   type CagedGateway,
   type CagedRoundState,
-  MOCK_CHAT_MESSAGES,
-  ChatMessage,
 } from "@/mocks/caged";
 import {
   type CagedActivePlayer,
@@ -23,6 +21,14 @@ import {
   mergeRealAndSimulatedPlayers,
   AVATAR_GRADIENTS,
 } from "./cagedActivePlayers";
+import {
+  type CagedChatMessage,
+  INITIAL_CHAT_MESSAGES,
+  CHAT_REACTION_EMOJIS,
+  createRoundEventChatMessage,
+  createOrganicChatMessage,
+  getSimulatedOnlineCount,
+} from "./cagedChatSystem";
 
 const PRESET_CHIPS_NAIRA = [100, 500, 2500, 10000];
 // Polling every 1000ms (1s) during FLYING keeps the single-threaded PHP dev server
@@ -114,8 +120,12 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
 
   const [feedTab, setFeedTab] = useState<"players" | "chat">("players");
   const [showFairnessModal, setShowFairnessModal] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(MOCK_CHAT_MESSAGES);
+  const [chatMessages, setChatMessages] = useState<CagedChatMessage[]>(INITIAL_CHAT_MESSAGES);
   const [chatInput, setChatInput] = useState("");
+  const [onlineUsersCount] = useState<number>(() => getSimulatedOnlineCount());
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const [isMuted, setIsMuted] = useState(() => gameAudio.getMuted());
   const [simulatedPlayers, setSimulatedPlayers] = useState<CagedActivePlayer[]>(() => createInitial50Players());
   const lastCheckedMultiplierHundredthsRef = useRef(100);
@@ -458,10 +468,13 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
     if (prevStatus !== currentStatus) {
       if (currentStatus === "BETTING") {
         gameAudio.playGameStart();
-        // New round betting opens: 50 players place fresh bets progressively (₦1,000 - ₦150,000)
+        // New round betting opens: dynamic active players place fresh bets progressively (₦1,000 - ₦150,000)
         setSimulatedPlayers((prev) =>
           startNewRoundBets(prev, roundState.bettingWindowSeconds || 5),
         );
+        if (Math.random() < 0.45) {
+          setChatMessages((prev) => [...prev.slice(-35), createRoundEventChatMessage("BETTING")]);
+        }
       } else if (currentStatus === "FLYING") {
         gameAudio.playTakeoff();
       } else if (currentStatus === "CRASHED") {
@@ -469,6 +482,11 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
         // Round crashed: settle winners and sort leaderboard by winnings
         const crashMult = roundState.crashMultiplierHundredths ?? liveMultiplierHundredths;
         setSimulatedPlayers((prev) => settleCrashedRound(prev, crashMult));
+        if (crashMult < 160 && Math.random() < 0.65) {
+          setChatMessages((prev) => [...prev.slice(-35), createRoundEventChatMessage("EARLY_CRASH")]);
+        } else if (crashMult >= 350 && Math.random() < 0.65) {
+          setChatMessages((prev) => [...prev.slice(-35), createRoundEventChatMessage("HIGH_CRASH")]);
+        }
       }
       prevRoundStatusRef.current = currentStatus;
     }
@@ -645,15 +663,77 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
     }
   }, [liveMultiplierHundredths, roundState?.status, bet1, bet2, handleCashout]);
 
+  const sendChatMessage = (textToSend: string) => {
+    const trimmed = textToSend.trim();
+    if (!trimmed) return;
+    const newMsg: CagedChatMessage = {
+      id: `chat_user_${Date.now()}`,
+      username: "You",
+      avatarColor: "#10b981",
+      text: trimmed,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      isCurrentUser: true,
+      badge: "YOU",
+    };
+    setChatMessages((prev) => [...prev.slice(-35), newMsg]);
+    setChatInput("");
+    setHasUnreadMessages(false);
+    setTimeout(() => {
+      chatMessagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
+    }, 40);
+  };
+
   const handleSendChat = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
-    setChatMessages((prev) => [
-      ...prev,
-      { id: `chat_${Date.now()}`, username: "You", avatar: "", text: chatInput, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
-    ]);
-    setChatInput("");
+    sendChatMessage(chatInput);
   };
+
+  const handleEmojiClick = (emoji: string) => {
+    sendChatMessage(emoji);
+  };
+
+  const handleChatScroll = () => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+    if (isAtBottom && hasUnreadMessages) {
+      setHasUnreadMessages(false);
+    }
+  };
+
+  const scrollToBottom = () => {
+    chatMessagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
+    setHasUnreadMessages(false);
+  };
+
+  // Auto-scroll when new messages arrive if near bottom, else flag unread
+  useEffect(() => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 70;
+    if (isAtBottom) {
+      chatMessagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
+    } else {
+      setHasUnreadMessages(true);
+    }
+  }, [chatMessages.length]);
+
+  // Jump to bottom when user switches to chat tab
+  useEffect(() => {
+    if (feedTab === "chat") {
+      scrollToBottom();
+    }
+  }, [feedTab]);
+
+  // Periodic subtle organic chatter so the room stays lively
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (Math.random() < 0.4) {
+        setChatMessages((prev) => [...prev.slice(-35), createOrganicChatMessage()]);
+      }
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
 
   const recentCrashes = useMemo(() => {
     if (!roundState) return [];
@@ -1039,25 +1119,94 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
                 })}
               </div>
             ) : (
-              <div className={styles.feedContentList} style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  {chatMessages.map((msg) => (
-                    <div key={msg.id} className={`${styles.chatMessageItem} ${msg.isBigWin ? styles.bigWin : ""}`}>
-                      <div className={styles.chatHeader}>
-                        <span className={styles.chatUser}>{msg.username}</span>
-                        <span className={styles.chatTime}>{msg.time}</span>
+              <div className={styles.chatWrapper}>
+                <div className={styles.chatSubHeader}>
+                  <div className={styles.chatOnlineBadge}>
+                    <span className={styles.chatOnlineDot} />
+                    <span>{onlineUsersCount} Online</span>
+                  </div>
+                  <span className={styles.chatLoungeRoom}>Live Room • English</span>
+                </div>
+
+                <div
+                  ref={chatContainerRef}
+                  onScroll={handleChatScroll}
+                  className={styles.chatMessagesList}
+                >
+                  {chatMessages.map((msg) => {
+                    const isCurrentUser = msg.isCurrentUser || msg.username === "You";
+                    const itemClass = `${styles.chatMessageItem} ${
+                      isCurrentUser ? styles.chatCurrentUser : ""
+                    } ${msg.isBigWin ? styles.bigWin : ""} ${
+                      msg.isSystem ? styles.systemNotice : ""
+                    }`;
+
+                    return (
+                      <div key={msg.id} className={itemClass}>
+                        <div
+                          className={styles.chatAvatar}
+                          style={{
+                            background: msg.avatarColor || (isCurrentUser ? "#10b981" : "#047857"),
+                          }}
+                          aria-hidden="true"
+                        >
+                          {isCurrentUser ? "Y" : msg.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div className={styles.chatBody}>
+                          <div className={styles.chatHeader}>
+                            <span className={styles.chatUser}>
+                              {isCurrentUser ? "You" : msg.username}
+                            </span>
+                            {isCurrentUser && (
+                              <span className={`${styles.chatUserRoleBadge} ${styles.you}`}>YOU</span>
+                            )}
+                            {msg.isBigWin && (
+                              <span className={`${styles.chatUserRoleBadge} ${styles.bigWin}`}>WINNER</span>
+                            )}
+                            <span className={styles.chatTime}>{msg.time}</span>
+                          </div>
+                          <span className={styles.chatText}>{msg.text}</span>
+                        </div>
                       </div>
-                      <span className={styles.chatText}>{msg.text}</span>
-                    </div>
+                    );
+                  })}
+                  <div ref={chatMessagesEndRef} />
+                </div>
+
+                {hasUnreadMessages && (
+                  <button
+                    type="button"
+                    className={styles.chatScrollBottomBtn}
+                    onClick={scrollToBottom}
+                    aria-label="Scroll to newest messages"
+                  >
+                    ↓ New messages
+                  </button>
+                )}
+
+                <div className={styles.chatEmojiBar}>
+                  {CHAT_REACTION_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      className={styles.chatEmojiBtn}
+                      onClick={() => handleEmojiClick(emoji)}
+                      title={`Send ${emoji}`}
+                      aria-label={`Send ${emoji}`}
+                    >
+                      {emoji}
+                    </button>
                   ))}
                 </div>
+
                 <form onSubmit={handleSendChat} className={styles.chatInputRow}>
                   <input
                     type="text"
-                    placeholder="Send message..."
+                    placeholder={`Chat with ${onlineUsersCount} players...`}
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     className={styles.chatInput}
+                    maxLength={120}
                   />
                   <button type="submit" className={styles.chatSendButton}>
                     Send

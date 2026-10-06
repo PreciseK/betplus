@@ -1295,68 +1295,310 @@
   background: #22c55e;
 }
 
-/* Chat Messages */
-.chatMessageItem {
+/* Chat System */
+.chatWrapper {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.4rem 0.6rem;
+  position: relative;
+  min-height: 420px;
+  max-height: 520px;
+  background: #040e09;
   border-radius: 6px;
-  background: #06150e;
-  font-size: 0.78rem;
+  overflow: hidden;
+}
+
+.chatSubHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.6rem;
+  background: rgba(5, 17, 11, 0.95);
+  border-bottom: 1px solid rgba(16, 56, 38, 0.6);
+  font-size: 0.7rem;
+}
+
+.chatOnlineBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 0.68rem;
+}
+
+.chatOnlineDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.7);
+  animation: pulseDotLive 1.5s infinite;
+}
+
+.chatLoungeRoom {
+  color: #79a391;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.chatMessagesList {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #143829 transparent;
+}
+
+.chatMessagesList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chatMessagesList::-webkit-scrollbar-thumb {
+  background: #143829;
+  border-radius: 2px;
+}
+
+.chatMessageItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: 5px;
+  background: rgba(6, 21, 14, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.74rem;
+  transition: background 0.15s ease;
+  animation: messageSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chatMessageItem:hover {
+  background: rgba(10, 31, 21, 0.85);
+}
+
+.chatMessageItem.chatCurrentUser {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.28);
 }
 
 .chatMessageItem.bigWin {
-  border: 1px solid rgba(245, 183, 49, 0.4);
-  background: #152918;
+  background: linear-gradient(135deg, rgba(245, 183, 49, 0.16) 0%, rgba(6, 21, 14, 0.95) 100%);
+  border: 1px solid rgba(245, 183, 49, 0.45);
+  box-shadow: 0 2px 8px rgba(245, 183, 49, 0.1);
+}
+
+.chatMessageItem.systemNotice {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px dashed rgba(16, 185, 129, 0.3);
+}
+
+.chatAvatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.chatBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .chatHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.3rem;
+  line-height: 1.2;
 }
 
 .chatUser {
-  color: #f5b731;
-  font-weight: 700;
+  color: #e2ece8;
+  font-weight: 600;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chatMessageItem.chatCurrentUser .chatUser {
+  color: #4ade80;
+}
+
+.chatUserRoleBadge {
+  font-size: 0.52rem;
+  font-weight: 800;
+  padding: 0.04rem 0.22rem;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
+.chatUserRoleBadge.you {
+  background: #22c55e;
+  color: #03140a;
+}
+
+.chatUserRoleBadge.bigWin {
+  background: #f5b731;
+  color: #0b1812;
 }
 
 .chatTime {
   color: #558774;
-  font-size: 0.68rem;
+  font-size: 0.6rem;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .chatText {
-  color: #d1e4dc;
+  color: #cbd5e1;
+  font-size: 0.72rem;
   line-height: 1.35;
+  word-break: break-word;
+}
+
+.chatMessageItem.bigWin .chatText {
+  color: #fef08a;
+  font-weight: 600;
+}
+
+.chatScrollBottomBtn {
+  position: absolute;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #10b981;
+  color: #021a0d;
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 0.22rem 0.65rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  z-index: 10;
+  transition: transform 0.12s ease, background 0.12s ease;
+  animation: messageSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chatScrollBottomBtn:hover {
+  background: #34d399;
+}
+
+.chatScrollBottomBtn:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.chatEmojiBar {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.3rem 0.45rem;
+  background: rgba(5, 17, 11, 0.95);
+  border-top: 1px solid rgba(16, 56, 38, 0.5);
+  overflow-x: auto;
+  scrollbar-width: none;
+  align-items: center;
+}
+
+.chatEmojiBar::-webkit-scrollbar {
+  display: none;
+}
+
+.chatEmojiBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 0.15rem 0.38rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.12s ease, transform 0.1s ease;
+  flex-shrink: 0;
+}
+
+.chatEmojiBtn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+.chatEmojiBtn:active {
+  transform: scale(0.9);
 }
 
 .chatInputRow {
   display: flex;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  background: #06150e;
+  border-top: 1px solid rgba(16, 56, 38, 0.6);
+  align-items: center;
 }
 
 .chatInput {
   flex: 1;
-  background: #05110b;
+  background: #040e09;
   border: 1px solid #143829;
   border-radius: 4px;
-  color: #fff;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.78rem;
+  color: #e2ece8;
+  padding: 0.38rem 0.55rem;
+  font-size: 0.74rem;
   outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.chatInput:focus {
+  border-color: #22c55e;
 }
 
 .chatSendButton {
   background: #f5b731;
   border: none;
   border-radius: 4px;
-  color: #0b1812;
+  color: #06150e;
   font-weight: 700;
-  padding: 0 0.6rem;
+  font-size: 0.72rem;
+  padding: 0.38rem 0.65rem;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+
+.chatSendButton:hover {
+  background: #fabf3f;
+}
+
+.chatSendButton:active {
+  transform: scale(0.96);
 }
 
 .mainActionButton.betPlacing {
