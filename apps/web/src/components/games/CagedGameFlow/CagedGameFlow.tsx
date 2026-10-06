@@ -985,21 +985,18 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
                           }}
                           aria-hidden="true"
                         >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                           </svg>
                         </div>
                         <div className={styles.playerUserMeta}>
-                          <div style={{ display: "flex", alignItems: "center" }}>
-                            <span className={styles.playerName}>{player.username}</span>
-                            {player.isCurrentUser && <span className={styles.realPlayerBadge}>YOU</span>}
-                            {player.isRealPlayer && !player.isCurrentUser && (
-                              <span className={styles.realPlayerBadge} style={{ background: "#3b82f6", color: "#fff" }}>
-                                LIVE
-                              </span>
-                            )}
-                          </div>
-                          <span className={styles.playerStakeSub}>Stake: {formatNaira(player.stakeKobo)}</span>
+                          <span className={styles.playerName}>{player.username}</span>
+                          {player.isCurrentUser && <span className={styles.realPlayerBadge}>YOU</span>}
+                          {player.isRealPlayer && !player.isCurrentUser && (
+                            <span className={styles.realPlayerBadge} style={{ background: "#3b82f6", color: "#fff" }}>
+                              LIVE
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -1031,7 +1028,9 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
                         ) : (
                           <>
                             <span className={styles.betPlacedPillSmall}>Bet Placed</span>
-                            <span className={styles.playerStakeText}>{formatNaira(player.stakeKobo)}</span>
+                            <span className={styles.playerStakeText} data-testid="player-stake">
+                              {formatNaira(player.stakeKobo)}
+                            </span>
                           </>
                         )}
                       </div>

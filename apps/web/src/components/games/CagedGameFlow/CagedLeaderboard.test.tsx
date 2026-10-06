@@ -57,11 +57,11 @@ describe("CagedGameFlow Leaderboard & Active Players", () => {
     expect(screen.getAllByText(CAGED_50_USERNAMES[1]).length).toBeGreaterThanOrEqual(1);
 
     // Verify that displayed stakes match the ₦1,000 to ₦150,000 requirement
-    const stakeElements = screen.getAllByText(/^Stake: ₦/);
+    const stakeElements = screen.getAllByTestId("player-stake");
     expect(stakeElements.length).toBe(50);
 
     for (const el of stakeElements) {
-      const match = el.textContent?.match(/^Stake: ₦([\d,]+)\.00$/);
+      const match = el.textContent?.match(/^₦([\d,]+)\.00$/);
       expect(match).toBeTruthy();
       if (match) {
         const nairaAmount = parseInt(match[1].replace(/,/g, ""), 10);
