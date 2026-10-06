@@ -88,4 +88,52 @@ describe("cagedActivePlayers", () => {
     expect(p2.lost).toBe(true);
     expect(p2.payoutKobo).toBe(0);
   });
+
+  it("ensures all 50 usernames are masked phone numbers containing 'xx'", () => {
+    expect(CAGED_50_USERNAMES).toHaveLength(50);
+    for (const name of CAGED_50_USERNAMES) {
+      expect(name).toMatch(/^0\d{3}xx\d{4}$/);
+    }
+  });
+
+  it("never allows a player with 3.10x target to win if the game crashed at 3.01x", () => {
+    const players = createInitial50Players();
+    players[0].targetMultiplier = 3.1; // 3.10x
+    players[0].cashedOut = false;
+    players[1].targetMultiplier = 2.5; // 2.50x
+    players[1].cashedOut = false;
+
+    // Simulate round crashing at 3.01x (301 hundredths)
+    const settled = settleCrashedRound(players, 301);
+
+    const p310 = settled.find((p) => p.id === players[0].id)!;
+    const p250 = settled.find((p) => p.id === players[1].id)!;
+
+    // 3.10x is higher than 3.01x -> must have lost!
+    expect(p310.cashedOut).toBe(false);
+    expect(p310.lost).toBe(true);
+    expect(p310.payoutKobo).toBe(0);
+
+    // 2.50x is lower than 3.01x -> cashed out
+    expect(p250.cashedOut).toBe(true);
+    expect(p250.lost).toBe(false);
+    expect(p250.payoutKobo).toBeGreaterThan(0);
+  });
+
+  it("arranges players strictly from highest stake to lowest stake across all rounds and crashes", () => {
+    const players = createInitial50Players();
+    for (let i = 0; i < players.length - 1; i++) {
+      expect(players[i].stakeKobo).toBeGreaterThanOrEqual(players[i + 1].stakeKobo);
+    }
+
+    const newRound = startNewRoundBets(players);
+    for (let i = 0; i < newRound.length - 1; i++) {
+      expect(newRound[i].stakeKobo).toBeGreaterThanOrEqual(newRound[i + 1].stakeKobo);
+    }
+
+    const settled = settleCrashedRound(newRound, 250);
+    for (let i = 0; i < settled.length - 1; i++) {
+      expect(settled[i].stakeKobo).toBeGreaterThanOrEqual(settled[i + 1].stakeKobo);
+    }
+  });
 });

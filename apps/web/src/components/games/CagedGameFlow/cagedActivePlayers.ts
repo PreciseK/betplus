@@ -1,6 +1,6 @@
 export interface CagedActivePlayer {
   id: string;
-  username: string;
+  username: string; // Masked phone number, e.g. 0803xx1948
   stakeKobo: number; // In kobo: ₦1,000 (100,000) to ₦150,000 (15,000,000)
   targetMultiplier: number;
   cashedOut: boolean;
@@ -10,59 +10,74 @@ export interface CagedActivePlayer {
   justCashedOut?: boolean;
   isRealPlayer?: boolean;
   isCurrentUser?: boolean;
+  avatarColor?: string;
 }
 
+export const AVATAR_GRADIENTS = [
+  "linear-gradient(135deg, #10b981 0%, #047857 100%)", // Emerald
+  "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)", // Amber
+  "linear-gradient(135deg, #6366f1 0%, #4338ca 100%)", // Indigo
+  "linear-gradient(135deg, #ec4899 0%, #be185d 100%)", // Pink
+  "linear-gradient(135deg, #06b6d4 0%, #0e7490 100%)", // Cyan
+  "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)", // Purple
+  "linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)", // Teal
+  "linear-gradient(135deg, #f43f5e 0%, #be123c 100%)", // Rose
+  "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", // Blue
+  "linear-gradient(135deg, #84cc16 0%, #4d7c0f 100%)", // Lime
+] as const;
+
+// 50 realistic masked Nigerian phone numbers with 'xx' hiding middle digits
 export const CAGED_50_USERNAMES = [
-  "tunde_gold",
-  "chidi_crush",
-  "emeka_viper",
-  "queen_nneka",
-  "kazeem_apex",
-  "blessing_99",
-  "femi_cash",
-  "dapo_striker",
-  "chioma_fx",
-  "babatunde_x",
-  "ibrahim_k",
-  "samuel_pilot",
-  "victor_rolls",
-  "olumide_7",
-  "dare_007",
-  "ngozi_win",
-  "yakubu_bolt",
-  "amaka_swift",
-  "taiwo_ace",
-  "kelechi_pro",
-  "shade_diamond",
-  "segun_rocket",
-  "folake_sky",
-  "uchenna_max",
-  "alabi_king",
-  "ayomide_x",
-  "chinedu_baller",
-  "halima_glow",
-  "bolanle_star",
-  "idris_blaze",
-  "chuka_flight",
-  "osita_green",
-  "ronke_pulse",
-  "kunle_falcon",
-  "yetunde_77",
-  "sunday_bird",
-  "fatima_high",
-  "oghenero_x",
-  "chukwuma_rich",
-  "bisi_alpha",
-  "abdullahi_fly",
-  "enitan_champ",
-  "obinna_wings",
-  "zainab_speed",
-  "haruna_matrix",
-  "simi_gold",
-  "godwin_pulse",
-  "esther_crest",
-  "tochukwu_v",
-  "kayode_jet",
+  "0803xx1948",
+  "0812xx8492",
+  "0906xx3310",
+  "0705xx7124",
+  "0802xx5912",
+  "0816xx4401",
+  "0809xx6723",
+  "0813xx9081",
+  "0708xx1129",
+  "0903xx4872",
+  "0806xx3128",
+  "0814xx5590",
+  "0902xx6643",
+  "0815xx8219",
+  "0805xx4931",
+  "0810xx7714",
+  "0818xx3820",
+  "0808xx9921",
+  "0905xx1284",
+  "0807xx6402",
+  "0701xx8390",
+  "0817xx4501",
+  "0907xx2918",
+  "0811xx9342",
+  "0706xx5180",
+  "0909xx7721",
+  "0803xx4198",
+  "0812xx3602",
+  "0906xx8149",
+  "0705xx9214",
+  "0802xx1843",
+  "0816xx7029",
+  "0809xx3381",
+  "0813xx6274",
+  "0708xx4902",
+  "0903xx1583",
+  "0806xx8247",
+  "0814xx2931",
+  "0902xx8490",
+  "0815xx3172",
+  "0805xx7629",
+  "0810xx4831",
+  "0818xx9104",
+  "0808xx2458",
+  "0905xx6721",
+  "0807xx1938",
+  "0701xx4280",
+  "0817xx8319",
+  "0907xx5640",
+  "0811xx2719",
 ] as const;
 
 // Realistic stake steps strictly between ₦1,000 and ₦150,000 (in Naira)
@@ -102,7 +117,8 @@ export function getRandomTargetMultiplierHundredths(): number {
 }
 
 /**
- * Generates the initial pool of 50 active simulated players ready for live round action.
+ * Generates the initial pool of 50 active simulated players ready for live round action,
+ * sorted strictly from highest stake to lowest stake.
  */
 export function createInitial50Players(): CagedActivePlayer[] {
   return CAGED_50_USERNAMES.map((username, idx) => {
@@ -122,38 +138,49 @@ export function createInitial50Players(): CagedActivePlayer[] {
       cashedOutAtMultiplierHundredths: null,
       payoutKobo: 0,
       justCashedOut: false,
+      avatarColor: AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length],
     };
   }).sort((a, b) => b.stakeKobo - a.stakeKobo);
 }
 
 /**
- * Prepares players for a new round: sets fresh stakes (₦1,000 - ₦150,000) and target multipliers.
+ * Prepares players for a new round: sets fresh stakes (₦1,000 - ₦150,000) and target multipliers,
+ * arranged strictly from highest stake to lowest stake.
  */
 export function startNewRoundBets(prevPlayers: CagedActivePlayer[]): CagedActivePlayer[] {
-  return prevPlayers.map((player) => {
-    const stakeKobo = getRandomStakeKobo();
-    const targetHundredths = getRandomTargetMultiplierHundredths();
-    return {
-      ...player,
-      stakeKobo,
-      targetMultiplier: targetHundredths / 100,
-      cashedOut: false,
-      lost: false,
-      cashedOutAtMultiplierHundredths: null,
-      payoutKobo: 0,
-      justCashedOut: false,
-    };
-  });
+  return prevPlayers
+    .map((player) => {
+      const stakeKobo = getRandomStakeKobo();
+      const targetHundredths = getRandomTargetMultiplierHundredths();
+      return {
+        ...player,
+        stakeKobo,
+        targetMultiplier: targetHundredths / 100,
+        cashedOut: false,
+        lost: false,
+        cashedOutAtMultiplierHundredths: null,
+        payoutKobo: 0,
+        justCashedOut: false,
+      };
+    })
+    .sort((a, b) => b.stakeKobo - a.stakeKobo);
 }
 
 /**
  * Updates players during FLYING: triggers live cash-outs when the live multiplier reaches target.
+ * Prevents invalid cashouts above the known crash multiplier.
  */
 export function updateFlyingCashouts(
   players: CagedActivePlayer[],
   liveMultiplierHundredths: number,
+  crashMultiplierHundredths?: number | null,
 ): { players: CagedActivePlayer[]; hasNewCashouts: boolean } {
   let hasNewCashouts = false;
+
+  const cap =
+    crashMultiplierHundredths !== null && crashMultiplierHundredths !== undefined
+      ? crashMultiplierHundredths
+      : Infinity;
 
   const updated = players.map((player) => {
     if (player.cashedOut) {
@@ -164,7 +191,10 @@ export function updateFlyingCashouts(
     }
 
     const playerTargetHundredths = Math.round(player.targetMultiplier * 100);
-    if (liveMultiplierHundredths >= playerTargetHundredths) {
+    if (
+      liveMultiplierHundredths >= playerTargetHundredths &&
+      playerTargetHundredths <= cap
+    ) {
       hasNewCashouts = true;
       const payoutKobo = Math.round((player.stakeKobo * playerTargetHundredths) / 100);
       return {
@@ -185,6 +215,8 @@ export function updateFlyingCashouts(
 
 /**
  * Finalizes round when CRASHED: marks who won before crash and flags losers who crashed.
+ * Never allows a player whose target or cashout multiplier exceeded the crash multiplier to win.
+ * Preserves strict sorting from highest stake to lowest stake (does not push winners up).
  */
 export function settleCrashedRound(
   players: CagedActivePlayer[],
@@ -192,7 +224,26 @@ export function settleCrashedRound(
 ): CagedActivePlayer[] {
   const settled = players.map((player) => {
     const playerTargetHundredths = Math.round(player.targetMultiplier * 100);
-    if (player.cashedOut) {
+
+    // If player's target or supposedly cashed-out multiplier exceeded the crash point:
+    // They did not escape in time! They crashed and lost!
+    if (
+      playerTargetHundredths > crashMultiplierHundredths ||
+      (player.cashedOutAtMultiplierHundredths !== null &&
+        player.cashedOutAtMultiplierHundredths > crashMultiplierHundredths)
+    ) {
+      return {
+        ...player,
+        cashedOut: false,
+        lost: true,
+        cashedOutAtMultiplierHundredths: null,
+        payoutKobo: 0,
+        justCashedOut: false,
+      };
+    }
+
+    // Player genuinely cashed out at or before the crash multiplier
+    if (player.cashedOut && player.cashedOutAtMultiplierHundredths !== null) {
       return { ...player, justCashedOut: false, lost: false };
     }
 
@@ -219,27 +270,20 @@ export function settleCrashedRound(
     };
   });
 
-  // Sort: cashed out winners first (by payout descending), then losers (by stake descending)
-  return [...settled].sort((a, b) => {
-    if (a.cashedOut && !b.cashedOut) return -1;
-    if (!a.cashedOut && b.cashedOut) return 1;
-    if (b.payoutKobo !== a.payoutKobo) {
-      return b.payoutKobo - a.payoutKobo;
-    }
-    return b.stakeKobo - a.stakeKobo;
-  });
+  // Always arrange strictly from highest stake to lowest stake (do NOT push winners up)
+  return [...settled].sort((a, b) => b.stakeKobo - a.stakeKobo);
 }
 
 /**
  * Merges real players (the current user and other connected players) with simulated players.
- * Ensures real players are seamlessly integrated and prominently ranked.
+ * Keeps all players ordered strictly from highest stake to lowest stake across all round phases.
  */
 export function mergeRealAndSimulatedPlayers(
   simulated: CagedActivePlayer[],
   realPlayers: CagedActivePlayer[],
 ): CagedActivePlayer[] {
   if (realPlayers.length === 0) {
-    return simulated;
+    return [...simulated].sort((a, b) => b.stakeKobo - a.stakeKobo);
   }
 
   // Combine real players with simulated players, deduplicating any by ID
@@ -255,15 +299,13 @@ export function mergeRealAndSimulatedPlayers(
     map.set(r.id, r);
   }
 
-  // Sort: winners first, then real players breaking ties, then by stake descending
+  // Sort strictly from highest stake to lowest stake; real players break ties
   return Array.from(map.values()).sort((a, b) => {
-    if (a.cashedOut && !b.cashedOut) return -1;
-    if (!a.cashedOut && b.cashedOut) return 1;
-    if (b.payoutKobo !== a.payoutKobo) {
-      return b.payoutKobo - a.payoutKobo;
+    if (b.stakeKobo !== a.stakeKobo) {
+      return b.stakeKobo - a.stakeKobo;
     }
     if (a.isRealPlayer && !b.isRealPlayer) return -1;
     if (!a.isRealPlayer && b.isRealPlayer) return 1;
-    return b.stakeKobo - a.stakeKobo;
+    return 0;
   });
 }

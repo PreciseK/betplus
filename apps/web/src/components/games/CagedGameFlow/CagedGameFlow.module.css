@@ -1139,6 +1139,19 @@
   color: #f5b731;
 }
 
+.playerAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
 .playerUserMeta {
   display: flex;
   flex-direction: column;

@@ -21,6 +21,7 @@ import {
   updateFlyingCashouts,
   settleCrashedRound,
   mergeRealAndSimulatedPlayers,
+  AVATAR_GRADIENTS,
 } from "./cagedActivePlayers";
 
 const PRESET_CHIPS_NAIRA = [100, 500, 2500, 10000];
@@ -447,11 +448,15 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
     if (liveMultiplierHundredths - lastCheckedMultiplierHundredthsRef.current >= 5) {
       lastCheckedMultiplierHundredthsRef.current = liveMultiplierHundredths;
       setSimulatedPlayers((prev) => {
-        const { players, hasNewCashouts } = updateFlyingCashouts(prev, liveMultiplierHundredths);
+        const { players, hasNewCashouts } = updateFlyingCashouts(
+          prev,
+          liveMultiplierHundredths,
+          roundState.crashMultiplierHundredths ?? crashMultiplierRef.current,
+        );
         return hasNewCashouts ? players : prev;
       });
     }
-  }, [roundState?.status, liveMultiplierHundredths]);
+  }, [roundState?.status, roundState?.crashMultiplierHundredths, liveMultiplierHundredths]);
 
   const countdownSeconds =
     roundState?.status === "BETTING"
@@ -935,6 +940,19 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
                         <span className={`${styles.playerRank} ${isTop3 ? styles.playerRankTop : ""}`}>
                           {isTop3 ? (idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉") : `#${idx + 1}`}
                         </span>
+                        <div
+                          className={styles.playerAvatar}
+                          style={{
+                            background:
+                              player.avatarColor ||
+                              AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length],
+                          }}
+                          aria-hidden="true"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          </svg>
+                        </div>
                         <div className={styles.playerUserMeta}>
                           <div style={{ display: "flex", alignItems: "center" }}>
                             <span className={styles.playerName}>{player.username}</span>
