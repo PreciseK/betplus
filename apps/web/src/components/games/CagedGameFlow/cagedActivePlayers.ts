@@ -11,6 +11,7 @@ export interface CagedActivePlayer {
   isRealPlayer?: boolean;
   isCurrentUser?: boolean;
   avatarColor?: string;
+  placeBetDelayMs?: number;
 }
 
 export const AVATAR_GRADIENTS = [
@@ -139,19 +140,35 @@ export function createInitial50Players(): CagedActivePlayer[] {
       payoutKobo: 0,
       justCashedOut: false,
       avatarColor: AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length],
+      placeBetDelayMs: 0,
     };
   }).sort((a, b) => b.stakeKobo - a.stakeKobo);
 }
 
 /**
  * Prepares players for a new round: sets fresh stakes (₦1,000 - ₦150,000) and target multipliers,
+ * with staggered delays across the betting window so bets stream in dynamically as the session starts,
  * arranged strictly from highest stake to lowest stake.
  */
-export function startNewRoundBets(prevPlayers: CagedActivePlayer[]): CagedActivePlayer[] {
+export function startNewRoundBets(
+  prevPlayers: CagedActivePlayer[],
+  bettingWindowSeconds: number = 5,
+): CagedActivePlayer[] {
+  const maxDelayMs = Math.max(800, (bettingWindowSeconds || 5) * 1000 - 300);
+  const shuffledIndices = Array.from({ length: prevPlayers.length }, (_, i) => i).sort(
+    () => Math.random() - 0.5,
+  );
+
   return prevPlayers
-    .map((player) => {
+    .map((player, idx) => {
       const stakeKobo = getRandomStakeKobo();
       const targetHundredths = getRandomTargetMultiplierHundredths();
+      const staggerOrder = shuffledIndices[idx];
+      // Stagger from 80ms up to maxDelayMs so bets stream in dynamically
+      const placeBetDelayMs = Math.floor(
+        80 + (staggerOrder / prevPlayers.length) * (maxDelayMs - 80) + Math.random() * 50,
+      );
+
       return {
         ...player,
         stakeKobo,
@@ -161,6 +178,7 @@ export function startNewRoundBets(prevPlayers: CagedActivePlayer[]): CagedActive
         cashedOutAtMultiplierHundredths: null,
         payoutKobo: 0,
         justCashedOut: false,
+        placeBetDelayMs,
       };
     })
     .sort((a, b) => b.stakeKobo - a.stakeKobo);

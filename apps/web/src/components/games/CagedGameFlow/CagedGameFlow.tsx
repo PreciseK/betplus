@@ -221,20 +221,54 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
     return [...currentUserBetsAsPlayers, ...otherRealPlayers];
   }, [currentUserBetsAsPlayers, otherRealPlayers]);
 
-  // Total active players count (50 simulated + real other players + active user bets)
-  const totalActivePlayersCount =
-    simulatedPlayers.length + otherRealPlayers.length + (currentUserBetsAsPlayers.length > 0 ? 1 : 0);
+  // Progressive staking across BETTING countdown: simulated players place their bets dynamically
+  const [bettingElapsedMs, setBettingElapsedMs] = useState<number>(Infinity);
 
-  // Total bets kobo (simulated stakes + other real player stakes + user active bet stakes)
+  useEffect(() => {
+    if (roundState?.status !== "BETTING") {
+      setBettingElapsedMs(Infinity);
+      return;
+    }
+
+    const startMs = roundState.bettingStartedAt
+      ? Date.parse(roundState.bettingStartedAt)
+      : Date.now() + clockOffsetMs;
+
+    const tickStaking = () => {
+      const now = Date.now() + clockOffsetMs;
+      setBettingElapsedMs(Math.max(0, now - startMs));
+    };
+
+    tickStaking();
+    const timer = setInterval(tickStaking, 150);
+    return () => clearInterval(timer);
+  }, [roundState?.status, roundState?.bettingStartedAt, clockOffsetMs]);
+
+  // In BETTING mode: simulated players trickle in progressively as they place their stakes.
+  // In FLYING / CRASHED: all players are fully placed and active in flight / settlement.
+  const visibleSimulatedPlayers = useMemo(() => {
+    if (roundState?.status !== "BETTING" || bettingElapsedMs === Infinity) {
+      return simulatedPlayers;
+    }
+    return simulatedPlayers.filter(
+      (p) => (p.placeBetDelayMs ?? 0) <= bettingElapsedMs,
+    );
+  }, [roundState?.status, simulatedPlayers, bettingElapsedMs]);
+
+  // Total active players count (placed simulated + real other players + active user bets)
+  const totalActivePlayersCount =
+    visibleSimulatedPlayers.length + otherRealPlayers.length + (currentUserBetsAsPlayers.length > 0 ? 1 : 0);
+
+  // Total bets kobo (placed simulated stakes + other real player stakes + user active bet stakes)
   const totalBetsKobo =
-    simulatedPlayers.reduce((sum, p) => sum + p.stakeKobo, 0) +
+    visibleSimulatedPlayers.reduce((sum, p) => sum + p.stakeKobo, 0) +
     otherRealPlayers.reduce((sum, p) => sum + p.stakeKobo, 0) +
     currentUserBetsAsPlayers.reduce((sum, p) => sum + p.stakeKobo, 0);
 
-  // Right sidebar feed players: seamlessly merge and rank real players and 50 simulated players
+  // Right sidebar feed players: seamlessly merge and rank real players and active simulated players
   const feedPlayers = useMemo(() => {
-    return mergeRealAndSimulatedPlayers(simulatedPlayers, allCurrentRealPlayers);
-  }, [simulatedPlayers, allCurrentRealPlayers]);
+    return mergeRealAndSimulatedPlayers(visibleSimulatedPlayers, allCurrentRealPlayers);
+  }, [visibleSimulatedPlayers, allCurrentRealPlayers]);
 
   // Self-scheduling, adaptive polling with in-flight lock to prevent request congestion
   useEffect(() => {
@@ -424,8 +458,10 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
     if (prevStatus !== currentStatus) {
       if (currentStatus === "BETTING") {
         gameAudio.playGameStart();
-        // New round betting opens: 50 players place fresh bets (₦1,000 - ₦150,000)
-        setSimulatedPlayers((prev) => startNewRoundBets(prev));
+        // New round betting opens: 50 players place fresh bets progressively (₦1,000 - ₦150,000)
+        setSimulatedPlayers((prev) =>
+          startNewRoundBets(prev, roundState.bettingWindowSeconds || 5),
+        );
       } else if (currentStatus === "FLYING") {
         gameAudio.playTakeoff();
       } else if (currentStatus === "CRASHED") {
@@ -986,7 +1022,7 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
                           <>
                             <span className={styles.liveFlyingPillSmall}>
                               <span className={styles.flyingDot} />
-                              Flying
+                              In Play
                             </span>
                             <span className={styles.playerFlyingLabel}>
                               {formatNaira(Math.round((player.stakeKobo * liveMultiplierHundredths) / 100))}
@@ -994,7 +1030,7 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
                           </>
                         ) : (
                           <>
-                            <span className={styles.targetPillSmall}>Target {player.targetMultiplier.toFixed(2)}×</span>
+                            <span className={styles.betPlacedPillSmall}>Bet Placed</span>
                             <span className={styles.playerStakeText}>{formatNaira(player.stakeKobo)}</span>
                           </>
                         )}

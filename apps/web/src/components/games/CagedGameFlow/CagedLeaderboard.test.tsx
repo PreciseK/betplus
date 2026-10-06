@@ -119,4 +119,16 @@ describe("CagedGameFlow Leaderboard & Active Players", () => {
     const lostLabels = screen.getAllByText(/^-₦/);
     expect(lostLabels.length).toBeGreaterThan(0);
   });
+
+  it("never displays target multipliers to avoid giving a premeditated impression, showing Bet Placed instead", async () => {
+    const gateway = fakeGateway();
+    render(<CagedGameFlow gateway={gateway} />);
+
+    // Active player feed must show "Bet Placed"
+    const betPlacedBadges = await screen.findAllByText("Bet Placed");
+    expect(betPlacedBadges.length).toBeGreaterThan(0);
+
+    // Absolutely no "Target" label should be displayed in the player feed
+    expect(screen.queryByText(/Target \d/)).toBeNull();
+  });
 });

@@ -136,4 +136,15 @@ describe("cagedActivePlayers", () => {
       expect(settled[i].stakeKobo).toBeGreaterThanOrEqual(settled[i + 1].stakeKobo);
     }
   });
+
+  it("assigns staggered placeBetDelayMs across the betting window for new rounds", () => {
+    const players = createInitial50Players();
+    expect(players[0].placeBetDelayMs).toBe(0);
+
+    const newRound = startNewRoundBets(players, 5);
+    const delays = newRound.map((p) => p.placeBetDelayMs ?? 0);
+    expect(delays.some((d) => d > 300)).toBe(true);
+    expect(delays.some((d) => d > 1500)).toBe(true);
+    expect(Math.max(...delays)).toBeLessThanOrEqual(5000);
+  });
 });
