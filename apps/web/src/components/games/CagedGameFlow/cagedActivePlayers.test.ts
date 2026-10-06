@@ -81,9 +81,11 @@ describe("cagedActivePlayers", () => {
     const p2 = settled.find((p) => p.id === reset[1].id)!;
 
     expect(p1.cashedOut).toBe(true);
+    expect(p1.lost).toBe(false);
     expect(p1.payoutKobo).toBeGreaterThan(0);
 
     expect(p2.cashedOut).toBe(false);
+    expect(p2.lost).toBe(true);
     expect(p2.payoutKobo).toBe(0);
   });
 });

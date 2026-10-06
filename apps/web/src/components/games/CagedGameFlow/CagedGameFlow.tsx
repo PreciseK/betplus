@@ -111,7 +111,6 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
   const [clockOffsetMs, setClockOffsetMs] = useState(0);
   const [liveMultiplierHundredths, setLiveMultiplierHundredths] = useState(100);
 
-  const [leftTab, setLeftTab] = useState<"history" | "leaderboard">("leaderboard");
   const [feedTab, setFeedTab] = useState<"players" | "chat">("players");
   const [showFairnessModal, setShowFairnessModal] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(MOCK_CHAT_MESSAGES);
@@ -148,8 +147,9 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
   // Real player bets placed by the current user (Slot 1 and Slot 2)
   const currentUserBetsAsPlayers = useMemo<CagedActivePlayer[]>(() => {
     const list: CagedActivePlayer[] = [];
-    if (bet1.status === "placed" || bet1.status === "active" || bet1.status === "cashed_out") {
+    if (bet1.status === "placed" || bet1.status === "active" || bet1.status === "cashed_out" || bet1.status === "lost") {
       const isCashedOut = bet1.status === "cashed_out";
+      const isLost = bet1.status === "lost";
       const mult = bet1.cashedOutMultiplier ? bet1.cashedOutMultiplier / 100 : bet1.autoCashoutMult;
       const payout = isCashedOut
         ? bet1.netCreditKobo ?? Math.round(bet1.stake * (bet1.cashedOutMultiplier ?? 100))
@@ -160,6 +160,7 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
         stakeKobo: Math.round(bet1.stake * 100),
         targetMultiplier: mult,
         cashedOut: isCashedOut,
+        lost: isLost,
         cashedOutAtMultiplierHundredths: bet1.cashedOutMultiplier ?? null,
         payoutKobo: payout,
         isRealPlayer: true,
@@ -167,8 +168,9 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
       });
     }
 
-    if (bet2.status === "placed" || bet2.status === "active" || bet2.status === "cashed_out") {
+    if (bet2.status === "placed" || bet2.status === "active" || bet2.status === "cashed_out" || bet2.status === "lost") {
       const isCashedOut = bet2.status === "cashed_out";
+      const isLost = bet2.status === "lost";
       const mult = bet2.cashedOutMultiplier ? bet2.cashedOutMultiplier / 100 : bet2.autoCashoutMult;
       const payout = isCashedOut
         ? bet2.netCreditKobo ?? Math.round(bet2.stake * (bet2.cashedOutMultiplier ?? 100))
@@ -179,6 +181,7 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
         stakeKobo: Math.round(bet2.stake * 100),
         targetMultiplier: mult,
         cashedOut: isCashedOut,
+        lost: isLost,
         cashedOutAtMultiplierHundredths: bet2.cashedOutMultiplier ?? null,
         payoutKobo: payout,
         isRealPlayer: true,
@@ -193,6 +196,7 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
     if (!roundState?.players || roundState.players.length === 0) return [];
     return roundState.players.map((p, idx) => {
       const isCashedOut = p.status === "CASHED_OUT";
+      const isLost = p.status === "LOST" || (roundState.status === "CRASHED" && !isCashedOut);
       const mult = p.cashedOutAtMultiplierHundredths ? p.cashedOutAtMultiplierHundredths / 100 : 2.0;
       const payout = isCashedOut && p.cashedOutAtMultiplierHundredths
         ? Math.round((p.stakeKobo * p.cashedOutAtMultiplierHundredths) / 100)
@@ -203,43 +207,18 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
         stakeKobo: p.stakeKobo,
         targetMultiplier: mult,
         cashedOut: isCashedOut,
+        lost: isLost,
         cashedOutAtMultiplierHundredths: p.cashedOutAtMultiplierHundredths,
         payoutKobo: payout,
         isRealPlayer: true,
       };
     });
-  }, [roundState?.players]);
+  }, [roundState?.players, roundState?.status]);
 
   // All active real players in the current round
   const allCurrentRealPlayers = useMemo<CagedActivePlayer[]>(() => {
     return [...currentUserBetsAsPlayers, ...otherRealPlayers];
   }, [currentUserBetsAsPlayers, otherRealPlayers]);
-
-  // Session history of real player wins so celebrated achievements persist on the leaderboard
-  const [realPlayerWinsHistory, setRealPlayerWinsHistory] = useState<CagedActivePlayer[]>([]);
-
-  useEffect(() => {
-    const currentWinners = allCurrentRealPlayers.filter((p) => p.cashedOut && p.payoutKobo > 0);
-    if (currentWinners.length > 0) {
-      setRealPlayerWinsHistory((prev) => {
-        const existingIds = new Set(prev.map((w) => w.id));
-        const newWins = currentWinners.filter((w) => !existingIds.has(w.id));
-        if (newWins.length === 0) return prev;
-        return [...newWins, ...prev].slice(0, 50);
-      });
-    }
-  }, [allCurrentRealPlayers]);
-
-  // Complete merged leaderboard: real players + simulated players seamlessly ranked by winnings
-  const leaderboardPlayers = useMemo<CagedActivePlayer[]>(() => {
-    const mergedReal = [...allCurrentRealPlayers];
-    for (const win of realPlayerWinsHistory) {
-      if (!mergedReal.some((r) => r.id === win.id)) {
-        mergedReal.push(win);
-      }
-    }
-    return mergeRealAndSimulatedPlayers(simulatedPlayers, mergedReal);
-  }, [allCurrentRealPlayers, realPlayerWinsHistory, simulatedPlayers]);
 
   // Total active players count (50 simulated + real other players + active user bets)
   const totalActivePlayersCount =
@@ -251,10 +230,10 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
     otherRealPlayers.reduce((sum, p) => sum + p.stakeKobo, 0) +
     currentUserBetsAsPlayers.reduce((sum, p) => sum + p.stakeKobo, 0);
 
-  // Right sidebar feed players: real players appear at the top, followed by simulated players
+  // Right sidebar feed players: seamlessly merge and rank real players and 50 simulated players
   const feedPlayers = useMemo(() => {
-    return [...allCurrentRealPlayers, ...simulatedPlayers];
-  }, [allCurrentRealPlayers, simulatedPlayers]);
+    return mergeRealAndSimulatedPlayers(simulatedPlayers, allCurrentRealPlayers);
+  }, [simulatedPlayers, allCurrentRealPlayers]);
 
   // Self-scheduling, adaptive polling with in-flight lock to prevent request congestion
   useEffect(() => {
@@ -766,138 +745,6 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
       </section>
 
       <main className={styles.mainLayout}>
-        {/* Left Sidebar: History & Leaderboard */}
-        <aside className={styles.leftSidebar}>
-          <div className={styles.leftTabsCard}>
-            <div className={styles.leftTabsHeader}>
-              <button
-                className={`${styles.leftTabBtn} ${leftTab === "history" ? styles.activeLeftTab : ""}`}
-                onClick={() => setLeftTab("history")}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-                History
-              </button>
-              <button
-                className={`${styles.leftTabBtn} ${leftTab === "leaderboard" ? styles.activeLeftTab : ""}`}
-                onClick={() => setLeftTab("leaderboard")}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-                  <path d="M4 22h16" />
-                  <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34" />
-                  <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34" />
-                  <path d="M6 2h12v7a6 6 0 0 1-12 0V2z" />
-                </svg>
-                Leaderboard
-              </button>
-            </div>
-
-            <div className={styles.leftTabBody}>
-              {leftTab === "history" ? (
-                recentCrashes.length === 0 ? (
-                  <div className={styles.historyRowItem} style={{ justifyContent: "center", opacity: 0.6 }}>
-                    <span>No previous rounds yet</span>
-                  </div>
-                ) : (
-                  recentCrashes.map((r, idx) => {
-                    const mult = r.crashMultiplierHundredths / 100;
-                    const colorClass =
-                      mult >= 10.0
-                        ? styles.historyPillHigh
-                        : mult >= 2.0
-                        ? styles.historyPillMid
-                        : styles.historyPillLow;
-
-                    return (
-                      <div key={`${r.roundNumber}-${idx}`} className={styles.historyRowItem}>
-                        <div className={styles.historyRoundMeta}>
-                          <span className={styles.historyRoundNum}>Round #{r.roundNumber}</span>
-                          <span className={styles.historyRoundTime}>
-                            {r.crashedAt ? new Date(r.crashedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Just now"}
-                          </span>
-                        </div>
-                        <span className={`${styles.historyPill} ${colorClass}`}>
-                          {mult.toFixed(2)}×
-                        </span>
-                      </div>
-                    );
-                  })
-                )
-              ) : (
-                <>
-                  <div className={styles.leaderboardSubHeader}>
-                    <div className={styles.leaderboardStatusLive}>
-                      <span className={styles.livePulseDot} />
-                      <span>{totalActivePlayersCount} Live Players</span>
-                    </div>
-                    <span className={styles.leaderboardStakeRange}>₦1k – ₦150k Stakes</span>
-                  </div>
-                  {leaderboardPlayers.map((player, idx) => {
-                    const mult = player.cashedOutAtMultiplierHundredths
-                      ? player.cashedOutAtMultiplierHundredths / 100
-                      : player.targetMultiplier;
-                    const isWinner = player.cashedOut && player.payoutKobo > 0;
-                    const isTop3 = idx < 3;
-                    const rowClass = `${styles.leaderboardRowItem} ${
-                      player.isCurrentUser
-                        ? styles.leaderboardRowCurrentUser
-                        : player.isRealPlayer
-                        ? styles.leaderboardRowReal
-                        : ""
-                    } ${player.justCashedOut ? styles.leaderboardRowCashedOut : ""}`;
-
-                    return (
-                      <div key={player.id} className={rowClass}>
-                        <span className={`${styles.leaderRank} ${isTop3 ? styles.leaderRankTop : ""}`}>
-                          {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`}
-                        </span>
-                        <div className={styles.leaderUserMeta}>
-                          <div style={{ display: "flex", alignItems: "center" }}>
-                            <span className={styles.leaderUserName}>{player.username}</span>
-                            {player.isCurrentUser && <span className={styles.realPlayerBadge}>YOU</span>}
-                            {player.isRealPlayer && !player.isCurrentUser && (
-                              <span className={styles.realPlayerBadge} style={{ background: "#3b82f6", color: "#fff" }}>
-                                LIVE
-                              </span>
-                            )}
-                          </div>
-                          <span className={styles.leaderStake}>Stake: {formatNaira(player.stakeKobo)}</span>
-                        </div>
-                        {isWinner ? (
-                          <span
-                            className={`${styles.historyPill} ${
-                              mult >= 5.0 ? styles.historyPillHigh : mult >= 2.0 ? styles.historyPillMid : styles.historyPillLow
-                            }`}
-                          >
-                            ✓ {mult.toFixed(2)}×
-                          </span>
-                        ) : roundState?.status === "FLYING" ? (
-                          <span className={styles.liveFlyingPill}>
-                            <span className={styles.flyingDot} />
-                            Flying
-                          </span>
-                        ) : (
-                          <span className={styles.targetPill}>Target {mult.toFixed(2)}×</span>
-                        )}
-                        <span className={`${styles.leaderPayout} ${!isWinner ? styles.leaderPayoutPending : ""}`}>
-                          {isWinner
-                            ? `+${formatNaira(player.payoutKobo)}`
-                            : roundState?.status === "FLYING"
-                            ? formatNaira(Math.round((player.stakeKobo * liveMultiplierHundredths) / 100))
-                            : formatNaira(player.stakeKobo)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
-            </div>
-          </div>
-        </aside>
         <div className={styles.stageAndControls}>
           <div className={`${styles.gameStage} ${roundState.status === "CRASHED" ? styles.stageCrashedFlash : ""}`}>
             {/* Top right floating countdown on stage */}
@@ -1056,31 +903,87 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
 
             {feedTab === "players" ? (
               <div className={styles.feedContentList}>
-                {feedPlayers.map((player) => (
-                  <div
-                    key={player.id}
-                    className={`${styles.playerRow} ${player.cashedOut ? styles.playerRowCashedOut : ""} ${
-                      player.isCurrentUser ? styles.leaderboardRowCurrentUser : ""
-                    }`}
-                  >
-                    <div className={styles.playerLeft}>
-                      <span className={styles.playerName}>
-                        {player.username}
-                        {player.isCurrentUser ? " (You)" : ""}
-                      </span>
-                    </div>
-                    <div className={styles.playerRight}>
-                      <span className={styles.playerStake}>{formatNaira(player.stakeKobo)}</span>
-                      {player.cashedOut && player.cashedOutAtMultiplierHundredths !== null ? (
-                        <span className={styles.playerMultiplierBadge}>
-                          ✓ {(player.cashedOutAtMultiplierHundredths / 100).toFixed(2)}×
-                        </span>
-                      ) : (
-                        <span className={styles.playerStatusDot} />
-                      )}
-                    </div>
+                <div className={styles.feedSubHeader}>
+                  <div className={styles.feedLiveStatus}>
+                    <span className={styles.livePulseDot} />
+                    <span>{totalActivePlayersCount} Live Players</span>
                   </div>
-                ))}
+                  <span className={styles.feedStakeRange}>₦1k – ₦150k Stakes</span>
+                </div>
+
+                {feedPlayers.map((player, idx) => {
+                  const isWinner = player.cashedOut && player.payoutKobo > 0;
+                  const isLost = player.lost || (roundState.status === "CRASHED" && !player.cashedOut);
+                  const isFlying = roundState.status === "FLYING" && !player.cashedOut;
+                  const isTop3 = idx < 3;
+
+                  const rowClass = `${styles.playerRow} ${
+                    isWinner
+                      ? styles.playerRowCashedOut
+                      : isLost
+                      ? styles.playerRowLost
+                      : isFlying
+                      ? styles.playerRowFlying
+                      : ""
+                  } ${player.isCurrentUser ? styles.leaderboardRowCurrentUser : ""} ${
+                    player.isRealPlayer && !player.isCurrentUser ? styles.leaderboardRowReal : ""
+                  }`;
+
+                  return (
+                    <div key={player.id} className={rowClass}>
+                      <div className={styles.playerLeft}>
+                        <span className={`${styles.playerRank} ${isTop3 ? styles.playerRankTop : ""}`}>
+                          {isTop3 ? (idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉") : `#${idx + 1}`}
+                        </span>
+                        <div className={styles.playerUserMeta}>
+                          <div style={{ display: "flex", alignItems: "center" }}>
+                            <span className={styles.playerName}>{player.username}</span>
+                            {player.isCurrentUser && <span className={styles.realPlayerBadge}>YOU</span>}
+                            {player.isRealPlayer && !player.isCurrentUser && (
+                              <span className={styles.realPlayerBadge} style={{ background: "#3b82f6", color: "#fff" }}>
+                                LIVE
+                              </span>
+                            )}
+                          </div>
+                          <span className={styles.playerStakeSub}>Stake: {formatNaira(player.stakeKobo)}</span>
+                        </div>
+                      </div>
+
+                      <div className={styles.playerRight}>
+                        {isWinner ? (
+                          <>
+                            <span className={styles.playerMultiplierBadge}>
+                              ✓ {((player.cashedOutAtMultiplierHundredths ?? Math.round(player.targetMultiplier * 100)) / 100).toFixed(2)}×
+                            </span>
+                            <span className={styles.playerWinLabel}>+{formatNaira(player.payoutKobo)}</span>
+                          </>
+                        ) : isLost ? (
+                          <>
+                            <span className={styles.playerCrashedBadge}>💥 Crashed</span>
+                            <span className={styles.playerLostLabel}>
+                              -₦{(player.stakeKobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                            </span>
+                          </>
+                        ) : isFlying ? (
+                          <>
+                            <span className={styles.liveFlyingPillSmall}>
+                              <span className={styles.flyingDot} />
+                              Flying
+                            </span>
+                            <span className={styles.playerFlyingLabel}>
+                              {formatNaira(Math.round((player.stakeKobo * liveMultiplierHundredths) / 100))}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className={styles.targetPillSmall}>Target {player.targetMultiplier.toFixed(2)}×</span>
+                            <span className={styles.playerStakeText}>{formatNaira(player.stakeKobo)}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className={styles.feedContentList} style={{ display: "flex", flexDirection: "column" }}>

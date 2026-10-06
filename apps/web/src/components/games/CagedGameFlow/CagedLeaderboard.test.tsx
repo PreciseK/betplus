@@ -98,4 +98,25 @@ describe("CagedGameFlow Leaderboard & Active Players", () => {
     // The real player has the LIVE badge
     expect(screen.getByText("LIVE")).toBeInTheDocument();
   });
+
+  it("displays losing players with 💥 Crashed badge when the round crashes", async () => {
+    const gateway = fakeGateway({
+      loadCurrentRound: vi.fn().mockResolvedValue(
+        baseRound({
+          status: "CRASHED",
+          crashMultiplierHundredths: 105, // very early crash at 1.05x
+        }),
+      ),
+    });
+
+    render(<CagedGameFlow gateway={gateway} />);
+
+    // In a low 1.05x crash, players whose target > 1.05x lose and have 💥 Crashed
+    const crashedBadges = await screen.findAllByText("💥 Crashed");
+    expect(crashedBadges.length).toBeGreaterThan(0);
+
+    // Negative lost stake labels appear
+    const lostLabels = screen.getAllByText(/^-₦/);
+    expect(lostLabels.length).toBeGreaterThan(0);
+  });
 });

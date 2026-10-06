@@ -4,6 +4,7 @@ export interface CagedActivePlayer {
   stakeKobo: number; // In kobo: ₦1,000 (100,000) to ₦150,000 (15,000,000)
   targetMultiplier: number;
   cashedOut: boolean;
+  lost?: boolean;
   cashedOutAtMultiplierHundredths: number | null;
   payoutKobo: number;
   justCashedOut?: boolean;
@@ -101,7 +102,7 @@ export function getRandomTargetMultiplierHundredths(): number {
 }
 
 /**
- * Generates the initial pool of 50 active simulated players with realistic win distributions.
+ * Generates the initial pool of 50 active simulated players ready for live round action.
  */
 export function createInitial50Players(): CagedActivePlayer[] {
   return CAGED_50_USERNAMES.map((username, idx) => {
@@ -111,23 +112,18 @@ export function createInitial50Players(): CagedActivePlayer[] {
     const targetHundredths = getRandomTargetMultiplierHundredths();
     const mult = targetHundredths / 100;
 
-    // Initially settled with varied winning outcomes so leaderboard has immediate richness
-    const hasWon = idx < 42; // Most top players have recorded wins
-    const cashedOutMultHundredths = hasWon ? targetHundredths : null;
-    let payoutKobo = hasWon ? Math.round((stakeKobo * targetHundredths) / 100) : 0;
-    if (payoutKobo === 500_000) payoutKobo += 1_000;
-
     return {
       id: `sim_p_${idx + 1}_${username}`,
       username,
       stakeKobo,
       targetMultiplier: mult,
-      cashedOut: hasWon,
-      cashedOutAtMultiplierHundredths: cashedOutMultHundredths,
-      payoutKobo,
+      cashedOut: false,
+      lost: false,
+      cashedOutAtMultiplierHundredths: null,
+      payoutKobo: 0,
       justCashedOut: false,
     };
-  }).sort((a, b) => b.payoutKobo - a.payoutKobo);
+  }).sort((a, b) => b.stakeKobo - a.stakeKobo);
 }
 
 /**
@@ -142,6 +138,7 @@ export function startNewRoundBets(prevPlayers: CagedActivePlayer[]): CagedActive
       stakeKobo,
       targetMultiplier: targetHundredths / 100,
       cashedOut: false,
+      lost: false,
       cashedOutAtMultiplierHundredths: null,
       payoutKobo: 0,
       justCashedOut: false,
@@ -173,6 +170,7 @@ export function updateFlyingCashouts(
       return {
         ...player,
         cashedOut: true,
+        lost: false,
         cashedOutAtMultiplierHundredths: playerTargetHundredths,
         payoutKobo,
         justCashedOut: true,
@@ -186,7 +184,7 @@ export function updateFlyingCashouts(
 }
 
 /**
- * Finalizes round when CRASHED: marks who won before crash and sorts leaderboard by payout.
+ * Finalizes round when CRASHED: marks who won before crash and flags losers who crashed.
  */
 export function settleCrashedRound(
   players: CagedActivePlayer[],
@@ -195,7 +193,7 @@ export function settleCrashedRound(
   const settled = players.map((player) => {
     const playerTargetHundredths = Math.round(player.targetMultiplier * 100);
     if (player.cashedOut) {
-      return { ...player, justCashedOut: false };
+      return { ...player, justCashedOut: false, lost: false };
     }
 
     if (playerTargetHundredths <= crashMultiplierHundredths) {
@@ -203,24 +201,28 @@ export function settleCrashedRound(
       return {
         ...player,
         cashedOut: true,
+        lost: false,
         cashedOutAtMultiplierHundredths: playerTargetHundredths,
         payoutKobo,
         justCashedOut: false,
       };
     }
 
-    // Lost / failed to cash out before escape
+    // Lost / failed to cash out before the crash point
     return {
       ...player,
       cashedOut: false,
+      lost: true,
       cashedOutAtMultiplierHundredths: null,
       payoutKobo: 0,
       justCashedOut: false,
     };
   });
 
-  // Sort by payout descending (top winners first), then by stake descending
+  // Sort: cashed out winners first (by payout descending), then losers (by stake descending)
   return [...settled].sort((a, b) => {
+    if (a.cashedOut && !b.cashedOut) return -1;
+    if (!a.cashedOut && b.cashedOut) return 1;
     if (b.payoutKobo !== a.payoutKobo) {
       return b.payoutKobo - a.payoutKobo;
     }
@@ -230,7 +232,7 @@ export function settleCrashedRound(
 
 /**
  * Merges real players (the current user and other connected players) with simulated players.
- * Ensures real players are seamlessly integrated and prominently ranked in the leaderboard.
+ * Ensures real players are seamlessly integrated and prominently ranked.
  */
 export function mergeRealAndSimulatedPlayers(
   simulated: CagedActivePlayer[],
@@ -253,8 +255,10 @@ export function mergeRealAndSimulatedPlayers(
     map.set(r.id, r);
   }
 
-  // Sort by payout descending (top winners first); real players break ties
+  // Sort: winners first, then real players breaking ties, then by stake descending
   return Array.from(map.values()).sort((a, b) => {
+    if (a.cashedOut && !b.cashedOut) return -1;
+    if (!a.cashedOut && b.cashedOut) return 1;
     if (b.payoutKobo !== a.payoutKobo) {
       return b.payoutKobo - a.payoutKobo;
     }
