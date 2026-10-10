@@ -528,7 +528,7 @@
   max-width: 460px;
   margin-inline: auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(130px, 0.6fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr);
   gap: 8px;
 }
 
@@ -972,6 +972,55 @@
   color: var(--hg-brand-different);
 }
 
+/* Round Summary & Settlement Accordion */
+.metricsAccordionWrapper {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.metricsAccordionToggle {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #221a16 0%, #15100e 100%);
+  border: 1.5px solid rgba(241, 184, 45, 0.3);
+  color: #f5ecd9;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metricsAccordionToggle:hover {
+  background: linear-gradient(180deg, #2c221d 0%, #1c1512 100%);
+  border-color: rgba(241, 184, 45, 0.55);
+}
+
+.metricsHeaderBadge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(241, 184, 45, 0.15);
+  border: 1px solid rgba(241, 184, 45, 0.4);
+  color: #ffd88a;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: var(--font-mono, monospace);
+  white-space: nowrap;
+}
+
+.metricsAccordionBody {
+  display: none;
+}
+
+.metricsAccordionBodyOpen {
+  display: block;
+  margin-top: 8px;
+  animation: accordionSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .metrics {
   overflow: hidden;
   border: 1px solid var(--rule);
@@ -1142,7 +1191,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
 }
 
 .sectionLabel {
@@ -1154,7 +1203,7 @@
 }
 
 .sectionLabel h2 {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
   color: #ffd88a;
@@ -1164,31 +1213,31 @@
 
 .sectionLabel span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 }
 
 .stakePresets {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 6px;
   width: 100%;
 }
 
 .rpgCoinStakeBtn {
-  min-height: 44px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border-radius: 14px;
+  gap: 4px;
+  padding: 4px 4px;
+  border-radius: 11px;
   background: linear-gradient(180deg, #251d18 0%, #15100e 100%);
   border: 1.5px solid rgba(241, 184, 45, 0.35);
-  border-bottom: 4px solid #0d0a08;
+  border-bottom: 3.5px solid #0d0a08;
   color: #f5ecd9;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
   transition: all 0.12s ease;
   min-width: 0;
   user-select: none;
@@ -1207,9 +1256,9 @@
 .rpgCoinStakeBtn[aria-pressed="true"] {
   background: radial-gradient(circle at 50% 0%, #ffe7a8 0%, #f1b82d 60%, #b37d10 100%);
   border-color: #ffe7a8;
-  border-bottom: 4px solid #744d05;
+  border-bottom: 3.5px solid #744d05;
   color: #151008;
-  box-shadow: 0 0 18px rgba(241, 184, 45, 0.7), 0 4px 10px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 16px rgba(241, 184, 45, 0.7), 0 3px 8px rgba(0, 0, 0, 0.8);
 }
 
 .rpgCoinStakeBtn[aria-pressed="true"] .coinAmount {
@@ -1218,13 +1267,13 @@
 }
 
 .coinIcon {
-  font-size: 16px;
+  font-size: 14px;
   flex-shrink: 0;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
 }
 
 .coinAmount {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 900;
   font-family: var(--font-display);
   white-space: nowrap;
@@ -1232,22 +1281,22 @@
 
 .stakeInput {
   width: 100%;
-  max-width: 320px;
+  max-width: 100%;
   margin-inline: auto;
-  min-height: 40px;
-  padding-inline: 14px;
+  min-height: 36px;
+  padding-inline: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
   border: 1.5px solid rgba(241, 184, 45, 0.3);
-  border-radius: 14px;
+  border-radius: 11px;
   background: #181210;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 .customLabel {
   color: #9ca1b2;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1257,20 +1306,20 @@
 .customCoinIcon {
   color: #ffd88a;
   font-weight: 800;
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
 .stakeInput input {
   min-width: 0;
   flex: 1;
-  min-height: 36px;
+  min-height: 30px;
   border: 0;
   outline: 0;
   background: transparent;
   color: #fff;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 13.5px;
   text-align: end;
 }
 
@@ -2182,7 +2231,8 @@
 
 @media (max-width: 620px) {
   .configureRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr);
+    gap: 6px;
   }
 
   .metricGrid {
@@ -2839,15 +2889,19 @@
     min-height: 100dvh;
     max-height: none;
     padding-block-end: 0;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: visible;
+    width: 100%;
+    max-width: 100vw;
   }
 
   .workspace {
     width: 100%;
-    max-width: none;
+    max-width: 100vw;
     display: block;
     padding-inline: 0;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: visible;
   }
 
   .leftWingWrapper,
@@ -2858,11 +2912,13 @@
 
   .playSurface {
     width: min(100%, 780px);
-    max-width: none;
+    max-width: 100%;
+    box-sizing: border-box;
     margin-inline: auto;
     padding: 24px;
     align-items: stretch;
     gap: 20px;
+    overflow-x: hidden;
   }
 
   .intro {
@@ -3112,12 +3168,32 @@
   }
 
   .configureRow {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr) !important;
+    gap: 6px !important;
+  }
+
+  .configureRow label,
+  .configureRow fieldset {
+    gap: 3px !important;
+  }
+
+  .configureRow label > span,
+  .configureRow legend {
+    font-size: 10.5px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   .segmented button,
   .configureRow select {
-    min-height: 46px;
+    min-height: 38px !important;
+    font-size: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .segmented {
+    gap: 4px !important;
   }
 
   .board {
@@ -3137,15 +3213,21 @@
     padding: 4px !important;
   }
 
-  .stakePresets {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
+  .stakeSection {
     gap: 6px !important;
   }
 
+  .stakePresets {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 5px !important;
+  }
+
   .rpgCoinStakeBtn {
-    min-height: 42px !important;
-    padding: 4px 2px !important;
+    min-height: 36px !important;
+    padding: 3px 2px !important;
+    border-radius: 10px !important;
+    border-bottom-width: 3px !important;
   }
 
   .coinAmount {
@@ -3154,7 +3236,18 @@
 
   .coinIcon {
     font-size: 12px !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .stakeInput {
+    min-height: 35px !important;
+    padding-inline: 10px !important;
+    border-radius: 10px !important;
+  }
+
+  .stakeInput input {
+    min-height: 28px !important;
+    font-size: 13px !important;
   }
 
   .sideHeroCard {
@@ -3229,9 +3322,32 @@
     animation: accordionSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  .paymentMethodSelector {
+    gap: 6px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .paymentMethodTab {
+    padding: 5px 8px !important;
+    min-height: 36px !important;
+    border-radius: 8px !important;
+  }
+
+  .paymentMethodTabTitle {
+    font-size: 11px !important;
+  }
+
+  .paymentMethodTabSub,
+  .paymentMethodTabSubOpay {
+    font-size: 9px !important;
+  }
+
   .primaryAction,
   .secondaryAction {
-    min-height: 50px;
+    min-height: 44px !important;
+    font-size: 13.5px !important;
+    border-radius: 12px !important;
+    border-bottom-width: 3.5px !important;
   }
 
   .metricGrid {
@@ -3482,15 +3598,16 @@
 .paymentMethodSelector {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
+  width: 100%;
 }
 
 .paymentMethodTab {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -3498,6 +3615,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  min-width: 0;
 }
 
 .paymentMethodTabActive {
@@ -3513,21 +3631,30 @@
 }
 
 .paymentMethodTabTitle {
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 750;
+  white-space: nowrap;
 }
 
 .paymentMethodTabSub {
-  font-size: 11px;
+  font-size: 10px;
   color: rgba(246, 241, 231, 0.6);
   margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .paymentMethodTabSubOpay {
-  font-size: 11px;
+  font-size: 10px;
   color: #34d399;
   font-weight: 600;
   margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .primaryActionOpay {

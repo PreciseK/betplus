@@ -79,6 +79,7 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
   const [isCommunityExpanded, setIsCommunityExpanded] = useState(false);
   const [isLoadoutExpanded, setIsLoadoutExpanded] = useState(false);
   const [isProofExpanded, setIsProofExpanded] = useState(false);
+  const [isMetricsExpanded, setIsMetricsExpanded] = useState(false);
   const confirmDialogId = useId();
   const confirmTitleId = useId();
   const confirmPopoverRef = useRef<HTMLDivElement>(null);
@@ -786,18 +787,65 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
             </div>
           </div>
 
-          <Metrics
-            snapshot={snapshot}
-            stakeKobo={stakeKobo ?? 0}
-            selectedCount={selectedPositions.length}
-            tradition={selectedTradition?.name ?? "Not selected"}
-            leader={getLeaderTitle(selectedTradition, leader)}
-            jackpotTier={jackpotTier}
-            jackpotGrossKobo={jackpotGrossKobo}
-            jackpotTaxKobo={jackpotTaxKobo}
-            settlement={phase === "settled" ? settlement : undefined}
-            settlementHeadingRef={settlementHeadingRef}
-          />
+          {/* Round Summary & Settlement Accordion */}
+          <div className={styles.metricsAccordionWrapper}>
+            <button
+              type="button"
+              className={styles.metricsAccordionToggle}
+              onClick={() => setIsMetricsExpanded((prev) => !prev)}
+              aria-expanded={isMetricsExpanded}
+              aria-controls="heritage-metrics-body"
+            >
+              <div className={styles.accordionHeaderLeft}>
+                <span className={styles.accordionIcon}>📊</span>
+                <span className={styles.accordionTitle}>
+                  {phase === "settled" && settlement
+                    ? `Round Settlement (${settlement.matchCount}/5 matched)`
+                    : "Round Summary"}
+                </span>
+              </div>
+              <div className={styles.accordionHeaderRight}>
+                <span className={styles.metricsHeaderBadge}>
+                  {phase === "settled" && settlement
+                    ? formatKobo(settlement.netKobo)
+                    : jackpotGrossKobo > 0
+                    ? `${formatKobo(jackpotGrossKobo)} max`
+                    : "25× Max Win"}
+                </span>
+                <span className={styles.accordionActionHint}>
+                  {isMetricsExpanded ? "Hide" : "Details"}
+                </span>
+                <svg
+                  className={`${styles.accordionChevron} ${isMetricsExpanded ? styles.accordionChevronOpen : ""}`}
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            </button>
+            <div
+              id="heritage-metrics-body"
+              className={`${styles.metricsAccordionBody} ${isMetricsExpanded ? styles.metricsAccordionBodyOpen : ""}`}
+            >
+              <Metrics
+                snapshot={snapshot}
+                stakeKobo={stakeKobo ?? 0}
+                selectedCount={selectedPositions.length}
+                tradition={selectedTradition?.name ?? "Not selected"}
+                leader={getLeaderTitle(selectedTradition, leader)}
+                jackpotTier={jackpotTier}
+                jackpotGrossKobo={jackpotGrossKobo}
+                jackpotTaxKobo={jackpotTaxKobo}
+                settlement={phase === "settled" ? settlement : undefined}
+                settlementHeadingRef={settlementHeadingRef}
+              />
+            </div>
+          </div>
 
           {settlement?.secondChance && phase === "settled" && <SecondChanceSummary entry={settlement.secondChance} reference={settlement.reference} />}
 
