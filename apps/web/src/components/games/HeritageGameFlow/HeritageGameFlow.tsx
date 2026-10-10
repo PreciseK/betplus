@@ -75,6 +75,10 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
   const [confettiItems, setConfettiItems] = useState<ConfettiPiece[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>(RECENT_ACTIVITY_MOCK);
   const [hallOfChampions, setHallOfChampions] = useState<ChampionItem[]>(HALL_OF_CHAMPIONS);
+  const [isRulesExpanded, setIsRulesExpanded] = useState(false);
+  const [isCommunityExpanded, setIsCommunityExpanded] = useState(false);
+  const [isLoadoutExpanded, setIsLoadoutExpanded] = useState(false);
+  const [isProofExpanded, setIsProofExpanded] = useState(false);
   const confirmDialogId = useId();
   const confirmTitleId = useId();
   const confirmPopoverRef = useRef<HTMLDivElement>(null);
@@ -715,39 +719,68 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
               </div>
 
               <div className={styles.sideHeroCard}>
-                <div className={styles.heroAvatarCard}>
-                  <div className={styles.heroAvatarIcon} aria-hidden="true">
-                    {leader === "queen" ? "👑" : "🤴"}
+                <button
+                  type="button"
+                  className={styles.heroCardToggle}
+                  onClick={() => setIsLoadoutExpanded((prev) => !prev)}
+                  aria-expanded={isLoadoutExpanded}
+                  aria-controls="heritage-hero-loadout"
+                >
+                  <div className={styles.heroAvatarCard}>
+                    <div className={styles.heroAvatarIcon} aria-hidden="true">
+                      {leader === "queen" ? "👑" : "🤴"}
+                    </div>
+                    <div className={styles.heroAvatarInfo}>
+                      <h3>{selectedTradition?.name ?? "Royal Realm"}</h3>
+                      <p>{getLeaderTitle(selectedTradition, leader)} · {dressedItems.length}/5 Equipped</p>
+                    </div>
                   </div>
-                  <div className={styles.heroAvatarInfo}>
-                    <h3>{selectedTradition?.name ?? "Royal Realm"}</h3>
-                    <p>{getLeaderTitle(selectedTradition, leader)} · {dressedItems.length}/5 Equipped</p>
+                  <div className={styles.heroAccordionHintRow}>
+                    <span className={styles.heroAccordionActionHint}>
+                      {isLoadoutExpanded ? "Collapse" : "Slots"}
+                    </span>
+                    <svg
+                      className={`${styles.accordionChevron} ${isLoadoutExpanded ? styles.accordionChevronOpen : ""} ${styles.heroChevronMobileOnly}`}
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
                   </div>
-                </div>
+                </button>
 
-                <div className={styles.rpgEquipGrid} aria-label="Hero Equipment Slots">
-                  {[
-                    { id: "head", label: "Crown", icon: "👑" },
-                    { id: "neck", label: "Amulet", icon: "📿" },
-                    { id: "torso", label: "Armor", icon: "🛡️" },
-                    { id: "hand", label: "Staff", icon: "🗡️" },
-                    { id: "feet", label: "Boots", icon: "👢" },
-                  ].map((slot) => {
-                    const isEquipped = settlement?.board.slice(0, visibleCount).some(
-                      (position) =>
-                        position.selected &&
-                        position.winning &&
-                        (position.item.slot === slot.id ||
-                          (slot.id === "hand" && position.item.slot === "wrist") ||
-                          (slot.id === "torso" && position.item.slot === "waist"))
-                    );
-                    return (
-                      <div key={slot.id} className={styles.rpgSlotCard} data-equipped={isEquipped}>
-                        <span className={styles.rpgSlotIcon} aria-hidden="true">{slot.icon}</span>
-                        <span className={styles.rpgSlotLabel}>{slot.label}</span>
-                      </div>
-                    );
-                  })}
+                <div
+                  id="heritage-hero-loadout"
+                  className={`${styles.heroLoadoutBody} ${isLoadoutExpanded ? styles.heroLoadoutBodyOpen : ""}`}
+                >
+                  <div className={styles.rpgEquipGrid} aria-label="Hero Equipment Slots">
+                    {[
+                      { id: "head", label: "Crown", icon: "👑" },
+                      { id: "neck", label: "Amulet", icon: "📿" },
+                      { id: "torso", label: "Armor", icon: "🛡️" },
+                      { id: "hand", label: "Staff", icon: "🗡️" },
+                      { id: "feet", label: "Boots", icon: "👢" },
+                    ].map((slot) => {
+                      const isEquipped = settlement?.board.slice(0, visibleCount).some(
+                        (position) =>
+                          position.selected &&
+                          position.winning &&
+                          (position.item.slot === slot.id ||
+                            (slot.id === "hand" && position.item.slot === "wrist") ||
+                            (slot.id === "torso" && position.item.slot === "waist"))
+                      );
+                      return (
+                        <div key={slot.id} className={styles.rpgSlotCard} data-equipped={isEquipped}>
+                          <span className={styles.rpgSlotIcon} aria-hidden="true">{slot.icon}</span>
+                          <span className={styles.rpgSlotLabel}>{slot.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -768,17 +801,130 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
 
           {settlement?.secondChance && phase === "settled" && <SecondChanceSummary entry={settlement.secondChance} reference={settlement.reference} />}
 
-          {phase === "settled" && settlement && <ResultEvidence board={settlement.board} />}
-
+          {phase === "settled" && settlement && (
+            <div className={styles.proofAccordionWrapper}>
+              <button
+                type="button"
+                className={styles.proofAccordionToggle}
+                onClick={() => setIsProofExpanded((prev) => !prev)}
+                aria-expanded={isProofExpanded}
+                aria-controls="heritage-proof-body"
+              >
+                <div className={styles.accordionHeaderLeft}>
+                  <span className={styles.accordionIcon}>🔍</span>
+                  <span className={styles.accordionTitle}>Board Proof & Outcome Integrity</span>
+                </div>
+                <div className={styles.accordionHeaderRight}>
+                  <span className={styles.accordionActionHint}>
+                    {isProofExpanded ? "Collapse" : "Tap to inspect"}
+                  </span>
+                  <svg
+                    className={`${styles.accordionChevron} ${isProofExpanded ? styles.accordionChevronOpen : ""}`}
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </button>
+              <div
+                id="heritage-proof-body"
+                className={`${styles.proofAccordionBody} ${isProofExpanded ? styles.proofAccordionBodyOpen : ""}`}
+              >
+                <ResultEvidence board={settlement.board} />
+              </div>
+            </div>
+          )}
 
           <section className={styles.rules} id="heritage-rules" aria-labelledby="rules-title">
-            <h2 id="rules-title">Rules and exact odds</h2>
-            <p>Every ticket has five winning positions. The outcome tier is fixed when your ticket is created; your selection changes presentation, not the tier. All five cash-prize matches must be in your selected positions.</p>
-            <div className={styles.oddsTable} role="table" aria-label="Heritage prize table">
-              {snapshot.prizeTiers.map((tier) => <PrizeRow key={tier.id} tier={tier} stakeKobo={stakeKobo ?? 0} />)}
+            <button
+              type="button"
+              className={styles.rulesAccordionToggle}
+              onClick={() => setIsRulesExpanded((prev) => !prev)}
+              aria-expanded={isRulesExpanded}
+              aria-controls="heritage-rules-body"
+            >
+              <div className={styles.accordionHeaderLeft}>
+                <span className={styles.accordionIcon}>📜</span>
+                <span className={styles.accordionTitle}>Rules & Exact Odds (RTP 81.6%)</span>
+              </div>
+              <div className={styles.accordionHeaderRight}>
+                <span className={styles.accordionActionHint}>
+                  {isRulesExpanded ? "Collapse" : "Tap to view"}
+                </span>
+                <svg
+                  className={`${styles.accordionChevron} ${isRulesExpanded ? styles.accordionChevronOpen : ""}`}
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            </button>
+
+            <div
+              id="heritage-rules-body"
+              className={`${styles.rulesAccordionBody} ${isRulesExpanded ? styles.rulesAccordionBodyOpen : ""}`}
+            >
+              <h2 id="rules-title" className={styles.rulesDesktopHeading}>Rules and exact odds</h2>
+              <p>Every ticket has five winning positions. The outcome tier is fixed when your ticket is created; your selection changes presentation, not the tier. All five cash-prize matches must be in your selected positions.</p>
+              <div className={styles.oddsTable} role="table" aria-label="Heritage prize table">
+                {snapshot.prizeTiers.map((tier) => <PrizeRow key={tier.id} tier={tier} stakeKobo={stakeKobo ?? 0} />)}
+              </div>
+              <p>Modelled RTP 81.6%. Withholding tax is estimated at {snapshot.taxRateBasisPoints / 100}% of net winnings and shown before any credited figure.</p>
             </div>
-            <p>Modelled RTP 81.6%. Withholding tax is estimated at {snapshot.taxRateBasisPoints / 100}% of net winnings and shown before any credited figure.</p>
           </section>
+
+          {/* Mobile & Tablet Community Hub Accordion */}
+          <div className={styles.mobileCommunityAccordion}>
+            <button
+              type="button"
+              className={styles.accordionToggle}
+              onClick={() => setIsCommunityExpanded((prev) => !prev)}
+              aria-expanded={isCommunityExpanded}
+              aria-controls="heritage-mobile-community"
+            >
+              <div className={styles.accordionHeaderLeft}>
+                <span className={styles.accordionLivePulse} />
+                <span className={styles.accordionTitle}>Live Activity & Hall of Champions</span>
+              </div>
+              <div className={styles.accordionHeaderRight}>
+                <span className={styles.accordionActionHint}>
+                  {isCommunityExpanded ? "Collapse" : "Tap to view"}
+                </span>
+                <svg
+                  className={`${styles.accordionChevron} ${isCommunityExpanded ? styles.accordionChevronOpen : ""}`}
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            </button>
+
+            <div
+              id="heritage-mobile-community"
+              className={`${styles.accordionBody} ${isCommunityExpanded ? styles.accordionBodyOpen : ""}`}
+            >
+              <CommunitySidebarWing
+                selectedTradition={selectedTradition}
+                recentActivity={recentActivity}
+                winnersList={hallOfChampions}
+              />
+            </div>
+          </div>
 
           <p className={styles.culturalNotice}>The fixed 1–90 catalogue keeps unapproved entries withheld. Final names, context and artwork require recorded sign-off from a named cultural advisor before publication. No identifiable living monarch or existing palace regalia is depicted here.</p>
         </section>

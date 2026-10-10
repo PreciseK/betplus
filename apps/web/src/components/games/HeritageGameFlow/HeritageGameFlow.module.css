@@ -1580,6 +1580,159 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
 }
 
+.sideHeroCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #1d1613 0%, #130f0e 100%);
+  border: 1.5px solid rgba(241, 184, 45, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+.heroCardToggle {
+  display: contents;
+}
+
+.heroAccordionHintRow,
+.heroChevronMobileOnly {
+  display: none;
+}
+
+.heroLoadoutBody {
+  display: contents;
+}
+
+/* Proof Accordion */
+.proofAccordionWrapper {
+  width: 100%;
+}
+
+.proofAccordionToggle {
+  display: none;
+}
+
+.proofAccordionBody {
+  display: block;
+}
+
+/* Rules Accordion */
+.rulesAccordionToggle {
+  display: none;
+}
+
+.rulesAccordionBody {
+  display: block;
+}
+
+.rulesDesktopHeading {
+  display: block;
+}
+
+/* Mobile Community Accordion */
+.mobileCommunityAccordion {
+  display: none;
+}
+
+.accordionToggle,
+.rulesAccordionToggle,
+.proofAccordionToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, #1d1613 0%, #130f0e 100%);
+  border: 1px solid rgba(241, 184, 45, 0.35);
+  border-radius: 12px;
+  color: #f6f1e7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.accordionToggle:hover,
+.accordionToggle:active,
+.rulesAccordionToggle:hover,
+.rulesAccordionToggle:active,
+.proofAccordionToggle:hover,
+.proofAccordionToggle:active {
+  background: #251b17;
+  border-color: #f1b82d;
+}
+
+.accordionHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accordionIcon {
+  font-size: 16px;
+}
+
+.accordionTitle {
+  font-family: var(--font-display, inherit);
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffd88a;
+  letter-spacing: 0.02em;
+}
+
+.accordionLivePulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.75);
+}
+
+.accordionHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.accordionActionHint {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a89f91;
+}
+
+.accordionChevron {
+  color: #ffd88a;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.accordionChevronOpen {
+  transform: rotate(180deg);
+  color: #22c55e;
+}
+
+.accordionBody {
+  display: none;
+}
+
+.accordionBodyOpen {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  animation: accordionSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes accordionSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .heroAvatarCard {
   display: flex;
   align-items: center;
@@ -2785,6 +2938,50 @@
   .sessionStrip {
     position: static;
   }
+
+  /* Rules & Proof Accordions on Tablet & Mobile */
+  .rulesAccordionToggle {
+    display: flex !important;
+  }
+
+  .rulesDesktopHeading {
+    display: none !important;
+  }
+
+  .rulesAccordionBody {
+    display: none;
+  }
+
+  .rulesAccordionBodyOpen {
+    display: block !important;
+    margin-top: 8px !important;
+    padding: 14px 16px !important;
+    background: #140f0e !important;
+    border: 1px solid rgba(241, 184, 45, 0.25) !important;
+    border-radius: 12px !important;
+    animation: accordionSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .proofAccordionToggle {
+    display: flex !important;
+  }
+
+  .proofAccordionBody {
+    display: none;
+  }
+
+  .proofAccordionBodyOpen {
+    display: block !important;
+    margin-top: 8px !important;
+    animation: accordionSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobileCommunityAccordion {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    margin-top: 14px !important;
+  }
 }
 
 @media (max-width: 759px) {
@@ -2893,8 +3090,8 @@
 
   .playSurface {
     width: 100%;
-    padding: 20px 16px 28px;
-    gap: 18px;
+    padding: 14px 12px 24px;
+    gap: 14px;
   }
 
   .intro {
@@ -2908,8 +3105,10 @@
   }
 
   .arenaRightCol {
-    display: flex;
-    gap: 18px;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 14px !important;
   }
 
   .configureRow {
@@ -2918,29 +3117,121 @@
 
   .segmented button,
   .configureRow select {
-    min-height: 48px;
+    min-height: 46px;
   }
 
   .board {
-    gap: 8px;
-    padding: 10px;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    width: 100% !important;
+    max-width: 380px !important;
+    margin: 0 auto !important;
   }
 
   .tile {
-    min-height: 94px;
+    aspect-ratio: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 4px !important;
   }
 
   .stakePresets {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
   }
 
   .rpgCoinStakeBtn {
-    min-height: 48px;
+    min-height: 42px !important;
+    padding: 4px 2px !important;
+  }
+
+  .coinAmount {
+    font-size: 11px !important;
+  }
+
+  .coinIcon {
+    font-size: 12px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .sideHeroCard {
+    padding: 6px 10px !important;
+    border-radius: 12px !important;
+    width: 100% !important;
+    background: #15100e !important;
+    border: 1px solid rgba(241, 184, 45, 0.3) !important;
+  }
+
+  .heroCardToggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 4px 0 !important;
+    cursor: pointer !important;
+    color: inherit !important;
+    text-align: start !important;
+  }
+
+  .heroAvatarCard {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    gap: 8px !important;
+  }
+
+  .heroAvatarIcon {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 18px !important;
+    border-radius: 10px !important;
+  }
+
+  .heroAvatarInfo h3 {
+    font-size: 13px !important;
+  }
+
+  .heroAvatarInfo p {
+    font-size: 10.5px !important;
+  }
+
+  .heroAccordionHintRow {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  .heroAccordionActionHint {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #ffd88a !important;
+  }
+
+  .heroChevronMobileOnly {
+    display: block !important;
+    color: #ffd88a !important;
+  }
+
+  .heroLoadoutBody {
+    display: none;
+  }
+
+  .heroLoadoutBodyOpen {
+    display: block !important;
+    padding-top: 8px !important;
+    border-top: 1px solid rgba(241, 184, 45, 0.2) !important;
+    margin-top: 4px !important;
+    animation: accordionSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .primaryAction,
   .secondaryAction {
-    min-height: 52px;
+    min-height: 50px;
   }
 
   .metricGrid {
@@ -2956,9 +3247,18 @@
   }
 
   .sessionStrip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px 18px;
-    padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px 10px !important;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    font-size: 11px !important;
+  }
+
+  .sessionStrip span {
+    font-size: 8px !important;
+  }
+
+  .sessionStrip strong {
+    font-size: 11px !important;
   }
 }
 
@@ -2966,7 +3266,67 @@
   .brandCrest,
   .brandTitles span,
   .ageMark {
-    display: none;
+    display: none !important;
+  }
+
+  .balances {
+    gap: 6px !important;
+  }
+
+  .rpgCapsule {
+    min-height: 34px !important;
+    padding: 2px 6px 2px 2px !important;
+  }
+
+  .capsuleMedal {
+    width: 24px !important;
+    height: 24px !important;
+    margin-right: 4px !important;
+    font-size: 12px !important;
+  }
+
+  .capsuleAmount {
+    font-size: 11.5px !important;
+  }
+
+  .capsuleLabel {
+    font-size: 7.5px !important;
+  }
+
+  .capsuleQuickAdd {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 12px !important;
+  }
+
+  .board {
+    gap: 6px !important;
+    padding: 6px !important;
+  }
+
+  .tileBack strong {
+    font-size: 9px !important;
+  }
+
+  .tileBack span {
+    font-size: 14px !important;
+  }
+
+  .rpgCoinStakeBtn {
+    min-height: 38px !important;
+    padding: 2px !important;
+  }
+
+  .coinAmount {
+    font-size: 10px !important;
+  }
+
+  .coinIcon {
+    font-size: 11px !important;
+  }
+
+  .sessionStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .brandTitles strong {
@@ -2982,29 +3342,8 @@
     font-size: 11px;
   }
 
-  .capsuleMedal {
-    width: 30px;
-    height: 30px;
-  }
-
   .playSurface {
-    padding-inline: 12px;
-  }
-
-  .boardHeading {
-    align-items: flex-start;
-  }
-
-  .boardHeading h2 {
-    max-width: 18ch;
-  }
-
-  .tile {
-    min-height: 88px;
-  }
-
-  .metricsHeading {
-    align-items: flex-start;
+    padding-inline: 8px;
   }
 }
 
