@@ -859,6 +859,23 @@
   letter-spacing: 0.08em;
 }
 
+.roundStatsHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.roundNumberBadge {
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: #8faea1;
+  font-weight: 700;
+  background: #06160e;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid #143e2b;
+}
+
 .roundStatusBadge {
   background: #143325;
   color: #f5b731;
@@ -866,6 +883,29 @@
   font-weight: 700;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.badgeBetting {
+  background: rgba(245, 183, 49, 0.15);
+  color: #f5b731;
+  border: 1px solid rgba(245, 183, 49, 0.35);
+}
+
+.badgeFlying {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.badgeCrashed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.mobileCountdownInline {
+  display: none;
 }
 
 .roundNumberRow {
@@ -2037,6 +2077,97 @@
   .betError {
     font-size: 0.68rem !important;
     padding: 0.35rem 0.45rem !important;
+  }
+
+  /* Compact & Optimized Current Round Area on Mobile */
+  .roundStatsCard {
+    padding: 0.55rem 0.75rem !important;
+    gap: 0.35rem !important;
+    border-radius: 8px !important;
+    background: #081a12 !important;
+    border: 1px solid #143829 !important;
+  }
+
+  .roundStatsHeader {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .roundStatsLabel {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  .roundNumberBadge {
+    font-size: 0.65rem !important;
+    padding: 0.08rem 0.3rem !important;
+  }
+
+  .roundStatusBadge {
+    font-size: 0.68rem !important;
+    padding: 0.18rem 0.45rem !important;
+    border-radius: 4px !important;
+  }
+
+  .mobileCountdownInline {
+    display: inline !important;
+    font-weight: 800 !important;
+  }
+
+  /* In mobile, streamline countdown to just a sleek hairline progress bar */
+  .sideCountdownBlock {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  .sideCountdownHeader {
+    display: none !important;
+  }
+
+  .statsProgressBar {
+    height: 3px !important;
+    margin: 2px 0 !important;
+    background: #0c2419 !important;
+    border-radius: 2px !important;
+  }
+
+  .statsProgressFill {
+    height: 100% !important;
+  }
+
+  .sideStatusBlock {
+    display: none !important;
+  }
+
+  /* Compact 1-line horizontal metrics grid on mobile */
+  .statMetricsGrid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.6rem !important;
+    padding-top: 0.35rem !important;
+    margin-top: 0.1rem !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .metricBlock {
+    flex-direction: row !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    gap: 0.35rem !important;
+  }
+
+  .metricTitle {
+    font-size: 0.65rem !important;
+    color: #72a08e !important;
+  }
+
+  .metricValue {
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
   }
 }
 

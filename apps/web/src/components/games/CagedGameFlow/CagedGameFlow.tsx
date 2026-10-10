@@ -969,9 +969,30 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
         <aside className={styles.sidebarColumn}>
           <div className={styles.roundStatsCard}>
             <div className={styles.roundStatsHeader}>
-              <span className={styles.roundStatsLabel}>CURRENT ROUND</span>
-              <span className={styles.roundStatusBadge}>
-                {roundState.status === "BETTING" ? "Betting" : roundState.status === "FLYING" ? "In Flight" : "Crashed"}
+              <div className={styles.roundStatsHeaderLeft}>
+                <span className={styles.roundStatsLabel}>CURRENT ROUND</span>
+                {roundState.roundNumber ? (
+                  <span className={styles.roundNumberBadge}>#{roundState.roundNumber}</span>
+                ) : null}
+              </div>
+              <span
+                className={`${styles.roundStatusBadge} ${
+                  roundState.status === "BETTING"
+                    ? styles.badgeBetting
+                    : roundState.status === "FLYING"
+                    ? styles.badgeFlying
+                    : styles.badgeCrashed
+                }`}
+              >
+                {roundState.status === "BETTING" ? (
+                  <>
+                    Betting <span className={styles.mobileCountdownInline}>({countdownSeconds}s)</span>
+                  </>
+                ) : roundState.status === "FLYING" ? (
+                  "In Flight"
+                ) : (
+                  "Crashed"
+                )}
               </span>
             </div>
 
