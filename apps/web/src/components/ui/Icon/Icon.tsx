@@ -21,6 +21,7 @@ export type IconName =
   | "lock"
   | "money"
   | "phone"
+  | "search"
   | "support"
   | "ticket"
   | "wallet"
@@ -54,6 +55,7 @@ const ICON_PATHS: Record<IconName, ReactNode> = {
   lock: <><rect x="4.5" y="10" width="15" height="10.5" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3" /></>,
   money: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7.5 12h9M12 8.5v7" /></>,
   phone: <path d="M8.2 3.5h7.6a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H8.2a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Zm1.8 3h4m-3 10.5h2" />,
+  search: <><circle cx="10.5" cy="10.5" r="6.5" /><path d="m20 20-4.4-4.4" /></>,
   support: <><circle cx="12" cy="12" r="9" /><path d="M8 13v-2a4 4 0 0 1 8 0v2m-8 0H6.5a1.5 1.5 0 0 0 0 3H8v-3Zm8 0h1.5a1.5 1.5 0 0 1 0 3H16v-3Zm0 3c0 2-1.5 3-4 3" /></>,
   ticket: <path d="M4 5h16v4a3 3 0 0 0 0 6v4H4v-4a3 3 0 0 0 0-6V5Zm8 2v2m0 2v2m0 2v2" />,
   wallet: <><path d="M4 6.5h13a2 2 0 0 1 2 2V19H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11" /><path d="M15 11h6v5h-6a2.5 2.5 0 0 1 0-5Z" /></>,

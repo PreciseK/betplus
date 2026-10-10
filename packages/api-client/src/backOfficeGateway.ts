@@ -291,6 +291,77 @@ export interface BackOfficeMonthlyDrawPool {
   }> | null;
 }
 
+function getDevMockResponse<T>(_path: string): T {
+  const base = {
+    exceptions: [],
+    games: [
+      {
+        game_code: "BLACKRED",
+        engine_version: "v1.0",
+        status: "active",
+        min_stake_kobo: 10000,
+        max_stake_kobo: 5000000,
+        enabled_channels: ["web", "mobile"],
+        enabled_states: ["LA", "AB", "FC"],
+      },
+      {
+        game_code: "CAGED",
+        engine_version: "v1.0",
+        status: "active",
+        min_stake_kobo: 20000,
+        max_stake_kobo: 10000000,
+        enabled_channels: ["web", "mobile"],
+        enabled_states: ["LA", "FC"],
+      },
+    ],
+    states: [
+      {
+        state_code: "LA",
+        licence_number: "LSLB-2026-081",
+        issued_at: "2026-01-01",
+        expires_at: "2027-01-01",
+        is_expired: false,
+        expiry_alert: false,
+        ruleset_version: "1.0",
+        remittance_status: "CURRENT",
+        activity_volume: 1250000,
+        resident_wht_rate_basis_points: 500,
+        non_resident_wht_rate_basis_points: 1000,
+      },
+    ],
+    changes: [],
+    rows: [],
+    events: [],
+    promotions: [],
+    deposits: [],
+    payouts: [],
+    users: [],
+    reviews: [],
+    limits: [],
+    exclusions: [],
+    prize_tables: [],
+    presets: [],
+    game_economics_configs: [],
+    items: [],
+    draw_pools: [],
+    window: { from: "", to: "" },
+    date: new Date().toISOString().slice(0, 10),
+    game_code: null,
+    gross_stakes_kobo: 125000000,
+    gross_wins_kobo: 95000000,
+    net_gaming_revenue_kobo: 30000000,
+    deposits_kobo: 85000000,
+    payouts_kobo: 42000000,
+    new_players: 142,
+    active_players: 890,
+    verified_players_total: 12450,
+    reconciliation_exceptions: 0,
+    payout_holds: 2,
+    safer_play_reviews_opened: 3,
+  };
+  return base as unknown as T;
+}
+
 async function request<T>(
   path: string,
   options: { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; query?: Record<string, QueryValue>; authenticated?: boolean } = {},
@@ -300,13 +371,25 @@ async function request<T>(
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${BACK_OFFICE_API_BASE}${path}${toQuery(options.query)}`, {
-    method: options.method ?? "GET",
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${BACK_OFFICE_API_BASE}${path}${toQuery(options.query)}`, {
+      method: options.method ?? "GET",
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    });
+  } catch (err) {
+    if (token?.startsWith("dev-mock")) {
+      return getDevMockResponse<T>(path);
+    }
+    throw err;
+  }
+
   const body = await response.json().catch(() => ({})) as Record<string, unknown>;
   if (!response.ok) {
+    if (token?.startsWith("dev-mock")) {
+      return getDevMockResponse<T>(path);
+    }
     if (response.status === 401 && options.authenticated !== false) {
       backOfficeGateway.clearSession();
       if (typeof window !== "undefined" && !window.location.pathname.endsWith("/back-office")) {

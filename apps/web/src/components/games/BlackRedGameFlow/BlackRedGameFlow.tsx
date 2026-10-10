@@ -21,12 +21,25 @@ import styles from "./BlackRedGameFlow.module.css";
 const QUICK_STAKES_KOBO = [10_000, 20_000, 50_000, 100_000, 200_000, 500_000] as const;
 
 const GAME_TIER_SUBTITLES: Record<number, string> = {
-  1: "Easiest",
-  2: "Classic",
-  3: "Popular",
-  4: "Risky",
-  5: "Big Win",
+  1: "EASIEST",
+  2: "CLASSIC",
+  3: "POPULAR",
+  4: "RISKY",
+  5: "BIG WIN",
 };
+
+const DEFAULT_ACTIVITIES: Array<{
+  id: string;
+  type: "bet" | "win" | "deposit";
+  label: string;
+  time: string;
+  amountKobo: number;
+}> = [
+  { id: "act-1", type: "bet", label: "Game bet", time: "Today, 14:32", amountKobo: -10_000 },
+  { id: "act-2", type: "win", label: "Winnings", time: "Today, 14:28", amountKobo: 34_000 },
+  { id: "act-3", type: "bet", label: "Game bet", time: "Today, 14:21", amountKobo: -20_000 },
+  { id: "act-4", type: "deposit", label: "Deposit", time: "Today, 13:47", amountKobo: 200_000 },
+];
 
 interface RoundRecord {
   reference: number | string;
@@ -354,42 +367,104 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
     <main className={styles.viewportContainer} data-theme={theme} id="main-content">
       <a className="skip-link" href="#blackred-playfield">Skip to game controls</a>
 
-      {/* Top Header (Compact ~48px) */}
+      {/* Top Header */}
       <header className={styles.compactTopbar}>
+        {/* Mobile Header Row (< 768px) */}
+        <div className={styles.topbarMobileRow}>
+          <a className={styles.mobileExitBtn} href="/games" aria-label="Exit game and return to dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </a>
+          <a className={styles.brand} href="/games" aria-label="Exit BlackRed and return to games">
+            <img src="/assets/blackred-logo.png" alt="BlackRed" className={styles.brandLogoImg} />
+            <div className={styles.brandTitleGroup}>
+              <strong className={styles.brandTitle}>Betplus</strong>
+              <strong className={styles.brandTitleSub}>BlackRed</strong>
+            </div>
+          </a>
+          <span className={styles.instantBadge}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF0028">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+            <span>Instant Fixed-Odds</span>
+          </span>
+        </div>
+
+        {/* Desktop Topbar Content (>= 768px) */}
         <div className={styles.topbarLeft}>
           <a className={styles.backBtn} href="/games" aria-label="Exit game and return to dashboard">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ marginRight: '2px' }}>
-              <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
             <span>Exit Game</span>
           </a>
           <div className={styles.topbarDivider}></div>
           <a className={styles.brand} href="/games" aria-label="Exit BlackRed and return to games">
-            <img src="/assets/blackred-logo.png" alt="BlackRed" className={styles.brandLogo} />
-            <strong className={styles.brandTitle}>Betplus BlackRed</strong>
+            <img src="/assets/blackred-logo.png" alt="BlackRed" className={styles.brandLogoImg} />
+            <div className={styles.brandTitleDesktop}>
+              <strong className={styles.brandTitleText}>Betplus</strong>
+              <strong className={styles.brandTitleSub}>BlackRed</strong>
+            </div>
           </a>
-          <span className={styles.instantBadge}>⚡ Instant Fixed-Odds</span>
+          <span className={styles.instantBadge}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF0028">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+            <span>Instant Fixed-Odds</span>
+          </span>
         </div>
 
         <div className={styles.topbarRight}>
           <div className={styles.compactBalanceChip}>
+            <span className={styles.chipBullet}></span>
             <span className={styles.chipLabel}>Play:</span>
             <strong>{formatKobo(playBalanceKobo)}</strong>
           </div>
           <div className={styles.compactBalanceChip}>
+            <span className={styles.chipBulletGold}></span>
             <span className={styles.chipLabel}>Winnings:</span>
             <strong className={styles.chipGold}>{formatKobo(winningsBalanceKobo)}</strong>
           </div>
           <button className={styles.topupBtn} type="button" onClick={(e) => openDeposit(e.currentTarget)}>+ Top Up</button>
           <button className={styles.withdrawTopBtn} type="button" onClick={(e) => openWithdraw(e.currentTarget)}>Withdraw</button>
           <button className={styles.themeBtn} type="button" onClick={() => setTheme((c) => c === "dark" ? "light" : "dark")} title="Toggle Theme">
-            {theme === "dark" ? "☀" : "☾"}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+            </svg>
           </button>
           <span className={styles.ageBadge}>18+</span>
         </div>
       </header>
 
-      {/* Main Single-Viewport Workspace (Zero scroll, fills 100% remaining height) */}
+      {/* Mobile Dedicated Wallet Subbar (Shown only on mobile) */}
+      <div className={styles.mobileWalletBar}>
+        <div className={styles.mobileWalletInfo}>
+          <svg className={styles.mobileWalletIcon} width="20" height="20" viewBox="0 0 24 24" fill="#FF0028">
+            <path d="M21 7.28V5c0-1.1-.9-2-2-2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-2.28c.59-.35 1-.99 1-1.72V9c0-.73-.41-1.37-1-1.72zM20 9v6h-7V9h7zM5 19V5h14v2h-6c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h6v2H5z" />
+          </svg>
+          <strong className={styles.mobileWalletAmount}>{formatKobo(playBalanceKobo + winningsBalanceKobo)}</strong>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+        <div className={styles.mobileWalletActions}>
+          <button className={styles.mobileTopupBtn} type="button" onClick={(e) => openDeposit(e.currentTarget)}>+ Top Up</button>
+          <button className={styles.mobileSettingsBtn} type="button" onClick={() => setTheme((c) => c === "dark" ? "light" : "dark")} aria-label="Settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Single-Viewport Workspace */}
       <div className={styles.viewportWorkspace} id="blackred-playfield">
         {/* Left Arena Gaming Surface */}
         <form className={styles.mainGamingSurface} noValidate autoComplete="off" onSubmit={handleStartArena}>
@@ -400,7 +475,7 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
           <section className={styles.stepSectionCompact} aria-labelledby="step1-title">
             <div className={styles.stepHeaderRow}>
               <span className={styles.stepBadge}>Step 1</span>
-              <h2 id="step1-title" className={styles.stepTitle}>Pick your <em>game</em></h2>
+              <h2 id="step1-title" className={styles.stepTitle}>Pick your game</h2>
               <span className={styles.stepSubtitle}>Select cards count to set your prize multiplier</span>
             </div>
 
@@ -423,14 +498,13 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
           </section>
 
           {/* ========================================================
-              MIDDLE ROW: STEP 2 (PICK COLOURS) + LIVE WINNERS BESIDE IT
+              STEP 2: PICK YOUR COLOURS (Arena Stage)
               ======================================================== */}
           <div className={styles.step2AndWinnersRow}>
-            {/* Step 2: Prediction Cards */}
             <section className={styles.stepSectionCards} aria-labelledby="step2-title">
               <div className={styles.stepHeaderRow}>
                 <span className={styles.stepBadge}>Step 2</span>
-                <h2 id="step2-title" className={styles.stepTitle}>Pick your <em>colours</em></h2>
+                <h2 id="step2-title" className={styles.stepTitle}>Pick your colours</h2>
                 <span className={styles.stepSubtitle}>Tap card to toggle Red/Black</span>
               </div>
 
@@ -468,7 +542,7 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
                 </div>
               ) : (
                 <div className={styles.emptyCardsHero}>
-                  <div className={styles.emptyHeroIcon}>B / R</div>
+                  <div className={styles.emptyHeroIcon}>♠ / ♥</div>
                   <p>Choose 1 to 5 cards above in Step 1 to pick colours</p>
                 </div>
               )}
@@ -483,9 +557,16 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
             {/* Stake Box */}
             <div className={styles.stakeBoxSection}>
               <div className={styles.splitBoxHeader}>
-                <span className={styles.splitBoxTitle}>Your Stake</span>
+                <div className={styles.stakeHeaderLeft}>
+                  <svg className={styles.coinsIcon} width="16" height="16" viewBox="0 0 24 24" fill="#FF0028">
+                    <circle cx="8" cy="8" r="5" fill="#FF0028" opacity="0.8" />
+                    <circle cx="14" cy="12" r="5" fill="#FF0028" opacity="0.9" />
+                    <circle cx="12" cy="16" r="5" fill="#FF0028" />
+                  </svg>
+                  <span className={styles.splitBoxTitle}>Your Stake</span>
+                </div>
                 <span className={styles.stakeRangeHint}>
-                  {formatKobo(descriptor.minStakeKobo)} min · {formatKobo(descriptor.maxStakeKobo)} max
+                  {formatKobo(descriptor.minStakeKobo)} min - {formatKobo(descriptor.maxStakeKobo)} max
                 </span>
               </div>
 
@@ -535,7 +616,9 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
               <div className={styles.splitBoxHeader}>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                   <span className={styles.stepBadge}>Step 3</span>
-                  <h2 id="step3-title" className={styles.splitBoxTitle}>Ready to <em>Play</em></h2>
+                  <h2 id="step3-title" className={styles.splitBoxTitle}>
+                    Ready to <span className={styles.playWordAccent}>Play</span>
+                  </h2>
                 </div>
                 <div className={styles.recapPillRow}>
                   {prediction.length > 0 ? (
@@ -556,15 +639,15 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
               {/* Financial Metrics Row */}
               <div className={styles.breakdownMetricsRow}>
                 <div className={styles.breakdownItem}>
-                  <span>Stake</span>
+                  <span>STAKE</span>
                   <strong>{formatKobo(stakeKobo ?? 0)}</strong>
                 </div>
                 <div className={styles.breakdownItem}>
-                  <span>Multiplier</span>
+                  <span>MULTIPLIER</span>
                   <strong>{tier ? formatMultiplier(tier) : "—"}</strong>
                 </div>
                 <div className={styles.breakdownItem}>
-                  <span>Potential Win</span>
+                  <span>POTENTIAL WIN</span>
                   <strong className={styles.goldWinAmount}>{formatKobo(potentialNetKobo)}</strong>
                 </div>
               </div>
@@ -576,16 +659,40 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
                   className={`${styles.paymentMethodTab} ${paymentOption === "wallet" ? styles.paymentMethodTabActive : ""}`}
                   onClick={() => setPaymentOption("wallet")}
                 >
-                  <span className={styles.paymentMethodTabTitle}>👛 Wallet Balance</span>
-                  <span className={styles.paymentMethodTabSub}>{formatKobo(playBalanceKobo)} available</span>
+                  <div className={styles.paymentMethodLeft}>
+                    <div className={styles.walletMethodIcon}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF0028">
+                        <path d="M21 7.28V5c0-1.1-.9-2-2-2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-2.28c.59-.35 1-.99 1-1.72V9c0-.73-.41-1.37-1-1.72zM20 9v6h-7V9h7zM5 19V5h14v2h-6c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h6v2H5z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span className={styles.paymentMethodTabTitle}>Wallet Balance</span>
+                      <span className={styles.paymentMethodTabSub}>{formatKobo(playBalanceKobo)}</span>
+                    </div>
+                  </div>
+                  <div className={`${styles.radioCircle} ${paymentOption === "wallet" ? styles.radioCircleActive : ""}`}>
+                    {paymentOption === "wallet" && <div className={styles.radioDot} />}
+                  </div>
                 </button>
                 <button
                   type="button"
                   className={`${styles.paymentMethodTab} ${paymentOption === "opay" ? styles.paymentMethodTabActiveOpay : ""}`}
                   onClick={() => setPaymentOption("opay")}
                 >
-                  <span className={styles.paymentMethodTabTitle}>⚡ OPay Direct</span>
-                  <span className={styles.paymentMethodTabSubOpay}>Direct Debit & Auto-Payout</span>
+                  <div className={styles.paymentMethodLeft}>
+                    <div className={styles.opayMethodIcon}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5">
+                        <circle cx="12" cy="12" r="9" strokeDasharray="40 16" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span className={styles.paymentMethodTabTitle}>Opay Direct</span>
+                      <span className={styles.paymentMethodTabSubOpay}>Direct Debit & Auto-Payout</span>
+                    </div>
+                  </div>
+                  <div className={`${styles.radioCircle} ${paymentOption === "opay" ? styles.radioCircleActiveOpay : ""}`}>
+                    {paymentOption === "opay" && <div className={styles.radioDotOpay} />}
+                  </div>
                 </button>
               </div>
 
@@ -602,81 +709,123 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
                     ? paymentOption === "opay"
                       ? `⚡ Pay with OPay · ${formatKobo(stakeKobo ?? 0)}`
                       : `Start Round ▶ · ${formatKobo(stakeKobo ?? 0)}`
-                    : "Complete Steps 1 & 2 Above"}
+                    : "Complete Steps 1 & 2 Above →"}
               </button>
             </section>
           </div>
         </form>
 
-        {/* Right Sidebar: Compact Account & History Rail */}
+        {/* Right Sidebar: Desktop Account & History Rail */}
         <aside className={styles.compactAccountRail} aria-label="Account Overview and Recent Rounds">
           <div className={styles.railHeader}>
+            <div className={styles.railUserBadge}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF0028">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            </div>
             <h3>Your Account</h3>
           </div>
 
           <div className={styles.railBalancesCard}>
-            {/* Total Balance */}
-            <div className={styles.railTotalBalanceRow}>
-              <span className={styles.totalBalanceLabel}>Total Balance</span>
-              <strong className={styles.totalBalanceAmount}>
-                {formatKobo(playBalanceKobo + winningsBalanceKobo)}
-              </strong>
+            {/* Total Balance Card */}
+            <div className={styles.railTotalBalanceBox}>
+              <div className={styles.totalBalanceLeft}>
+                <svg className={styles.totalBalanceIcon} width="26" height="26" viewBox="0 0 24 24" fill="#FF0028">
+                  <path d="M21 7.28V5c0-1.1-.9-2-2-2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-2.28c.59-.35 1-.99 1-1.72V9c0-.73-.41-1.37-1-1.72zM20 9v6h-7V9h7zM5 19V5h14v2h-6c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h6v2H5z" />
+                </svg>
+                <div>
+                  <span className={styles.totalBalanceLabel}>TOTAL BALANCE</span>
+                  <strong className={styles.totalBalanceAmount}>
+                    {formatKobo(playBalanceKobo + winningsBalanceKobo)}
+                  </strong>
+                </div>
+              </div>
             </div>
 
-            <div className={styles.railBalanceRow}>
-              <div>
-                <span>Play Balance</span>
-                <strong>{formatKobo(playBalanceKobo)}</strong>
+            {/* Sub-Balances Grid */}
+            <div className={styles.subBalancesGrid}>
+              <div className={styles.subBalanceItem}>
+                <span className={styles.subBalanceLabel}>Play Balance</span>
+                <strong className={styles.subBalanceAmount}>{formatKobo(playBalanceKobo)}</strong>
               </div>
-              <button className={styles.railTopupMini} type="button" onClick={(e) => openDeposit(e.currentTarget)}>+ Top Up</button>
+              <div className={styles.subBalanceItem}>
+                <span className={styles.subBalanceLabel}>Winnings Balance</span>
+                <strong className={styles.subBalanceGold}>{formatKobo(winningsBalanceKobo)}</strong>
+              </div>
             </div>
 
-            <div className={styles.railBalanceRow}>
-              <div>
-                <span>Winnings Balance</span>
-                <strong className={styles.goldWinAmount}>{formatKobo(winningsBalanceKobo)}</strong>
-              </div>
-              <button className={styles.railWithdrawMini} type="button" onClick={(e) => openWithdraw(e.currentTarget)}>Withdraw</button>
-            </div>
+            <button className={styles.railTopupFullBtn} type="button" onClick={(e) => openDeposit(e.currentTarget)}>+ Top Up</button>
           </div>
 
           {/* Turnover Progress */}
           <div className={styles.railTurnoverCard}>
             <div className={styles.turnoverLabels}>
-              <span>Turnover:</span>
+              <span>Turnover</span>
               <strong>{formatKobo(descriptor.turnoverStakedKobo)} / {formatKobo(descriptor.turnoverRequiredKobo)}</strong>
             </div>
             <div className={styles.turnoverTrack}>
               <div
                 className={styles.turnoverFill}
-                style={{ width: `${Math.min(100, (descriptor.turnoverStakedKobo / descriptor.turnoverRequiredKobo) * 100)}%` }}
+                style={{ width: `${Math.min(100, (descriptor.turnoverStakedKobo / (descriptor.turnoverRequiredKobo || 1)) * 100)}%` }}
               />
             </div>
           </div>
 
-          {/* Recent Rounds */}
+          {/* Recent Activity */}
           <div className={styles.railRecentRounds}>
-            <h4>Recent Activity</h4>
+            <h4>RECENT ACTIVITY</h4>
             <div className={styles.roundsListScroll}>
-              {recentRounds.map((round, idx) => (
-                <div key={`${round.reference}-${idx}`} className={styles.roundItemRow}>
-                  <span className={styles.roundRefText}>#{round.reference} · {round.cards}c</span>
-                  <span className={round.won ? styles.wonTag : styles.lostTag}>{round.won ? "Win" : "Loss"}</span>
-                  <strong className={round.won ? styles.wonAmount : styles.lostAmount}>
-                    {round.won ? "+" : ""}{formatKobo(Math.abs(round.amountKobo))}
-                  </strong>
-                </div>
-              ))}
+              {(recentRounds.length > 0 ? recentRounds : DEFAULT_ACTIVITIES).map((item, idx) => {
+                const isWon = "won" in item ? item.won : item.type === "win" || item.type === "deposit";
+                const title = "cards" in item ? `Round #${item.reference}` : item.label;
+                const time = "time" in item ? item.time : "Just now";
+                const amount = item.amountKobo;
+                return (
+                  <div key={idx} className={styles.activityItemRow}>
+                    <div className={styles.activityLeft}>
+                      <div className={`${styles.activityIconCircle} ${isWon ? styles.iconGreen : styles.iconRed}`}>
+                        {isWon ? (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M12 19V5M5 12l7-7 7 7" />
+                          </svg>
+                        ) : (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M19 12H5" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className={styles.activityMeta}>
+                        <span className={styles.activityTitle}>{title}</span>
+                        <span className={styles.activityTime}>{time}</span>
+                      </div>
+                    </div>
+                    <strong className={isWon ? styles.activityWonAmount : styles.activityLostAmount}>
+                      {amount > 0 ? `+ ${formatKobo(amount)}` : `- ${formatKobo(Math.abs(amount))}`}
+                    </strong>
+                  </div>
+                );
+              })}
             </div>
+            <a className={styles.viewAllActivityLink} href="/activity">
+              View All Activity →
+            </a>
           </div>
         </aside>
       </div>
 
       {/* Ultra Compact Legal Footer */}
       <footer className={styles.compactLegalBar}>
-        <span>Tax deducted at source · 5% WHT</span>
-        <span>Outcomes fixed at placement · 18+</span>
-        <a href="/responsible-gambling">Responsible gambling</a>
+        <div className={styles.legalBarLeft}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF0028">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg>
+          <span>Tax deducted at source - 5% WHT</span>
+        </div>
+        <div className={styles.legalBarRight}>
+          <span>Outcomes fixed at placement - 18+</span>
+          <span className={styles.legalDot}>•</span>
+          <a href="/responsible-gambling">Responsible gambling 🛡️</a>
+        </div>
       </footer>
 
       {/* Deposit Sheet Pop-up */}

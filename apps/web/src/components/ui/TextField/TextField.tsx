@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, Ref } from "react";
+import type { InputHTMLAttributes, ReactNode, Ref } from "react";
 import { FormField } from "@/components/ui/FormField/FormField";
 import { Icon, type IconName } from "@/components/ui/Icon/Icon";
 import styles from "./TextField.module.css";
@@ -9,6 +9,7 @@ export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElemen
   helperText?: string;
   errorText?: string;
   leadingIcon?: IconName;
+  trailingAction?: ReactNode;
   showRequiredIndicator?: boolean;
   ref?: Ref<HTMLInputElement>;
 }
@@ -19,6 +20,7 @@ export function TextField({
   helperText,
   errorText,
   leadingIcon,
+  trailingAction,
   showRequiredIndicator,
   required,
   className,
@@ -46,10 +48,16 @@ export function TextField({
               {...inputProps}
               {...controlProps}
               ref={ref}
-              className={[styles.input, leadingIcon && styles.withIcon, className].filter(Boolean).join(" ")}
+              className={[
+                styles.input,
+                leadingIcon && styles.withIcon,
+                trailingAction && styles.withTrailing,
+                className,
+              ].filter(Boolean).join(" ")}
               required={required}
               aria-describedby={describedBy}
             />
+            {trailingAction && <div className={styles.trailingAction}>{trailingAction}</div>}
           </div>
         );
       }}

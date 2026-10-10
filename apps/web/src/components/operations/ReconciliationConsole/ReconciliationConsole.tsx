@@ -33,8 +33,9 @@ export function ReconciliationConsole() {
       .reconciliation(status)
       .then((result) => {
         if (!active) return;
-        setExceptions(result.exceptions);
-        setSelectedId((current) => (current !== undefined && result.exceptions.some((e) => e.id === current) ? current : result.exceptions[0]?.id));
+        const items = result?.exceptions ?? [];
+        setExceptions(items);
+        setSelectedId((current) => (current !== undefined && items.some((e) => e.id === current) ? current : items[0]?.id));
       })
       .catch(() => {
         if (active) setLoadFailed(true);

@@ -28,6 +28,16 @@ const navigationGroups: readonly OperationsNavigationGroup[] = [
   "Administration",
 ];
 
+const GROUP_HEADER_LABELS: Record<OperationsNavigationGroup, string> = {
+  Home: "MAIN MENU",
+  Customers: "CUSTOMERS & SUPPORT",
+  Finance: "FINANCE & RISK",
+  Product: "GAMES & PRODUCT",
+  Compliance: "COMPLIANCE & AUDIT",
+  Insights: "ANALYTICS & INSIGHTS",
+  Administration: "SYSTEM & ACCESS",
+};
+
 const NAVIGATION_FILTER_DEFAULTS = { game: "all" };
 
 function scopedHref(href: string, game: OperationsGameScope) {
@@ -38,7 +48,7 @@ function DestinationLink({ destination, current, game }: { destination: Operatio
   return (
     <Link className={styles.link} href={scopedHref(destination.href, game)} aria-current={current ? "page" : undefined}>
       <Icon name={destination.icon} size="navigation" />
-      <span>{destination.label}</span>
+      <span className={styles.linkLabel}>{destination.label}</span>
     </Link>
   );
 }
@@ -58,28 +68,50 @@ function NavigationLinks({ role }: { role: OperatorRole }) {
         if (group === "Home") {
           const destination = groupedDestinations[0];
           const current = pathname === destination.href || pathname.startsWith(`${destination.href}/`);
-          return <DestinationLink key={group} destination={destination} current={current} game={selectedGame} />;
+          return (
+            <div key={group} className={styles.groupSection}>
+              <span className={styles.sectionHeader}>{GROUP_HEADER_LABELS[group]}</span>
+              <DestinationLink destination={destination} current={current} game={selectedGame} />
+            </div>
+          );
         }
 
         const containsCurrent = groupedDestinations.some(
           (destination) => pathname === destination.href || pathname.startsWith(`${destination.href}/`),
         );
 
+        const subgroups: { name: string | undefined; items: OperationsDestination[] }[] = [];
+        for (const destination of groupedDestinations) {
+          const last = subgroups[subgroups.length - 1];
+          if (last && last.name === destination.subgroup) {
+            last.items.push(destination);
+          } else {
+            subgroups.push({ name: destination.subgroup, items: [destination] });
+          }
+        }
+
         return (
-          <details className={styles.group} key={group} open={containsCurrent || undefined}>
-            <summary>
-              <span>{group}</span>
-              <Icon name="chevron-right" />
-            </summary>
-            <div className={styles.groupBody}>
-              <ul>
-                {groupedDestinations.map((destination) => {
-                  const current = pathname === destination.href || pathname.startsWith(`${destination.href}/`);
-                  return <li key={destination.href}><DestinationLink destination={destination} current={current} game={selectedGame} /></li>;
-                })}
-              </ul>
-            </div>
-          </details>
+          <div key={group} className={styles.groupSection}>
+            <details className={styles.group} open={containsCurrent || undefined}>
+              <summary>
+                <span className={styles.sectionHeader}>{GROUP_HEADER_LABELS[group]}</span>
+                <Icon name="chevron-right" />
+              </summary>
+              <div className={styles.groupBody}>
+                {subgroups.map((subgroup, index) => (
+                  <div className={styles.subgroup} key={subgroup.name ?? index}>
+                    {subgroup.name ? <p className={styles.subgroupLabel}>{subgroup.name}</p> : null}
+                    <ul>
+                      {subgroup.items.map((destination) => {
+                        const current = pathname === destination.href || pathname.startsWith(`${destination.href}/`);
+                        return <li key={destination.href}><DestinationLink destination={destination} current={current} game={selectedGame} /></li>;
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </details>
+          </div>
         );
       })}
     </div>

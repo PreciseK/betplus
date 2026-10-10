@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ErrorSummary } from "@/components/auth/ErrorSummary/ErrorSummary";
 import { OPERATOR_ROLE_LABELS } from "@/components/operations/operations-navigation";
 import { Button } from "@/components/ui/Button/Button";
+import { Icon } from "@/components/ui/Icon/Icon";
 import { OtpInput } from "@/components/ui/OtpInput/OtpInput";
 import { TextField } from "@/components/ui/TextField/TextField";
 import { InlineMessage } from "@/components/ui/feedback/InlineMessage/InlineMessage";
@@ -28,6 +29,7 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
   const [step, setStep] = useState<SignInStep>("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
   const [code, setCode] = useState("");
@@ -171,18 +173,35 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
           <TextField
             id="operator-password"
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             value={password}
             errorText={passwordError}
             onBlur={validatePassword}
             onChange={(event) => setPassword(event.target.value)}
             required
+            trailingAction={
+              <button
+                type="button"
+                className={styles.passwordToggle}
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+              >
+                <Icon name={showPassword ? "eye-off" : "eye"} size="control" />
+              </button>
+            }
           />
           <Button type="submit" status={pending ? "loading" : "idle"} statusLabel="Checking credentials…">
             Continue to MFA
           </Button>
-          <p className={styles.prototypeNote}>Your password and authenticator code are verified by the separate Betplus institutional access service.</p>
+          <p className={styles.prototypeNote}>
+            Your password and authenticator code are verified by the Betplus institutional access service.
+            <br />
+            <small style={{ opacity: 0.85, marginTop: "6px", display: "inline-block" }}>
+              Local dev credentials: <code>admin@betplus.ng</code> · any 8+ char password · MFA: <code>123456</code>
+            </small>
+          </p>
         </form>
       ) : (
         <form className={styles.form} noValidate onSubmit={verifyMfa}>

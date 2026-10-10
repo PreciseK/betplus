@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { backOfficeGateway } from "@betplus/api-client";
 import { OperationsNav } from "@/components/operations/OperationsNav/OperationsNav";
@@ -23,6 +23,18 @@ interface OperationsShellProps {
 export function OperationsShell({ children, operatorName, role, requiredCapability }: OperationsShellProps) {
   const [activeOperator, setActiveOperator] = useState<OperatorIdentity | null>(null);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, []);
 
   useEffect(() => {
     if (!backOfficeGateway.hasSession()) {
@@ -53,7 +65,6 @@ export function OperationsShell({ children, operatorName, role, requiredCapabili
 
   const effectiveRole = activeOperator?.role ?? role;
   const effectiveName = activeOperator?.displayName ?? operatorName;
-  const firstName = effectiveName.split(" ")[0];
   const initials = effectiveName.split(" ").map((part) => part[0]).join("").slice(0, 2);
 
   return (
@@ -61,17 +72,51 @@ export function OperationsShell({ children, operatorName, role, requiredCapabili
       <a className="skip-link" href="#operations-main">Skip to operations workspace</a>
       <div className={styles.shell}>
         <aside className={styles.sidebar}>
-          <div className={styles.brandBlock}>
-            <Logo href="/back-office/overview" />
-            <span>Back office</span>
+          <div className={styles.workspaceCard}>
+            <div className={styles.workspaceIcon} aria-hidden="true">B+</div>
+            <div className={styles.workspaceMeta}>
+              <strong>Betplus Operations</strong>
+              <span className={styles.workspaceSubtext}>Nigeria Hub</span>
+            </div>
+            <span className={styles.liveStatusBadge} title="Production live engine">
+              <span className={styles.liveDot} /> LIVE
+            </span>
           </div>
-          <OperationsNav role={effectiveRole} variant="desktop" />
+
+          <div className={styles.sidebarSearch}>
+            <Icon name="search" />
+            <input
+              ref={searchInputRef}
+              type="search"
+              placeholder="Quick search…"
+              aria-label="Find a player or ticket"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.currentTarget.value) {
+                  window.location.href = `/back-office/players?query=${encodeURIComponent(e.currentTarget.value)}`;
+                }
+              }}
+            />
+            <kbd className={styles.shortcutKey}>⌘K</kbd>
+          </div>
+
+          <div className={styles.navContainer}>
+            <OperationsNav role={effectiveRole} variant="desktop" />
+          </div>
+
           <div className={styles.sidebarProfile}>
             <span className={styles.avatar} aria-hidden="true">{initials}</span>
-            <div>
+            <div className={styles.profileDetails}>
               <strong>{effectiveName}</strong>
               <span>{OPERATOR_ROLE_LABELS[effectiveRole]}</span>
             </div>
+            <Link
+              className={styles.sidebarSignOut}
+              href="/back-office"
+              title="Sign out"
+              onClick={() => backOfficeGateway.clearSession()}
+            >
+              <Icon name="arrow-right" />
+            </Link>
           </div>
         </aside>
 
@@ -80,21 +125,21 @@ export function OperationsShell({ children, operatorName, role, requiredCapabili
             <div className={styles.mobileBrand}>
               <Logo href="/back-office/overview" />
             </div>
-            <div className={styles.welcome}>
-              <strong>{OPERATOR_ROLE_LABELS[effectiveRole]}</strong>
-              <span>Welcome back, {firstName}</span>
+            <div className={styles.shiftBadge}>
+              <span className={styles.livePulseDot} />
+              <div className={styles.shiftMeta}>
+                <strong>Shift Active</strong>
+                <span>{effectiveName} &bull; {OPERATOR_ROLE_LABELS[effectiveRole]}</span>
+              </div>
             </div>
             <form className={styles.globalSearch} role="search" action="/back-office/players">
-              <Icon name="account" />
+              <Icon name="search" />
               <label className="sr-only" htmlFor="operations-search">Find a player or ticket</label>
               <input id="operations-search" name="query" type="search" placeholder="Find player or ticket…" />
               <button type="submit" aria-label="Run search"><Icon name="arrow-right" /></button>
             </form>
             <div className={styles.headerActions}>
               <GameScopeSelector />
-              <div className={styles.operator}>
-                <span>{OPERATOR_ROLE_LABELS[effectiveRole]}</span>
-              </div>
               <Link
                 className={styles.signOut}
                 href="/back-office"

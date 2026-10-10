@@ -48,6 +48,34 @@
   font-size: var(--type-caption-size);
 }
 
+.passwordToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: transparent;
+  border: none;
+  border-radius: var(--control-radius, 4px);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    color var(--motion-fast, 150ms) ease,
+    transform var(--motion-fast, 150ms) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.passwordToggle:hover {
+  color: var(--text-primary);
+}
+
+.passwordToggle:active {
+  transform: scale(0.92);
+}
+
+.passwordToggle:focus-visible {
+  outline: 2px solid var(--action-primary);
+  outline-offset: 2px;
+}
+
 @media (max-width: 480px) {
   .actions {
     display: grid;

@@ -47,23 +47,24 @@ function dateLabel(value: string) {
   return new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short", year: "numeric" }).format(new Date(`${value}T12:00:00`));
 }
 
-function formatMetric(value: number, format: DailyMetric["format"]) {
-  return format === "money" ? formatKobo(value) : value.toLocaleString("en-NG");
+function formatMetric(value: number | undefined, format: DailyMetric["format"]) {
+  const numericValue = typeof value === "number" && !isNaN(value) ? value : 0;
+  return format === "money" ? formatKobo(numericValue) : numericValue.toLocaleString("en-NG");
 }
 
 function buildMetrics(current: BackOfficeDailySummary, previous?: BackOfficeDailySummary): DailyMetric[] {
   return [
-    { id: "stakes", metric: "Gross stakes", current: current.gross_stakes_kobo, previous: previous?.gross_stakes_kobo ?? 0, format: "money", group: "money" },
-    { id: "wins", metric: "Gross wins", current: current.gross_wins_kobo, previous: previous?.gross_wins_kobo ?? 0, format: "money", group: "money" },
-    { id: "revenue", metric: "Net gaming revenue", current: current.net_gaming_revenue_kobo, previous: previous?.net_gaming_revenue_kobo ?? 0, format: "money", group: "money" },
-    { id: "deposits", metric: "Deposits received", current: current.deposits_kobo, previous: previous?.deposits_kobo ?? 0, format: "money", group: "money", note: "Platform-wide, not scoped to the selected game" },
-    { id: "payouts", metric: "Payouts completed", current: current.payouts_kobo, previous: previous?.payouts_kobo ?? 0, format: "money", group: "money", note: "Platform-wide, not scoped to the selected game" },
-    { id: "players", metric: "Active players", current: current.active_players, previous: previous?.active_players ?? 0, format: "integer", group: "players", note: "Distinct ticket purchasers that day" },
-    { id: "new-players", metric: "New players", current: current.new_players, previous: previous?.new_players ?? 0, format: "integer", group: "players" },
-    { id: "verified-players", metric: "KYC verified (platform total)", current: current.verified_players_total, previous: previous?.verified_players_total ?? 0, format: "integer", group: "players", note: "Point-in-time total, not new verifications that day" },
-    { id: "reviews", metric: "Safer play reviews opened", current: current.safer_play_reviews_opened, previous: previous?.safer_play_reviews_opened ?? 0, format: "integer", group: "controls" },
-    { id: "exceptions", metric: "Reconciliation exceptions", current: current.reconciliation_exceptions, previous: previous?.reconciliation_exceptions ?? 0, format: "integer", group: "controls" },
-    { id: "payout-holds", metric: "Payouts held for review", current: current.payout_holds, previous: previous?.payout_holds ?? 0, format: "integer", group: "controls" },
+    { id: "stakes", metric: "Gross stakes", current: current.gross_stakes_kobo ?? 0, previous: previous?.gross_stakes_kobo ?? 0, format: "money", group: "money" },
+    { id: "wins", metric: "Gross wins", current: current.gross_wins_kobo ?? 0, previous: previous?.gross_wins_kobo ?? 0, format: "money", group: "money" },
+    { id: "revenue", metric: "Net gaming revenue", current: current.net_gaming_revenue_kobo ?? 0, previous: previous?.net_gaming_revenue_kobo ?? 0, format: "money", group: "money" },
+    { id: "deposits", metric: "Deposits received", current: current.deposits_kobo ?? 0, previous: previous?.deposits_kobo ?? 0, format: "money", group: "money", note: "Platform-wide, not scoped to the selected game" },
+    { id: "payouts", metric: "Payouts completed", current: current.payouts_kobo ?? 0, previous: previous?.payouts_kobo ?? 0, format: "money", group: "money", note: "Platform-wide, not scoped to the selected game" },
+    { id: "players", metric: "Active players", current: current.active_players ?? 0, previous: previous?.active_players ?? 0, format: "integer", group: "players", note: "Distinct ticket purchasers that day" },
+    { id: "new-players", metric: "New players", current: current.new_players ?? 0, previous: previous?.new_players ?? 0, format: "integer", group: "players" },
+    { id: "verified-players", metric: "KYC verified (platform total)", current: current.verified_players_total ?? 0, previous: previous?.verified_players_total ?? 0, format: "integer", group: "players", note: "Point-in-time total, not new verifications that day" },
+    { id: "reviews", metric: "Safer play reviews opened", current: current.safer_play_reviews_opened ?? 0, previous: previous?.safer_play_reviews_opened ?? 0, format: "integer", group: "controls" },
+    { id: "exceptions", metric: "Reconciliation exceptions", current: current.reconciliation_exceptions ?? 0, previous: previous?.reconciliation_exceptions ?? 0, format: "integer", group: "controls" },
+    { id: "payout-holds", metric: "Payouts held for review", current: current.payout_holds ?? 0, previous: previous?.payout_holds ?? 0, format: "integer", group: "controls" },
   ];
 }
 
@@ -120,10 +121,12 @@ export function DailySummaryConsole() {
       id: "change",
       label: "Change",
       cell: (row) => {
-        const change = row.previous === 0 ? 0 : ((row.current - row.previous) / row.previous) * 100;
+        const prev = row.previous ?? 0;
+        const curr = row.current ?? 0;
+        const change = prev === 0 ? 0 : ((curr - prev) / prev) * 100;
         return `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`;
       },
-      sortValue: (row) => row.current - row.previous,
+      sortValue: (row) => (row.current ?? 0) - (row.previous ?? 0),
       align: "end",
     },
   ], [previousDate, selectedDate]);

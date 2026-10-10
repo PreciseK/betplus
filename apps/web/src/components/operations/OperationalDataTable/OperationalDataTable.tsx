@@ -51,6 +51,9 @@ export function OperationalDataTable<Row>({
   const [sort, setSort] = useState(defaultSort);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageJump, setPageJump] = useState("");
 
   const sortedRows = useMemo(() => {
     if (!sort) return [...rows];
@@ -68,6 +71,12 @@ export function OperationalDataTable<Row>({
 
   const selectedRows = sortedRows.filter((row) => selected.has(getRowId(row)));
   const allSelected = sortedRows.length > 0 && selectedRows.length === sortedRows.length;
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / pageSize));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+  const pagedRows = sortedRows.length > pageSize
+    ? sortedRows.slice((safePage - 1) * pageSize, safePage * pageSize)
+    : sortedRows;
 
   function toggleSort(column: OperationalColumn<Row>) {
     if (!column.sortValue) return;
@@ -88,6 +97,15 @@ export function OperationalDataTable<Row>({
     onBulkAction?.(selectedRows);
     setSelected(new Set());
     setConfirmOpen(false);
+  }
+
+  function handlePageJump(e: React.FormEvent) {
+    e.preventDefault();
+    const parsed = parseInt(pageJump, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= totalPages) {
+      setCurrentPage(parsed);
+      setPageJump("");
+    }
   }
 
   if (dataState === "loading") {
@@ -126,78 +144,193 @@ export function OperationalDataTable<Row>({
         </div>
       )}
 
-      {selectedRows.length > 0 && (
-        <div className={styles.bulkBar} role="status" aria-live="polite">
-          <strong>{selectedRows.length} selected</strong>
-          <Button variant="secondary" onClick={() => setConfirmOpen(true)}>{bulkActionLabel}</Button>
-          <button className={styles.tableAction} type="button" onClick={() => setSelected(new Set())}>Clear selection</button>
-        </div>
-      )}
-
       <p className="sr-only" aria-live="polite">
         {sort ? `Sorted by ${columns.find((column) => column.id === sort.id)?.label}, ${sort.direction}.` : "Table is not sorted."}
       </p>
 
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <caption className="sr-only">{caption}</caption>
-          <thead>
-            <tr>
-              {selectable && (
-                <th scope="col" className={styles.selectColumn}>
-                  <input
-                    type="checkbox"
-                    aria-label={`Select all ${sortedRows.length} rows`}
-                    checked={allSelected}
-                    onChange={() => setSelected(allSelected ? new Set() : new Set(sortedRows.map(getRowId)))}
-                  />
-                </th>
-              )}
-              {columns.map((column) => (
-                <th
-                  key={column.id}
-                  scope="col"
-                  className={column.align === "end" ? styles.money : undefined}
-                  aria-sort={sort?.id === column.id ? sort.direction : column.sortValue ? "none" : undefined}
-                >
-                  {column.sortValue ? (
-                    <button className={styles.sortButton} type="button" onClick={() => toggleSort(column)}>
-                      {column.label}<span aria-hidden="true">{sort?.id === column.id ? sort.direction === "ascending" ? "↑" : "↓" : "↕"}</span>
-                    </button>
-                  ) : column.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sortedRows.map((row) => {
-              const rowId = getRowId(row);
+      <div className={styles.tableContainer}>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <caption className="sr-only">{caption}</caption>
+            <thead>
+              <tr>
+                {selectable && (
+                  <th scope="col" className={styles.selectColumn}>
+                    <input
+                      type="checkbox"
+                      aria-label={`Select all ${sortedRows.length} rows`}
+                      checked={allSelected}
+                      onChange={() => setSelected(allSelected ? new Set() : new Set(sortedRows.map(getRowId)))}
+                    />
+                  </th>
+                )}
+                {columns.map((column) => (
+                  <th
+                    key={column.id}
+                    scope="col"
+                    className={column.align === "end" ? styles.money : undefined}
+                    aria-sort={sort?.id === column.id ? sort.direction : column.sortValue ? "none" : undefined}
+                  >
+                    {column.sortValue ? (
+                      <button className={styles.sortButton} type="button" onClick={() => toggleSort(column)}>
+                        {column.label}<span aria-hidden="true">{sort?.id === column.id ? sort.direction === "ascending" ? "↑" : "↓" : "↕"}</span>
+                      </button>
+                    ) : column.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedRows.map((row) => {
+                const rowId = getRowId(row);
+                const isSelected = selected.has(rowId);
+                return (
+                  <tr key={rowId} aria-selected={selectable ? isSelected : undefined} className={isSelected ? styles.selectedRow : undefined}>
+                    {selectable && (
+                      <td data-label="Select" className={styles.selectColumn}>
+                        <input type="checkbox" aria-label={`Select ${rowId}`} checked={isSelected} onChange={() => toggleRow(rowId)} />
+                      </td>
+                    )}
+                    {columns.map((column, index) => {
+                      const Cell = index === 0 ? "th" : "td";
+                      return (
+                        <Cell
+                          key={column.id}
+                          scope={index === 0 ? "row" : undefined}
+                          data-label={column.label}
+                          className={column.align === "end" ? styles.money : undefined}
+                        >
+                          {column.cell(row)}
+                        </Cell>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Template-inspired Pagination Footer */}
+        <div className={styles.paginationFooter} aria-label="Table pagination">
+          <div className={styles.pageSizeControl}>
+            <span>Showing per page</span>
+            <select
+              value={pageSize}
+              aria-label="Records per page"
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
+          <nav className={styles.paginationNav} aria-label="Page navigation">
+            <button
+              type="button"
+              className={styles.pageArrow}
+              disabled={safePage <= 1}
+              onClick={() => setCurrentPage(1)}
+              aria-label="First page"
+            >
+              «
+            </button>
+            <button
+              type="button"
+              className={styles.pageArrow}
+              disabled={safePage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              aria-label="Previous page"
+            >
+              ‹
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, idx) => {
+              let pageNum: number;
+              if (totalPages <= 5) {
+                pageNum = idx + 1;
+              } else if (safePage <= 3) {
+                pageNum = idx + 1;
+              } else if (safePage >= totalPages - 2) {
+                pageNum = totalPages - 4 + idx;
+              } else {
+                pageNum = safePage - 2 + idx;
+              }
+              const isActive = pageNum === safePage;
               return (
-                <tr key={rowId} aria-selected={selectable ? selected.has(rowId) : undefined}>
-                  {selectable && (
-                    <td data-label="Select" className={styles.selectColumn}>
-                      <input type="checkbox" aria-label={`Select ${rowId}`} checked={selected.has(rowId)} onChange={() => toggleRow(rowId)} />
-                    </td>
-                  )}
-                  {columns.map((column, index) => {
-                    const Cell = index === 0 ? "th" : "td";
-                    return (
-                      <Cell
-                        key={column.id}
-                        scope={index === 0 ? "row" : undefined}
-                        data-label={column.label}
-                        className={column.align === "end" ? styles.money : undefined}
-                      >
-                        {column.cell(row)}
-                      </Cell>
-                    );
-                  })}
-                </tr>
+                <button
+                  key={pageNum}
+                  type="button"
+                  className={isActive ? styles.pageNumberActive : styles.pageNumber}
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </button>
               );
             })}
-          </tbody>
-        </table>
+            <button
+              type="button"
+              className={styles.pageArrow}
+              disabled={safePage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              aria-label="Next page"
+            >
+              ›
+            </button>
+            <button
+              type="button"
+              className={styles.pageArrow}
+              disabled={safePage >= totalPages}
+              onClick={() => setCurrentPage(totalPages)}
+              aria-label="Last page"
+            >
+              »
+            </button>
+          </nav>
+
+          <form className={styles.pageJumpForm} onSubmit={handlePageJump}>
+            <label htmlFor="jump-page">Go to page</label>
+            <input
+              id="jump-page"
+              type="number"
+              min="1"
+              max={totalPages}
+              value={pageJump}
+              onChange={(e) => setPageJump(e.target.value)}
+              placeholder={`${safePage}`}
+            />
+            <button type="submit">Go ›</button>
+          </form>
+        </div>
       </div>
+
+      {/* Floating Action Dock (Uxerflow template style) */}
+      {selectedRows.length > 0 && (
+        <div className={styles.floatingBulkDock} role="status" aria-live="polite">
+          <div className={styles.dockCount}>
+            <span className={styles.dockCountBadge}>{selectedRows.length}</span>
+            <span>Selected</span>
+          </div>
+          <div className={styles.dockActions}>
+            <Button variant="secondary" onClick={() => setConfirmOpen(true)}>
+              {bulkActionLabel}
+            </Button>
+            <button
+              className={styles.dockClearBtn}
+              type="button"
+              onClick={() => setSelected(new Set())}
+              aria-label="Clear selection"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       <Dialog
         open={confirmOpen}

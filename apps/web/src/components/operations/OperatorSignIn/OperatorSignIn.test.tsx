@@ -54,4 +54,21 @@ describe("OperatorSignIn", () => {
     expect(localStorageSpy).not.toHaveBeenCalled();
     localStorageSpy.mockRestore();
   });
+
+  it("toggles password visibility when eye icon button is clicked", () => {
+    const sessionGateway = gateway();
+    render(<OperatorSignIn gateway={sessionGateway} />);
+
+    const passwordInput = screen.getByLabelText("Password");
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    const toggleButton = screen.getByRole("button", { name: "Show password" });
+    fireEvent.click(toggleButton);
+
+    expect(passwordInput).toHaveAttribute("type", "text");
+    expect(screen.getByRole("button", { name: "Hide password" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide password" }));
+    expect(passwordInput).toHaveAttribute("type", "password");
+  });
 });

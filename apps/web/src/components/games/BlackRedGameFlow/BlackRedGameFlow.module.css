@@ -2,22 +2,22 @@
 
 .viewportContainer,
 .systemState {
-  --br-canvas: var(--br-dark-canvas, #0a0606);
-  --br-surface: var(--br-dark-surface, #140808);
-  --br-raised: var(--br-dark-raised, #1f0c0c);
-  --br-text: var(--br-dark-text, #F6F1E7);
-  --br-muted: var(--br-dark-muted, rgba(246, 241, 231, 0.6));
-  --br-rule: var(--br-dark-rule, rgba(246, 241, 231, 0.1));
-  --br-focus: var(--br-dark-focus, #FF0000);
-  --br-tier-accent: var(--br-dark-tier-accent, #FF0000);
-  --br-error: var(--br-dark-error, #ef4444);
+  --br-canvas: #000000;
+  --br-surface: #000000;
+  --br-raised: #0a0a0a;
+  --br-text: #FFFFFF;
+  --br-muted: rgba(255, 255, 255, 0.6);
+  --br-rule: rgba(255, 255, 255, 0.08);
+  --br-focus: #FF0028;
+  --br-tier-accent: #FF0028;
+  --br-error: #ef4444;
   height: 100vh;
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: var(--br-canvas);
+  background: #000000;
   color: var(--br-text);
   font-family: var(--br-font, 'Sora', system-ui, sans-serif);
   font-variant-numeric: tabular-nums;
@@ -69,8 +69,12 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--br-rule);
-  background: var(--br-surface);
+  background: #000000;
   z-index: 10;
+}
+
+.topbarMobileRow {
+  display: none;
 }
 
 .topbarLeft {
@@ -114,54 +118,166 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  text-decoration: none;
 }
 
-.brandLogo {
-  height: 26px;
+.brandLogoImg {
+  height: 32px;
   width: auto;
+  max-width: 44px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(255, 0, 0, 0.6));
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgba(255, 0, 40, 0.5));
+}
+
+.brandSpadeIcon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 0, 40, 0.6));
+}
+
+.brandTitleDesktop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.brandTitleText {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+}
+
+.brandTitleGroup {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
 }
 
 .brandTitle {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--br-text);
+  color: #FFFFFF;
+}
+
+.brandTitleSub {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #FF0028;
 }
 
 .instantBadge {
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(255, 0, 0, 0.12);
-  border: 1px solid rgba(255, 0, 0, 0.3);
+  background: rgba(255, 0, 40, 0.08);
+  border: 1px solid rgba(255, 0, 40, 0.35);
   font-size: 11px;
   font-weight: 700;
-  color: #FF0000;
+  color: #FF0028;
+  white-space: nowrap;
 }
 
-@media (max-width: 1100px) {
-  .compactTopbar {
-    padding: 6px 12px;
-    gap: 8px;
-  }
-  
-  .backBtn {
-    padding: 5px 8px;
-    font-size: 10px;
-  }
-
-  .brandTitle {
-    font-size: 13px;
-  }
-
-  .instantBadge {
-    display: none;
-  }
+.chipBullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a1a1aa;
+  display: inline-block;
 }
 
-@media (max-width: 640px) {
-  .instantBadge { display: none; }
+.chipBulletGold {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #E0B84B;
+  display: inline-block;
+}
+
+.settingsBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #a1a1aa;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.settingsBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Mobile Dedicated Wallet Subbar */
+.mobileWalletBar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(18, 8, 10, 0.95);
+  border-bottom: 1px solid var(--br-rule);
+}
+
+.mobileWalletInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+}
+
+.mobileWalletIcon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(255, 0, 40, 0.5));
+}
+
+.mobileWalletAmount {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.mobileWalletActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobileTopupBtn {
+  background: #FF0028;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(255, 0, 40, 0.45);
+  transition: transform 0.15s ease;
+}
+
+.mobileTopupBtn:active {
+  transform: scale(0.96);
+}
+
+.mobileSettingsBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
 }
 
 .topbarRight {
@@ -291,15 +407,15 @@
 }
 
 .stepBadge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(255, 0, 0, 0.15);
-  border: 1px solid rgba(255, 0, 0, 0.35);
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #FF0028;
+  border: none;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #FF0000;
+  color: #FFFFFF;
   flex-shrink: 0;
 }
 
@@ -406,29 +522,38 @@
 .step2AndWinnersRow {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 3fr 1fr;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-@media (max-width: 800px) {
-  .step2AndWinnersRow {
-    grid-template-columns: 1fr;
-  }
-}
-
 .stepSectionCards {
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: var(--br-surface);
-  border: 1px solid var(--br-rule);
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 120%, rgba(255, 0, 40, 0.28) 0%, rgba(255, 0, 40, 0.06) 50%, transparent 75%),
+              #000000;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
   height: 100%;
-  min-height: 0;
+  min-height: 260px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
+}
+
+.stepSectionCards::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: 5%;
+  width: 90%;
+  height: 200%;
+  background: repeating-linear-gradient(65deg, transparent 0%, transparent 12%, rgba(255, 0, 40, 0.03) 12%, rgba(255, 0, 40, 0.06) 18%, transparent 22%);
+  pointer-events: none;
+  opacity: 0.8;
 }
 
 .cardsRowWrapper {
@@ -437,6 +562,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 2;
 }
 
 .cardsRow {
@@ -448,66 +575,82 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .cardItem {
   height: 100%;
-  max-height: 180px;
+  min-height: 190px;
+  max-height: 260px;
   flex: 1;
-  max-width: 125px;
+  max-width: 190px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Vertical Rectangle Playing Card Look */
+/* Vertical Playing Card Look */
 .formerPredictionCard {
   width: 100%;
   height: 100%;
-  aspect-ratio: 1 / 1.52;
-  min-height: 120px;
-  max-height: 175px;
-  border-radius: 12px;
+  aspect-ratio: 1 / 1.48;
+  border-radius: 16px;
   position: relative;
-  padding: 8px 10px;
+  overflow: hidden;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease;
   user-select: none;
 }
 
 .formerPredictionCard:hover {
-  transform: translateY(-3px) scale(1.02);
+  transform: translateY(-4px) scale(1.02);
+}
+
+.formerPredictionCard:active {
+  transform: translateY(-1px) scale(0.98);
 }
 
 .formerPredictionCard[data-colour="R"] {
-  background: linear-gradient(145deg, #FF1A1A 0%, #FF0000 60%, #B30000 100%);
+  background: linear-gradient(165deg, #ff1a38 0%, #d4001c 55%, #8a0010 100%);
   color: #fff;
-  box-shadow: 0 6px 18px rgba(255, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 32px rgba(255, 0, 40, 0.65), inset 0 0 16px rgba(255, 255, 255, 0.25);
+  border: 2px solid #ff2b44;
+}
+
+.formerPredictionCard[data-colour="R"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 14px 14px 0 0;
 }
 
 .formerPredictionCard[data-colour="B"] {
-  background: linear-gradient(145deg, #262626 0%, #141414 60%, #060606 100%);
+  background: linear-gradient(165deg, #181920 0%, #0d0e12 100%);
   color: #fff;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
-  border: 1px solid rgba(246, 241, 231, 0.2);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
 }
 
 .formerPredictionCard[data-colour="empty"] {
   background: var(--br-raised);
-  border: 1px dashed var(--br-rule);
+  border: 1.5px dashed var(--br-rule);
   color: var(--br-muted);
 }
 
 .cardSlotBadge {
   align-self: flex-start;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 800;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .cardCenterBody {
@@ -515,20 +658,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
   margin: auto 0;
 }
 
 .cardSuitIcon {
-  font-size: 30px;
+  font-size: 40px;
   line-height: 1;
   font-style: normal;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
 }
 
 .cardColorLabel {
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 16px;
+  font-weight: 800;
   letter-spacing: -0.01em;
 }
 
@@ -720,12 +863,22 @@
   }
 }
 
-.stakeBoxSection,
+.stakeBoxSection {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+
 .step3LaunchSection {
   padding: 10px 14px;
   border-radius: 14px;
-  background: var(--br-surface);
-  border: 1px solid var(--br-rule);
+  background: #000000;
+  border: 1px solid rgba(255, 0, 40, 0.35);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -953,35 +1106,108 @@
   letter-spacing: -0.01em;
 }
 
+.railUserBadge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 0, 40, 0.15);
+  border: 1px solid rgba(255, 0, 40, 0.3);
+  display: grid;
+  place-items: center;
+}
+
 .railBalancesCard {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.railTotalBalanceRow {
+.railTotalBalanceBox {
+  background: linear-gradient(135deg, rgba(255, 0, 40, 0.14) 0%, rgba(20, 8, 8, 0.95) 100%);
+  border: 1px solid rgba(255, 0, 40, 0.3);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.totalBalanceLeft {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.16) 0%, rgba(224, 184, 75, 0.12) 100%);
-  border: 1px solid rgba(255, 0, 0, 0.35);
+  gap: 12px;
+}
+
+.totalBalanceIcon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 0, 40, 0.5));
 }
 
 .totalBalanceLabel {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--br-text);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--br-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .totalBalanceAmount {
-  font-size: 15px;
-  font-weight: 900;
+  font-size: 20px;
+  font-weight: 800;
   color: #fff;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  display: block;
+  margin-top: 2px;
+}
+
+.subBalancesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.subBalanceItem {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subBalanceLabel {
+  font-size: 10px;
+  color: var(--br-muted);
+  font-weight: 600;
+}
+
+.subBalanceAmount {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.subBalanceGold {
+  font-size: 13px;
+  font-weight: 700;
+  color: #E0B84B;
+}
+
+.railTopupFullBtn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: #FF0028;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 0, 40, 0.4);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.railTopupFullBtn:hover {
+  background: #e60024;
+  transform: translateY(-1px);
 }
 
 .railBalanceRow {
@@ -1130,14 +1356,15 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .railRecentRounds h4 {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  color: var(--br-muted);
+  color: #fff;
+  letter-spacing: 0.04em;
   margin: 0;
 }
 
@@ -1147,43 +1374,84 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
-.roundItemRow {
+.activityItemRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 8px;
-  border-radius: 6px;
-  background: var(--br-raised);
-  font-size: 11px;
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.roundRefText {
-  color: var(--br-muted);
-  font-weight: 600;
+.activityLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.wonTag {
+.activityIconCircle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.iconRed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.iconGreen {
+  background: rgba(34, 197, 94, 0.15);
   color: #22c55e;
+}
+
+.activityMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activityTitle {
+  font-size: 12px;
   font-weight: 700;
-  font-size: 10px;
+  color: #fff;
 }
 
-.lostTag {
+.activityTime {
+  font-size: 10px;
   color: var(--br-muted);
-  font-size: 10px;
 }
 
-.wonAmount {
-  color: #22c55e;
+.activityWonAmount {
+  font-size: 12px;
   font-weight: 800;
+  color: #22c55e;
 }
 
-.lostAmount {
-  color: var(--br-muted);
+.activityLostAmount {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ef4444;
+}
+
+.viewAllActivityLink {
+  display: block;
+  text-align: right;
+  font-size: 11px;
   font-weight: 700;
+  color: var(--br-muted);
+  padding-top: 8px;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.viewAllActivityLink:hover {
+  color: #FF0028;
 }
 
 /* ========================================================
@@ -1200,6 +1468,22 @@
   color: var(--br-muted);
   border-top: 1px solid var(--br-rule);
   background: var(--br-surface);
+}
+
+.legalBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legalBarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legalDot {
+  opacity: 0.5;
 }
 
 .compactLegalBar a:hover {
@@ -2065,6 +2349,22 @@
   }
 }
 
+/* Stake Header & Icons */
+.stakeHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coinsIcon {
+  filter: drop-shadow(0 0 6px rgba(255, 0, 40, 0.5));
+}
+
+.playWordAccent {
+  color: #FF0028;
+  font-style: normal;
+}
+
 /* Payment Method Selection */
 .paymentMethodSelector {
   display: grid;
@@ -2075,10 +2375,10 @@
 
 .paymentMethodTab {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
   color: var(--br-text);
@@ -2093,29 +2393,86 @@
 }
 
 .paymentMethodTabActive {
-  background: rgba(255, 0, 0, 0.12);
-  border-color: #FF0000;
-  box-shadow: 0 0 14px rgba(255, 0, 0, 0.25);
+  background: rgba(255, 0, 40, 0.08);
+  border-color: #FF0028;
+  box-shadow: 0 0 14px rgba(255, 0, 40, 0.25);
 }
 
 .paymentMethodTabActiveOpay {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.08);
   border-color: #10b981;
   box-shadow: 0 0 14px rgba(16, 185, 129, 0.25);
+}
+
+.paymentMethodLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.walletMethodIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 0, 40, 0.12);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.opayMethodIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.12);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.radioCircle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.radioCircleActive {
+  border-color: #FF0028;
+}
+
+.radioDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FF0028;
+}
+
+.radioCircleActiveOpay {
+  border-color: #10b981;
+}
+
+.radioDotOpay {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
 }
 
 .paymentMethodTabTitle {
   font-size: 13px;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  display: block;
 }
 
 .paymentMethodTabSub {
   font-size: 11px;
   color: var(--br-muted);
   margin-top: 2px;
+  display: block;
 }
 
 .paymentMethodTabSubOpay {
@@ -2123,6 +2480,7 @@
   color: #34d399;
   font-weight: 600;
   margin-top: 2px;
+  display: block;
 }
 
 .bigLaunchCtaOpay {
@@ -2136,4 +2494,294 @@
 .bigLaunchCtaOpay:hover:not(:disabled) {
   background: linear-gradient(135deg, #10b981 0%, #34d399 100%) !important;
   box-shadow: 0 6px 26px rgba(16, 185, 129, 0.5) !important;
+}
+
+/* ========================================================
+   MOBILE RESPONSIVE OVERRIDES (< 900px)
+   ======================================================== */
+@media (max-width: 900px) {
+  /* Hide all Desktop-only elements */
+  .topbarLeft,
+  .topbarRight,
+  .compactAccountRail,
+  .compactLegalBar {
+    display: none !important;
+  }
+
+  .topbarMobileRow {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .mobileHamburgerBtn,
+  .mobileExitBtn {
+    background: transparent;
+    border: none;
+    color: #a1a1aa;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .mobileExitBtn:hover,
+  .mobileExitBtn:active {
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.15);
+  }
+
+  .compactTopbar {
+    height: 52px;
+    padding: 0 14px;
+    background: #000000 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .mobileWalletBar {
+    display: flex !important;
+    background: #000000 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 10px 14px;
+  }
+
+  .viewportContainer {
+    height: auto !important;
+    min-height: 100vh;
+    overflow-y: auto !important;
+    background: #000000 !important;
+  }
+
+  .viewportWorkspace {
+    height: auto !important;
+    overflow-y: visible !important;
+    padding: 12px 14px 28px !important;
+    grid-template-columns: 1fr !important;
+    max-width: 480px;
+    margin: 0 auto;
+    background: #000000 !important;
+    gap: 10px !important;
+  }
+
+  .mainGamingSurface {
+    overflow-y: visible !important;
+    height: auto !important;
+    gap: 10px !important;
+  }
+
+  /* Step 1 Compact Cards Selector */
+  .stepSectionCompact {
+    background: #000000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+  }
+
+  .countTilesGrid {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 5px !important;
+  }
+
+  .countTile {
+    padding: 8px 2px !important;
+    border-radius: 8px !important;
+    background: #0a0a0a !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .countTileNumber {
+    font-size: 15px !important;
+  }
+
+  .countTileMultiplier {
+    font-size: 12px !important;
+  }
+
+  .countTileSubtitle {
+    font-size: 9px !important;
+  }
+
+  .countTileActive {
+    background: linear-gradient(180deg, #FF0028 0%, #aa001a 100%) !important;
+    border-color: #FF3355 !important;
+    box-shadow: 0 0 14px rgba(255, 0, 40, 0.6) !important;
+  }
+
+  /* Step 2 Cards Area */
+  .stepSectionCards {
+    min-height: 200px !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+    background: radial-gradient(ellipse 80% 50% at 50% 100%, rgba(255, 0, 40, 0.16) 0%, transparent 70%), #000000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .cardsRow {
+    gap: 12px !important;
+  }
+
+  .cardItem {
+    min-height: 160px !important;
+    max-height: 200px !important;
+  }
+
+  .formerPredictionCard[data-colour="R"] {
+    background: linear-gradient(135deg, #FF0028 0%, #cc0020 100%) !important;
+    border: 2px solid #FF1E27 !important;
+    box-shadow: 0 0 20px rgba(255, 0, 40, 0.65) !important;
+  }
+
+  .formerPredictionCard[data-colour="B"] {
+    background: linear-gradient(135deg, #181818 0%, #0c0c0c 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  }
+
+  .cardSuitIcon {
+    font-size: 34px !important;
+  }
+
+  .cardColorLabel {
+    font-size: 15px !important;
+  }
+
+  /* Bottom Split: Step 3 + Stake Box + CTA Button */
+  .bottomControlSplit {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #000000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    gap: 12px !important;
+    overflow: hidden;
+  }
+
+  .step3LaunchSection {
+    display: contents !important;
+  }
+
+  .splitBoxHeader {
+    order: 1 !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .recapPillRow {
+    display: flex !important;
+    gap: 4px !important;
+    align-items: center !important;
+  }
+
+  .recapPill {
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 4px !important;
+    display: grid !important;
+    place-items: center !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+  }
+
+  .pillRed {
+    background: #FF0028 !important;
+    color: #fff !important;
+    border: none !important;
+  }
+
+  .pillBlack {
+    background: #1c1c1c !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .breakdownMetricsRow {
+    order: 2 !important;
+    width: 100% !important;
+    background: #0a0a0a !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 8px !important;
+    padding: 8px 10px !important;
+    margin: 0 !important;
+  }
+
+  .paymentMethodSelector {
+    order: 3 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  .paymentMethodTab {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    background: #0a0a0a !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .paymentMethodTabActive {
+    border-color: rgba(255, 0, 40, 0.45) !important;
+    background: rgba(255, 0, 40, 0.06) !important;
+  }
+
+  .stakeBoxSection {
+    order: 4 !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 12px 0 0 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin: 0 !important;
+  }
+
+  .stakeChipsGrid {
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  .stakeChip {
+    padding: 8px 2px !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    border-radius: 6px !important;
+    background: #0a0a0a !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .stakeChipActive {
+    background: #FF0028 !important;
+    color: #fff !important;
+    border-color: #FF3355 !important;
+    box-shadow: 0 0 10px rgba(255, 0, 40, 0.6) !important;
+  }
+
+  .stakeInputWrapper {
+    background: #0a0a0a !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 8px !important;
+  }
+
+  .bigLaunchCta,
+  .bigLaunchCtaOpay {
+    order: 5 !important;
+    width: 100% !important;
+    height: 48px !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    margin-top: 4px !important;
+  }
 }

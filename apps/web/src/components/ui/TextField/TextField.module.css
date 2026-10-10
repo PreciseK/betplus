@@ -56,3 +56,18 @@
   transform: translateY(-50%);
   pointer-events: none;
 }
+
+.withTrailing {
+  padding-inline-end: calc(var(--field-control-padding-inline) + var(--icon-size-control) + var(--control-gap, 8px));
+}
+
+.trailingAction {
+  position: absolute;
+  z-index: 1;
+  inset-inline-end: var(--field-control-padding-inline);
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
