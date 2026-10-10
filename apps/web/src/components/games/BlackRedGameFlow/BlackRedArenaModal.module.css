@@ -737,3 +737,222 @@
   }
 }
 
+/* ========================================================
+   MOBILE RESPONSIVENESS OVERRIDES (< 640px)
+   ======================================================== */
+@media (max-width: 640px) {
+  .backdrop {
+    padding: 8px !important;
+  }
+
+  .modalWindow {
+    max-width: 100% !important;
+    border-radius: 18px !important;
+    max-height: 96vh !important;
+    max-height: 96dvh !important;
+  }
+
+  .modalHeader {
+    padding: 10px 14px !important;
+  }
+
+  .brandLogo {
+    height: 22px !important;
+  }
+
+  .brandTitle {
+    font-size: 0.95rem !important;
+  }
+
+  .soundBtn,
+  .closeBtn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px !important;
+  }
+
+  .modalBody {
+    padding: 12px 10px 16px !important;
+  }
+
+  .progressWrap {
+    margin-bottom: 12px !important;
+  }
+
+  .progressLabel {
+    font-size: 10px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .progressBar {
+    gap: 4px !important;
+  }
+
+  .progressStep {
+    height: 3px !important;
+  }
+
+  .stepTitle {
+    font-size: 1.25rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .stepSubtitle {
+    font-size: 11.5px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .deckContainer {
+    padding: 14px 8px !important;
+    border-radius: 14px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .deckPhaseBadge {
+    font-size: 9.5px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .inspectDeckFan {
+    width: 250px !important;
+    height: 130px !important;
+    margin: 8px auto 14px !important;
+  }
+
+  .inspectCard {
+    width: 48px !important;
+    height: 70px !important;
+    margin-left: -24px !important;
+    margin-top: -35px !important;
+    border-radius: 6px !important;
+    padding: 2px !important;
+  }
+
+  .inspectRank {
+    font-size: 9px !important;
+  }
+
+  .inspectSuit {
+    font-size: 16px !important;
+  }
+
+  .inspectSummaryPill {
+    font-size: 10px !important;
+    padding: 4px 10px !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .shuffleStack {
+    width: 250px !important;
+    height: 140px !important;
+    margin: 6px auto 14px !important;
+  }
+
+  .shuffleCard {
+    width: 66px !important;
+    height: 96px !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    border-width: 2px !important;
+  }
+
+  .picksMiniPreview {
+    gap: 4px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .miniPickCard {
+    width: 28px !important;
+    height: 38px !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+  }
+
+  /* Step 5 Reveal / Draw */
+  .revealHeader {
+    margin-bottom: 8px !important;
+  }
+
+  .runningCounter {
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .revealRow {
+    gap: 6px !important;
+    margin-bottom: 12px !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  .revealCardWrap {
+    gap: 4px !important;
+    flex: 1 1 0% !important;
+    max-width: 72px !important;
+  }
+
+  .revealPickTag {
+    font-size: 8.5px !important;
+    padding: 1px 4px !important;
+  }
+
+  .flipCard {
+    width: 100% !important;
+    max-width: 68px !important;
+    aspect-ratio: 1 / 1.45 !important;
+    height: auto !important;
+  }
+
+  .matchIndicator {
+    font-size: 9px !important;
+    padding: 1px 4px !important;
+  }
+
+  .resultPanel {
+    padding: 16px 12px !important;
+    border-radius: 14px !important;
+    margin-top: 10px !important;
+  }
+
+  .resultTitle {
+    font-size: 22px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .resultAmount {
+    font-size: 26px !important;
+    margin: 6px 0 !important;
+  }
+
+  .resultRef {
+    font-size: 9.5px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .btnGroup {
+    gap: 8px !important;
+    margin-top: 10px !important;
+  }
+
+  .btnPrimary {
+    padding: 12px 14px !important;
+    font-size: 13.5px !important;
+    border-radius: 10px !important;
+  }
+
+  .btnSecondary {
+    padding: 11px 12px !important;
+    font-size: 12.5px !important;
+    border-radius: 10px !important;
+  }
+
+  .flashBannerText {
+    font-size: clamp(2.4rem, 10vw, 4.2rem) !important;
+  }
+}
+
+

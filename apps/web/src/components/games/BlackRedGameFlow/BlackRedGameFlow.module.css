@@ -2059,295 +2059,11 @@
   color: #fff;
 }
 
+
 /* ========================================================
-   RESPONSIVE COMPOSITIONS
-   Below desktop, the game becomes a normal document-flow
-   workspace. Nothing is scaled or clipped to mimic desktop.
+   STAKE & PAYMENT HELPERS
    ======================================================== */
-@media (max-width: 960px) {
-  .viewportContainer {
-    height: auto;
-    min-height: 100dvh;
-    max-height: none;
-    overflow: visible;
-  }
 
-  .viewportWorkspace {
-    flex: none;
-    display: block;
-    min-height: auto;
-    padding: 16px;
-    overflow: visible;
-  }
-
-  .mainGamingSurface {
-    height: auto;
-    min-height: auto;
-    gap: 16px;
-    overflow: visible;
-  }
-
-  .step2AndWinnersRow {
-    min-height: auto;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-    overflow: visible;
-  }
-
-  .stepSectionCards {
-    height: auto;
-    min-height: 320px;
-  }
-
-  .cardsRowWrapper,
-  .cardsRow {
-    height: auto;
-    min-height: 220px;
-  }
-
-  .cardItem {
-    height: auto;
-    min-height: 180px;
-  }
-
-  .formerPredictionCard {
-    height: auto;
-    min-height: 180px;
-  }
-
-  .emptyCardsHero {
-    min-height: 220px;
-  }
-
-  .liveWinnersBesideSection {
-    height: auto;
-    min-height: auto;
-    max-height: none;
-    overflow: visible;
-  }
-
-  .liveWinnersList {
-    max-height: 180px;
-  }
-
-  .compactAccountRail {
-    height: auto;
-    min-height: auto;
-    margin-top: 16px;
-    overflow: visible;
-  }
-
-  .railRecentRounds,
-  .roundsListScroll {
-    min-height: auto;
-    overflow: visible;
-  }
-
-  .compactLegalBar {
-    height: auto;
-    min-height: 52px;
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-    flex-wrap: wrap;
-    gap: 6px 18px;
-  }
-}
-
-@media (max-width: 680px) {
-  .viewportWorkspace {
-    padding: 14px;
-  }
-
-  .compactTopbar {
-    position: sticky;
-    top: 0;
-    height: auto;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-    padding: 8px 12px;
-  }
-
-  .topbarLeft {
-    min-width: 0;
-    gap: 8px;
-  }
-
-  .topbarDivider,
-  .brandTitle,
-  .withdrawTopBtn {
-    display: none;
-  }
-
-  .backBtn {
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    justify-content: center;
-  }
-
-  .backBtn span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-  }
-
-  .brandLogo {
-    height: 30px;
-  }
-
-  .topbarRight {
-    min-width: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px 44px 40px;
-    gap: 6px;
-  }
-
-  .compactBalanceChip {
-    min-width: 0;
-    min-height: 44px;
-    padding: 6px 8px;
-    display: grid;
-    align-content: center;
-    gap: 0;
-  }
-
-  .compactBalanceChip strong {
-    min-width: 0;
-    overflow: hidden;
-    font-size: 12px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .chipLabel {
-    font-size: 9px;
-  }
-
-  .viewportContainer .topupBtn {
-    width: 44px;
-    min-height: 44px;
-    padding: 0;
-    font-size: 0;
-  }
-
-  .topupBtn::after {
-    content: "+";
-    font-size: 22px;
-    line-height: 1;
-  }
-
-  .themeBtn {
-    width: 44px;
-    height: 44px;
-  }
-
-  .ageBadge {
-    min-width: 40px;
-    min-height: 44px;
-    display: grid;
-    place-items: center;
-    padding: 0;
-  }
-
-  .stepSectionCompact,
-  .stepSectionCards,
-  .stakeBoxSection,
-  .step3LaunchSection,
-  .compactAccountRail {
-    border-radius: 12px;
-  }
-
-  .stepHeaderRow {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-  }
-
-  .stepSubtitle {
-    grid-column: 1 / -1;
-    margin-left: 0;
-    white-space: normal;
-  }
-
-  .countTilesGrid {
-    gap: 6px;
-  }
-
-  .countTile {
-    min-height: 78px;
-    padding: 10px 2px;
-  }
-
-  .cardsRow {
-    justify-content: flex-start;
-    gap: 8px;
-  }
-
-  .cardItem {
-    min-width: 0;
-    min-height: 156px;
-  }
-
-  .formerPredictionCard {
-    min-height: 156px;
-    padding: 8px;
-  }
-
-  .stakeChipsGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .stakeChip {
-    min-height: 44px;
-    font-size: 12px;
-  }
-
-  .stakeInputWrapper {
-    min-height: 48px;
-  }
-
-  .bigLaunchCta {
-    min-height: 52px;
-  }
-
-  .compactLegalBar {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 430px) {
-  .viewportWorkspace {
-    padding-inline: 12px;
-  }
-
-  .topbarRight {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px 44px;
-  }
-
-  .ageBadge {
-    display: none;
-  }
-
-  .countTileSubtitle {
-    font-size: 8px;
-  }
-
-  .cardSuitIcon {
-    font-size: 25px;
-  }
-
-  .breakdownMetricsRow {
-    padding: 8px;
-  }
-}
 
 /* Stake Header & Icons */
 .stakeHeaderLeft {
@@ -2583,14 +2299,28 @@
     gap: 8px !important;
   }
 
-  /* Hide non-essential copy on mobile to maintain viewport */
-  .stepSubtitle,
-  .stakeRangeHint {
-    display: none !important;
+  /* Step Section Headers on Mobile */
+  .stepHeaderRow {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 3px 8px !important;
+    margin-bottom: 6px !important;
   }
 
-  .stepHeaderRow {
-    margin-bottom: 2px !important;
+  .stepSubtitle {
+    width: 100% !important;
+    display: block !important;
+    font-size: 11px !important;
+    color: var(--br-muted) !important;
+    margin: 0 !important;
+    white-space: normal !important;
+  }
+
+  .stakeRangeHint {
+    display: block !important;
+    font-size: 10px !important;
+    color: var(--br-muted) !important;
   }
 
   /* Step 1 Compact Cards Selector */
@@ -2598,35 +2328,61 @@
     background: #000000 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px !important;
-    padding: 8px 10px !important;
+    padding: 10px 10px 12px !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
     gap: 6px !important;
+    overflow: visible !important;
   }
 
   .countTilesGrid {
     grid-template-columns: repeat(5, 1fr) !important;
-    gap: 4px !important;
+    gap: 5px !important;
   }
 
   .countTile {
-    padding: 6px 2px !important;
+    padding: 7px 2px 6px !important;
     border-radius: 8px !important;
     background: #0a0a0a !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    min-height: 52px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
   }
 
   .countTileNumber {
-    font-size: 15px !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
   }
 
   .countTileMultiplier {
-    font-size: 11px !important;
+    font-size: 10.5px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    color: #FF0028 !important;
+  }
+
+  .countTileActive .countTileMultiplier {
+    color: #ffffff !important;
   }
 
   .countTileSubtitle {
-    display: none !important;
+    display: block !important;
+    font-size: 8px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    color: var(--br-muted) !important;
+    line-height: 1 !important;
+  }
+
+  .countTileActive .countTileSubtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
   }
 
   .countTileActive {
@@ -2962,15 +2718,15 @@
   }
 
   .stakeChipsGrid {
-    grid-template-columns: repeat(6, 1fr) !important;
-    gap: 3px !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
   }
 
   .stakeChip {
-    padding: 6px 2px !important;
-    font-size: 11px !important;
+    padding: 9px 4px !important;
+    font-size: 13px !important;
     font-weight: 800 !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
     background: #0a0a0a !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
   }

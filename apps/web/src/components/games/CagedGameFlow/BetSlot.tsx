@@ -104,7 +104,9 @@ export function BetSlot({
 
       <div className={styles.autoCashoutRow}>
         <div className={styles.autoCashoutLeft}>
-          <span className={styles.autoCashoutLabel}>Auto Cash-out at (2.00× – 15.00×)</span>
+          <span className={styles.autoCashoutLabel}>
+            Auto Cash-out <span className={styles.autoCashoutRangeHint}>at (2.00× – 15.00×)</span>
+          </span>
           <input
             type="number"
             className={styles.autoCashoutInput}
