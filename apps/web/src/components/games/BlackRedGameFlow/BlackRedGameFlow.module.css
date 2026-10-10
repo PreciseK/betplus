@@ -2553,24 +2553,44 @@
     height: auto !important;
     min-height: 100vh;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
     background: #000000 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
   }
 
   .viewportWorkspace {
     height: auto !important;
     overflow-y: visible !important;
-    padding: 12px 14px 28px !important;
+    overflow-x: hidden !important;
+    padding: 8px 10px 20px !important;
     grid-template-columns: 1fr !important;
-    max-width: 480px;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     margin: 0 auto;
     background: #000000 !important;
-    gap: 10px !important;
+    gap: 8px !important;
   }
 
   .mainGamingSurface {
     overflow-y: visible !important;
+    overflow-x: hidden !important;
     height: auto !important;
-    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    gap: 8px !important;
+  }
+
+  /* Hide non-essential copy on mobile to maintain viewport */
+  .stepSubtitle,
+  .stakeRangeHint {
+    display: none !important;
+  }
+
+  .stepHeaderRow {
+    margin-bottom: 2px !important;
   }
 
   /* Step 1 Compact Cards Selector */
@@ -2578,16 +2598,20 @@
     background: #000000 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px !important;
-    padding: 12px !important;
+    padding: 8px 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    gap: 6px !important;
   }
 
   .countTilesGrid {
     grid-template-columns: repeat(5, 1fr) !important;
-    gap: 5px !important;
+    gap: 4px !important;
   }
 
   .countTile {
-    padding: 8px 2px !important;
+    padding: 6px 2px !important;
     border-radius: 8px !important;
     background: #0a0a0a !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -2598,11 +2622,11 @@
   }
 
   .countTileMultiplier {
-    font-size: 12px !important;
+    font-size: 11px !important;
   }
 
   .countTileSubtitle {
-    font-size: 9px !important;
+    display: none !important;
   }
 
   .countTileActive {
@@ -2611,28 +2635,81 @@
     box-shadow: 0 0 14px rgba(255, 0, 40, 0.6) !important;
   }
 
-  /* Step 2 Cards Area */
+  /* Step 2 Cards Area - Always 100% full width, zero layout shifts */
   .stepSectionCards {
-    min-height: 200px !important;
-    padding: 12px !important;
+    min-height: 160px !important;
+    max-height: 220px !important;
+    padding: 8px !important;
     border-radius: 12px !important;
     background: radial-gradient(ellipse 80% 50% at 50% 100%, rgba(255, 0, 40, 0.16) 0%, transparent 70%), #000000 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .cardsRowWrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .cardsRow {
-    gap: 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 6px !important;
+    overflow: hidden !important;
   }
 
   .cardItem {
-    min-height: 160px !important;
-    max-height: 200px !important;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: 190px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Proportional card sizing per sequence count to guarantee identical container width */
+  .cardsRow[data-count="1"] .cardItem {
+    max-width: 130px !important;
+    width: 100% !important;
+  }
+  .cardsRow[data-count="2"] .cardItem {
+    max-width: 110px !important;
+  }
+  .cardsRow[data-count="3"] .cardItem {
+    max-width: 90px !important;
+  }
+  .cardsRow[data-count="4"] .cardItem {
+    max-width: 74px !important;
+  }
+  .cardsRow[data-count="5"] .cardItem {
+    max-width: 60px !important;
+  }
+
+  .formerPredictionCard {
+    width: 100% !important;
+    aspect-ratio: 1 / 1.48 !important;
+    padding: 6px 4px !important;
+    border-radius: 10px !important;
   }
 
   .formerPredictionCard[data-colour="R"] {
     background: linear-gradient(135deg, #FF0028 0%, #cc0020 100%) !important;
     border: 2px solid #FF1E27 !important;
-    box-shadow: 0 0 20px rgba(255, 0, 40, 0.65) !important;
+    box-shadow: 0 0 16px rgba(255, 0, 40, 0.6) !important;
   }
 
   .formerPredictionCard[data-colour="B"] {
@@ -2640,11 +2717,51 @@
     border: 1px solid rgba(255, 255, 255, 0.14) !important;
   }
 
-  .cardSuitIcon {
-    font-size: 34px !important;
+  /* Dynamic suit and label scaling */
+  .cardsRow[data-count="5"] .formerPredictionCard {
+    padding: 5px 2px !important;
+    border-radius: 8px !important;
+  }
+  .cardsRow[data-count="5"] .cardSuitIcon {
+    font-size: 20px !important;
+  }
+  .cardsRow[data-count="5"] .cardColorLabel {
+    font-size: 9px !important;
+  }
+  .cardsRow[data-count="5"] .cardSlotBadge {
+    width: 15px !important;
+    height: 15px !important;
+    font-size: 8px !important;
+  }
+  .cardsRow[data-count="5"] .cardTapPrompt {
+    font-size: 10px !important;
   }
 
-  .cardColorLabel {
+  .cardsRow[data-count="4"] .cardSuitIcon {
+    font-size: 24px !important;
+  }
+  .cardsRow[data-count="4"] .cardColorLabel {
+    font-size: 10px !important;
+  }
+
+  .cardsRow[data-count="3"] .cardSuitIcon {
+    font-size: 28px !important;
+  }
+  .cardsRow[data-count="3"] .cardColorLabel {
+    font-size: 11px !important;
+  }
+
+  .cardsRow[data-count="2"] .cardSuitIcon {
+    font-size: 32px !important;
+  }
+  .cardsRow[data-count="2"] .cardColorLabel {
+    font-size: 13px !important;
+  }
+
+  .cardsRow[data-count="1"] .cardSuitIcon {
+    font-size: 40px !important;
+  }
+  .cardsRow[data-count="1"] .cardColorLabel {
     font-size: 15px !important;
   }
 
@@ -2655,9 +2772,12 @@
     background: #000000 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px !important;
-    padding: 14px !important;
-    gap: 12px !important;
+    padding: 10px !important;
+    gap: 8px !important;
     overflow: hidden;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .step3LaunchSection {
@@ -2677,12 +2797,12 @@
   }
 
   .recapPill {
-    width: 22px !important;
-    height: 22px !important;
+    width: 20px !important;
+    height: 20px !important;
     border-radius: 4px !important;
     display: grid !important;
     place-items: center !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 800 !important;
     line-height: 1 !important;
     padding: 0 !important;
@@ -2706,16 +2826,24 @@
     background: #0a0a0a !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
     border-radius: 8px !important;
-    padding: 8px 10px !important;
+    padding: 6px 8px !important;
     margin: 0 !important;
   }
 
+  .breakdownItem span {
+    font-size: 9px !important;
+  }
+  .breakdownItem strong {
+    font-size: 12px !important;
+  }
+
+  /* Single-line payment method selector: Wallet & Direct Debit side-by-side */
   .paymentMethodSelector {
     order: 3 !important;
     width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
     margin: 0 !important;
   }
 
@@ -2723,10 +2851,12 @@
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 10px 12px !important;
-    border-radius: 10px !important;
+    padding: 7px 8px !important;
+    border-radius: 8px !important;
     background: #0a0a0a !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
   }
 
   .paymentMethodTabActive {
@@ -2734,26 +2864,65 @@
     background: rgba(255, 0, 40, 0.06) !important;
   }
 
+  .paymentMethodLeft {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .paymentMethodTabTitle {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+  }
+
+  .paymentMethodTabSub,
+  .paymentMethodTabSubOpay {
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+  }
+
+  .radioCircle {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+    margin-left: 2px !important;
+  }
+
+  .radioDot,
+  .radioDotOpay {
+    width: 6px !important;
+    height: 6px !important;
+  }
+
   .stakeBoxSection {
     order: 4 !important;
     border: none !important;
     background: transparent !important;
-    padding: 12px 0 0 !important;
+    padding: 6px 0 0 !important;
     border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
     width: 100% !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
+    gap: 6px !important;
     margin: 0 !important;
   }
 
   .stakeChipsGrid {
     grid-template-columns: repeat(6, 1fr) !important;
-    gap: 4px !important;
+    gap: 3px !important;
   }
 
   .stakeChip {
-    padding: 8px 2px !important;
+    padding: 6px 2px !important;
     font-size: 11px !important;
     font-weight: 800 !important;
     border-radius: 6px !important;
@@ -2772,16 +2941,17 @@
     background: #0a0a0a !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 8px !important;
+    padding: 2px 8px !important;
   }
 
   .bigLaunchCta,
   .bigLaunchCtaOpay {
     order: 5 !important;
     width: 100% !important;
-    height: 48px !important;
+    height: 44px !important;
     border-radius: 10px !important;
     font-size: 14px !important;
     font-weight: 800 !important;
-    margin-top: 4px !important;
+    margin-top: 2px !important;
   }
 }

@@ -510,7 +510,7 @@ export function BlackRedGameFlow({ gateway = mockBlackRedGateway }: { gateway?: 
 
               {positionCount ? (
                 <div className={styles.cardsRowWrapper}>
-                  <ol className={styles.cardsRow} aria-label="Predicted sequence">
+                  <ol className={styles.cardsRow} data-count={positionCount} aria-label="Predicted sequence">
                     {prediction.map((choice, index) => (
                       <li key={`prediction-${index}`} className={styles.cardItem}>
                         <button
