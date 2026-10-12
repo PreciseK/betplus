@@ -130,31 +130,44 @@
 
 /* 3. TABS: DEPOSITS & WITHDRAWALS TOGGLE BAR */
 .tabToggleBar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   background: #141417;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   padding: 4px;
-  gap: 4px;
+  gap: 6px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
+.tabToggleBar::-webkit-scrollbar {
+  display: none;
+}
+
 .tabBtn {
-  display: flex;
+  flex: 1 0 auto;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 9px 8px;
+  padding: 9px 12px;
   border-radius: 10px;
   background: transparent;
   border: 0;
   color: #a1a1aa;
-  font-size: clamp(11.5px, 2.7vw, 13px);
+  font-size: clamp(12px, 2.7vw, 13px);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tabBtn:hover {
@@ -393,6 +406,17 @@
 
   .metricSub {
     font-size: 10px;
+  }
+
+  .tabToggleBar {
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .tabBtn {
+    padding: 8px 12px;
+    font-size: 12px;
+    gap: 5px;
   }
 
   .filterRow {

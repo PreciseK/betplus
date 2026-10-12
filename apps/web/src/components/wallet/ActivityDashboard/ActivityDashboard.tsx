@@ -159,7 +159,7 @@ export function ActivityDashboard({
           onClick={() => setActiveTab("stakes")}
         >
           <span className={styles.tabIcon}>🎲</span>
-          <span>Stakes</span>
+          <span>Stake History</span>
         </button>
       </div>
 
@@ -200,7 +200,7 @@ export function ActivityDashboard({
 
       {/* 5. FEED CONTENT AREA */}
       {activeTab === "stakes" ? (
-        <StakeHistory />
+        <StakeHistory hideHeader={true} />
       ) : (
         <div className={styles.feedCard}>
           {loading ? (
