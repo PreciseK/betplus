@@ -88,24 +88,46 @@ export function ActivityDashboard({
 
       {/* 2. TOP METRICS TILES */}
       <div className={styles.metricsGrid}>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>TOTAL</span>
-          <div className={styles.metricValueRow}>
-            <span className={styles.currencyCode}>NGN</span>
-            <strong className={styles.metricAmount}>
-              {loading ? "0.00" : (activeTab === "deposits" ? (totalDepositsKobo / 100).toFixed(2) : (totalWithdrawalsKobo / 100).toFixed(2))}
-            </strong>
+        <div
+          className={`${styles.metricCard} ${activeTab === "deposits" ? styles.metricCardActive : ""}`}
+          onClick={() => setActiveTab("deposits")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setActiveTab("deposits"); }}
+          aria-label="Filter deposits"
+        >
+          <div className={styles.metricHeaderRow}>
+            <span className={styles.metricLabel}>DEPOSITS</span>
+            <span className={styles.metricIconPill}>📥</span>
           </div>
-        </div>
-
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>SUCCESSFUL</span>
           <div className={styles.metricValueRow}>
             <span className={`${styles.currencyCode} ${styles.greenText}`}>NGN</span>
             <strong className={`${styles.metricAmount} ${styles.greenText}`}>
-              {loading ? "0.00" : (activeTab === "deposits" ? (totalDepositsKobo / 100).toFixed(2) : (totalWithdrawalsKobo / 100).toFixed(2))}
+              {loading ? "0.00" : (totalDepositsKobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </strong>
           </div>
+          <span className={styles.metricSub}>{depositsList.length} recorded</span>
+        </div>
+
+        <div
+          className={`${styles.metricCard} ${activeTab === "withdrawals" ? styles.metricCardActive : ""}`}
+          onClick={() => setActiveTab("withdrawals")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setActiveTab("withdrawals"); }}
+          aria-label="Filter withdrawals"
+        >
+          <div className={styles.metricHeaderRow}>
+            <span className={styles.metricLabel}>WITHDRAWALS</span>
+            <span className={styles.metricIconPill}>📤</span>
+          </div>
+          <div className={styles.metricValueRow}>
+            <span className={styles.currencyCode}>NGN</span>
+            <strong className={styles.metricAmount}>
+              {loading ? "0.00" : (totalWithdrawalsKobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </strong>
+          </div>
+          <span className={styles.metricSub}>{withdrawalsList.length} recorded</span>
         </div>
       </div>
 

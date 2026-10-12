@@ -241,13 +241,23 @@ export function ResponsiblePlayDashboard({ gateway = mockResponsiblePlayGateway 
       </section>
 
       <section className={styles.deactivationSection} aria-labelledby="deactivation-title">
-        <div>
-          <h2 id="deactivation-title">Deactivate Account / Account Closure</h2>
-          <p>
-            Request account deactivation with a 6-month cooling-off period. In accordance with National Lottery Regulatory Commission (NLRC) and AML/CFT regulations, your transaction records and financial history are legally preserved for 7 years. You can contact support within 6 months to reactivate.
-          </p>
+        <div className={styles.deactivationTop}>
+          <div className={styles.deactivationInfo}>
+            <h2 id="deactivation-title">Deactivate Account / Account Closure</h2>
+            <p className={styles.deactivationSummary}>
+              Request account deactivation with a 6-month cooling-off period. Withdrawal remains available.
+            </p>
+          </div>
+          <Button variant="secondary" onClick={() => setConfirmation("deactivate")}>Deactivate Account</Button>
         </div>
-        <Button variant="secondary" onClick={() => setConfirmation("deactivate")}>Deactivate Account</Button>
+        <details className={styles.complianceDropdown}>
+          <summary className={styles.complianceSummary}>
+            <span>Statutory records retention notice (NLRC & AML/CFT)</span>
+          </summary>
+          <p className={styles.complianceText}>
+            In accordance with National Lottery Regulatory Commission (NLRC) and AML/CFT regulations, your transaction records and financial history are legally preserved for 7 years. You can contact support within 6 months to reactivate.
+          </p>
+        </details>
       </section>
 
       <Dialog
@@ -319,7 +329,18 @@ function statusCopy(snapshot: ResponsiblePlaySnapshot) {
 }
 
 function Position({ label, valueKobo }: { label: string; valueKobo: number }) {
-  return <div className={styles.position}><span>{label}</span><Amount amountKobo={valueKobo} size="hero" showPositiveSign accessibleLabel={`${label} net position ${formatKobo(valueKobo)}`} /><small>{valueKobo > 0 ? "Net ahead" : valueKobo < 0 ? "Net down" : "Even"}</small></div>;
+  return (
+    <div className={styles.position}>
+      <span>{label}</span>
+      <Amount
+        amountKobo={valueKobo}
+        size="strong"
+        showPositiveSign
+        accessibleLabel={`${label} net position ${formatKobo(valueKobo)}`}
+      />
+      <small>{valueKobo > 0 ? "Net ahead" : valueKobo < 0 ? "Net down" : "Even"}</small>
+    </div>
+  );
 }
 
 function ProtectionSection({ id, title, description, options, selected, disabled, actionLabel, onSelect, onAction }: {

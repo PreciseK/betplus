@@ -1,7 +1,7 @@
 .dashboard {
   width: 100%;
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .dashboard h2,
@@ -12,13 +12,13 @@
 
 .activeStatus,
 .withdrawalAccess {
-  padding: 22px 24px;
+  padding: 16px 20px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   background: #141417;
-  border-radius: 24px;
+  border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   color: #ffffff;
@@ -32,7 +32,7 @@
 .activeStatus > div,
 .withdrawalAccess > div {
   display: grid;
-  gap: 4px;
+  gap: 3px;
 }
 
 .activeStatus span,
@@ -47,10 +47,10 @@
 .limitsSection,
 .protectionSection {
   display: grid;
-  gap: 18px;
+  gap: 14px;
   background: #141417;
-  border-radius: 24px;
-  padding: 24px;
+  border-radius: 20px;
+  padding: 18px 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   color: #ffffff;
@@ -65,7 +65,7 @@
 
 .sectionHeading > div {
   display: grid;
-  gap: var(--field-label-gap);
+  gap: 2px;
 }
 
 .sectionHeading h2,
@@ -89,9 +89,10 @@
 
 .position {
   min-width: 0;
-  padding: var(--rg-section-padding);
+  padding: 12px 14px;
   display: grid;
-  gap: var(--field-label-gap);
+  gap: 4px;
+  text-align: center;
 }
 
 .position + .position {
@@ -171,39 +172,46 @@
 .protectionGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--rg-section-gap);
+  gap: 14px;
 }
 
 .protectionSection {
   align-content: start;
-  padding-block-start: var(--rg-section-padding);
-  border-block-start: var(--rg-divider);
+  padding: 18px 20px;
+  gap: 12px;
 }
 
 .protectionSection > div:first-child {
   display: grid;
-  gap: var(--field-label-gap);
+  gap: 3px;
 }
 
 .durationOptions {
   display: grid;
-  gap: var(--control-gap);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
 }
 
 .durationOptions button {
-  min-height: var(--control-target-min);
-  padding: var(--rg-control-gap) var(--rg-group-gap);
+  min-height: 44px;
+  padding: 6px 10px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--rg-group-gap);
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
   border: var(--rg-panel-border);
-  border-radius: var(--rg-control-radius);
+  border-radius: 10px;
   background: var(--rg-panel-background);
   color: var(--text-primary);
   text-align: start;
   cursor: pointer;
   transition: background-color var(--motion-fast) var(--motion-ease-out), border-color var(--motion-fast) var(--motion-ease-out);
+}
+
+.durationOptions button strong {
+  font-size: 12px;
+  line-height: 1.1;
 }
 
 .durationOptions button:hover:not(:disabled) {
@@ -222,7 +230,8 @@
 
 .durationOptions span {
   color: var(--text-secondary);
-  font-size: var(--type-caption-size);
+  font-size: 9.5px;
+  line-height: 1.1;
 }
 
 .withdrawalAccess {
@@ -245,9 +254,16 @@
 }
 
 @media (max-width: 640px) {
+  .dashboard {
+    gap: 12px;
+  }
+
   .activeStatus,
   .withdrawalAccess {
     grid-template-columns: auto minmax(0, 1fr);
+    padding: 12px 14px;
+    border-radius: 16px;
+    gap: 10px;
   }
 
   .activeStatus > a,
@@ -255,62 +271,158 @@
     grid-column: 1 / -1;
   }
 
-  .positionGrid {
-    grid-template-columns: 1fr;
+  .positionSection,
+  .limitsSection,
+  .protectionSection {
+    padding: 14px 14px;
+    border-radius: 16px;
+    gap: 10px;
   }
 
-  .position + .position {
-    border-inline-start: 0;
-    border-block-start: var(--rg-divider);
+  .positionGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .position {
+    padding: 8px 2px;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .position > span {
+    font-size: 9.5px;
+    white-space: nowrap;
+  }
+
+  .position > small {
+    font-size: 9px;
   }
 
   .limitRow {
+    min-height: auto;
+    padding-block: 8px;
     grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .limitRow > div:first-child strong {
+    font-size: 12px;
+  }
+
+  .limitRow > div:first-child span {
+    font-size: 10px;
   }
 
   .limitValue {
     grid-column: 1;
     grid-row: 2;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .limitValue strong {
+    font-size: 12px;
+  }
+
+  .limitValue span {
+    font-size: 9.5px;
   }
 
   .limitRow > button {
     grid-column: 2;
     grid-row: 1 / 3;
+    padding: 6px 12px;
+    font-size: 11.5px;
   }
 
   .sectionHeading {
     display: grid;
+    gap: 4px;
   }
 
   .ruleNote {
     max-width: none;
-  }
-
-  .durationOptions button {
-    align-items: flex-start;
-    flex-direction: column;
+    font-size: 10px;
   }
 }
 
 .deactivationSection {
   display: grid;
-  gap: 16px;
+  gap: 10px;
   background: rgba(239, 68, 68, 0.04);
   border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 24px;
-  padding: 24px;
+  border-radius: 18px;
+  padding: 16px 20px;
   color: #ffffff;
 }
 
-.deactivationSection h2 {
-  font-size: var(--type-h3-size);
-  line-height: var(--type-h3-leading);
-  color: #fca5a5;
-  margin-bottom: 6px;
+.deactivationTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
-.deactivationSection p {
-  font-size: var(--type-small-size);
+.deactivationInfo {
+  display: grid;
+  gap: 3px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.deactivationInfo h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fca5a5;
+  margin: 0;
+}
+
+.deactivationSummary {
+  font-size: 12px;
   color: #948b9f;
-  line-height: 1.5;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.complianceDropdown {
+  border-top: 1px solid rgba(239, 68, 68, 0.12);
+  padding-top: 8px;
+}
+
+.complianceSummary {
+  font-size: 11px;
+  color: #a1a1aa;
+  cursor: pointer;
+  user-select: none;
+}
+
+.complianceSummary:hover {
+  color: #ffffff;
+}
+
+.complianceText {
+  font-size: 11px;
+  color: #71717a;
+  line-height: 1.45;
+  margin: 6px 0 0 0;
+}
+
+@media (max-width: 640px) {
+  .deactivationSection {
+    padding: 14px 14px;
+    border-radius: 16px;
+  }
+
+  .deactivationTop {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .deactivationTop button {
+    width: 100%;
+  }
 }

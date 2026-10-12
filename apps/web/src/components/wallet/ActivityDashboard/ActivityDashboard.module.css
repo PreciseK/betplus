@@ -49,18 +49,38 @@
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 12px;
 }
 
 .metricCard {
   background: #141417;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
-  padding: 16px 20px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.metricCardActive {
+  border-color: rgba(215, 17, 8, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(215, 17, 8, 0.2) !important;
+  background: #18151f !important;
+}
+
+.metricHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .metricLabel {
@@ -68,26 +88,30 @@
   font-size: 10px;
   font-weight: 700;
   color: #71717a;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.metricIconPill {
+  font-size: 12px;
 }
 
 .metricValueRow {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 5px;
 }
 
 .currencyCode {
   font-family: var(--font-mono, monospace);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #a1a1aa;
 }
 
 .metricAmount {
   font-family: var(--font-mono, monospace);
-  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  font-size: clamp(1.2rem, 3vw, 1.7rem);
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.02em;
@@ -97,15 +121,22 @@
   color: #10b981 !important;
 }
 
+.metricSub {
+  font-size: 11px;
+  color: #71717a;
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+}
+
 /* 3. TABS: DEPOSITS & WITHDRAWALS TOGGLE BAR */
 .tabToggleBar {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   background: #141417;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 5px;
-  gap: 8px;
+  border-radius: 14px;
+  padding: 4px;
+  gap: 4px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
@@ -113,16 +144,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 18px;
-  border-radius: 12px;
+  gap: 6px;
+  padding: 9px 8px;
+  border-radius: 10px;
   background: transparent;
   border: 0;
   color: #a1a1aa;
-  font-size: 13px;
+  font-size: clamp(11.5px, 2.7vw, 13px);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .tabBtn:hover {
@@ -133,20 +165,22 @@
 .tabBtnActive {
   background: linear-gradient(135deg, #d71108 0%, #150061 100%) !important;
   color: #ffffff !important;
-  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.45);
+  box-shadow: 0 4px 14px rgba(215, 17, 8, 0.4);
 }
 
 .tabIcon {
-  font-size: 14px;
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
 .countBadge {
   background: rgba(0, 0, 0, 0.35);
-  padding: 2px 7px;
+  padding: 1.5px 6px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
   font-family: var(--font-mono, monospace);
+  flex-shrink: 0;
 }
 
 /* 4. FILTER BAR: TIME RANGES */
@@ -155,7 +189,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 2px 4px;
+  padding: 2px 2px;
 }
 
 .filterLabel {
@@ -170,7 +204,7 @@
 .filterPills {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -178,12 +212,13 @@
   background: #141417;
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #a1a1aa;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .pillBtn:hover {
@@ -192,9 +227,9 @@
 }
 
 .pillBtnActive {
-  border-color: #150061 !important;
+  border-color: #d71108 !important;
   color: #ffffff !important;
-  background: rgba(234, 88, 12, 0.16) !important;
+  background: rgba(215, 17, 8, 0.18) !important;
 }
 
 /* 5. FEED CONTENT AREA */
@@ -333,12 +368,84 @@
 }
 
 @media (max-width: 640px) {
+  .activityContainer {
+    gap: 16px;
+  }
+
+  .pageTitle {
+    font-size: 1.85rem;
+  }
+
   .metricsGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .metricCard {
+    padding: 12px 10px;
+    border-radius: 14px;
+    gap: 4px;
+  }
+
+  .metricAmount {
+    font-size: clamp(1.05rem, 3.8vw, 1.35rem);
+  }
+
+  .metricSub {
+    font-size: 10px;
   }
 
   .filterRow {
     flex-direction: column;
     align-items: flex-start;
+    gap: 8px;
+  }
+
+  .filterPills {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filterPills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pillBtn {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .feedCard {
+    padding: 12px 10px;
+    border-radius: 18px;
+  }
+
+  .transactionRow {
+    padding: 10px 10px;
+    gap: 8px;
+  }
+
+  .txIconBox {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .txTitle {
+    font-size: 12.5px;
+  }
+
+  .txMeta {
+    font-size: 9.5px;
+  }
+
+  .txAmount {
+    font-size: 13px;
   }
 }
