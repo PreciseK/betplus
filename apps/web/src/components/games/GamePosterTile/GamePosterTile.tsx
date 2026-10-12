@@ -41,16 +41,20 @@ export function GamePosterTile({ game, onQuickPlay }: GamePosterTileProps) {
           </span>
         ) : game.hot ? (
           <span className={styles.hotBadge}>Hot</span>
-        ) : <span />}
+        ) : (
+          <span className={styles.topSpacer} />
+        )}
 
-        <span className={styles.multiplierPill}>{game.multiplier}</span>
+        <span className={styles.multiplierPill}>
+          {game.compactMultiplier ?? game.multiplier}
+        </span>
       </div>
 
       {/* Center Artwork Emblem */}
       <div className={styles.emblemWrapper}>
         {game.isCrown ? (
           <div className={styles.crownContainer}>
-            <HeritageCrownLogo size={52} />
+            <HeritageCrownLogo size={46} />
           </div>
         ) : game.logoSrc ? (
           <img

@@ -5,6 +5,7 @@ export interface GameItem {
   badge: string;
   description: string;
   multiplier: string;
+  compactMultiplier?: string;
   stakeRange: string;
   route: string;
   logoSrc?: string;
@@ -25,6 +26,7 @@ export const GAMES: GameItem[] = [
     badge: "Crash Multiplier",
     description: "Watch birds escape the golden cage. Cash out your stake with dual-bet slots before the cage drops!",
     multiplier: "1.00× – 100×+",
+    compactMultiplier: "100×+",
     stakeRange: "₦10 – ₦10,000",
     route: "/games/caged",
     emblemText: "🦅",
@@ -41,6 +43,7 @@ export const GAMES: GameItem[] = [
     badge: "50/50 Cards",
     description: "Predict sequence of 1 to 5 Black or Red cards with live 3D deck inspection, riffle shuffle, and instant draw.",
     multiplier: "2× – 100×",
+    compactMultiplier: "100×",
     stakeRange: "₦100 – ₦5,000",
     route: "/games/blackred",
     logoSrc: "/assets/blackred-logo.png",
@@ -56,6 +59,7 @@ export const GAMES: GameItem[] = [
     badge: "Regalia Discovery",
     description: "Choose 5 of 9 positions to reveal regalia from across Nigeria with complete settlement board replay.",
     multiplier: "Up to 2,000×",
+    compactMultiplier: "2,000×",
     stakeRange: "₦100 – ₦5,000",
     route: "/games/heritage",
     isCrown: true,

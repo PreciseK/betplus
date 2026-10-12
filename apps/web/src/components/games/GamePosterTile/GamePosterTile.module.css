@@ -11,7 +11,8 @@
   overflow: hidden;
   padding: 8px 6px 10px;
   box-sizing: border-box;
-  aspect-ratio: 1 / 1.18;
+  aspect-ratio: 1 / 1.32;
+  min-height: 138px;
   cursor: pointer;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.2s ease,
@@ -53,7 +54,16 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  min-height: 18px;
   gap: 4px;
+}
+
+.topSpacer {
+  display: block;
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
+  flex-shrink: 0;
 }
 
 .liveBadge {
@@ -63,12 +73,15 @@
   background: rgba(16, 185, 129, 0.2);
   border: 1px solid rgba(16, 185, 129, 0.45);
   color: #34d399;
-  font-size: 8.5px;
+  font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.05em;
   padding: 1.5px 5px;
   border-radius: 999px;
   text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.1;
 }
 
 .pulseDot {
@@ -92,20 +105,25 @@
 }
 
 .hotBadge {
+  display: inline-flex;
+  align-items: center;
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid rgba(239, 68, 68, 0.45);
   color: #f87171;
-  font-size: 8.5px;
+  font-size: 8px;
   font-weight: 800;
   padding: 1.5px 5px;
   border-radius: 999px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.1;
 }
 
 .multiplierPill {
   margin-left: auto;
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 800;
   color: #f4f4f5;
   background: rgba(0, 0, 0, 0.65);
@@ -113,6 +131,9 @@
   padding: 1.5px 5px;
   border-radius: 999px;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.1;
 }
 
 /* ARTWORK EMBLEM */
@@ -124,14 +145,15 @@
   justify-content: center;
   width: 100%;
   flex: 1;
-  min-height: 52px;
+  min-height: 44px;
   padding: 2px 0;
 }
 
 .emblemEmoji {
-  font-size: clamp(28px, 6.5vw, 40px);
+  font-size: clamp(28px, 6.5vw, 38px);
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  line-height: 1;
 }
 
 .posterTile:hover .emblemEmoji {
@@ -140,7 +162,7 @@
 
 .logoImage {
   max-width: 85%;
-  max-height: 48px;
+  max-height: 42px;
   object-fit: contain;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -171,11 +193,13 @@
   justify-content: center;
   width: 100%;
   text-align: center;
-  gap: 1px;
+  gap: 2px;
+  margin-top: auto;
+  padding-top: 2px;
 }
 
 .gameName {
-  font-size: clamp(11px, 2.7vw, 13px);
+  font-size: clamp(11.5px, 2.7vw, 13px);
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.01em;
@@ -193,6 +217,7 @@
   color: #a1a1aa;
   letter-spacing: 0.02em;
   margin: 0;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
