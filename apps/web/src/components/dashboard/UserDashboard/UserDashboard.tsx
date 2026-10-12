@@ -8,35 +8,10 @@ import { HeritageCrownLogo } from "@/components/ui/HeritageCrownLogo/HeritageCro
 import { Button } from "@/components/ui/Button/Button";
 import { InlineMessage } from "@/components/ui/feedback/InlineMessage/InlineMessage";
 import { BlackRedPlayModal } from "@/components/games/BlackRedPlayModal/BlackRedPlayModal";
+import { GamesCatalogue } from "@/components/games/GamesCatalogue/GamesCatalogue";
+import { GAMES } from "@/components/games/gamesData";
 import { requireAuth, useSignedIn } from "@/lib/player-auth";
 import styles from "./UserDashboard.module.css";
-
-const RECOMMENDED_GAMES = [
-  {
-    id: "blackred",
-    title: "BlackRed",
-    category: "Instant Fixed-Odds Prediction",
-    badge: "50/50 Cards",
-    description: "Predict sequence of 1 to 5 Black or Red cards with live 3D deck inspection, riffle shuffle, and instant draw.",
-    multiplier: "2× – 100×",
-    stakeRange: "₦100 – ₦5,000",
-    route: "/games/blackred",
-    logoSrc: "/assets/blackred-logo.png",
-    accentColor: "#ea580c",
-  },
-  {
-    id: "heritage",
-    title: "Heritage",
-    category: "Culture-Themed Instant-Win",
-    badge: "Regalia Discovery",
-    description: "Choose 5 of 9 positions to reveal regalia from across Nigeria with complete settlement board replay.",
-    multiplier: "Up to 2,000×",
-    stakeRange: "₦100 – ₦5,000",
-    route: "/games/heritage",
-    isCrown: true,
-    accentColor: "#d97706",
-  },
-];
 
 function timeOfDayGreeting(): string {
   const hour = new Date().getHours();
@@ -119,80 +94,22 @@ export function UserDashboard() {
         </h1>
       </section>
 
-      {/* 1. Recommended Games Section (Same Styling as Games Dashboard) */}
-      <section className={styles.section} aria-labelledby="recommended-heading">
+      {/* 1. Games Catalogue Section (Interactive 3x3 / Cards / List) */}
+      <section className={styles.section} aria-labelledby="catalogue-heading">
         <div className={styles.sectionHeader}>
-          <h2 id="recommended-heading" className={styles.sectionTitle}>
-            Recommended games
+          <h2 id="catalogue-heading" className={styles.sectionTitle}>
+            Featured games
           </h2>
           <Link href="/games" className={styles.seeAllLink}>
-            View full catalogue (2 games)
+            View full catalogue ({GAMES.length} games)
           </Link>
         </div>
 
-        <div className={styles.gamesCatalogueGrid}>
-          {RECOMMENDED_GAMES.map((game) => (
-            <article
-              key={game.id}
-              className={styles.gameCard}
-              style={{ "--card-accent": game.accentColor } as React.CSSProperties}
-            >
-              {/* Media banner with logo / crown & badge */}
-              <div className={styles.gameCardMedia}>
-                {game.isCrown ? (
-                  <HeritageCrownLogo size={82} />
-                ) : game.logoSrc ? (
-                  <img
-                    src={game.logoSrc}
-                    alt={`${game.title} logo`}
-                    className={styles.gameCardLogo}
-                  />
-                ) : null}
-                <span className={styles.gameBadge}>{game.badge}</span>
-              </div>
-
-              {/* Game details body */}
-              <div className={styles.gameCardBody}>
-                <p className={styles.gameCategory}>{game.category}</p>
-                <h3 className={styles.gameTitle}>{game.title}</h3>
-                <p className={styles.gameDescription}>{game.description}</p>
-
-                <div className={styles.statsRow}>
-                  <div className={styles.statItem}>
-                    <span>Multiplier</span>
-                    <strong>{game.multiplier}</strong>
-                  </div>
-                  <div className={styles.statItem}>
-                    <span>Stakes</span>
-                    <strong>{game.stakeRange}</strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className={styles.gameCardFooter}>
-                {game.id === "blackred" ? (
-                  <div className={styles.btnGroupRow}>
-                    <Button href={game.route} className={styles.secondaryActionBtn}>
-                      Dashboard
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => setIsBlackRedModalOpen(true)}
-                      className={styles.playButton}
-                    >
-                      ⚡ Quick Play
-                    </Button>
-                  </div>
-                ) : (
-                  <Button href={game.route} className={styles.playButton}>
-                    Play {game.title}
-                  </Button>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
+        <GamesCatalogue
+          showToolbar
+          initialFormat="matrix"
+          onQuickPlay={startQuickPlay}
+        />
       </section>
 
       {/* 2. Showcase Grid: BlackRed Attached Image Arena & Small Monarch Showcase */}
