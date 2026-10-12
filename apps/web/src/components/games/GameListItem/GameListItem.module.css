@@ -1,11 +1,15 @@
 .listItem {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: #141417;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  padding: 12px 18px;
+  border-radius: 16px;
+  padding: 10px 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.2s ease,
@@ -15,7 +19,7 @@
 }
 
 .listItem:hover {
-  transform: translateX(3px);
+  transform: translateX(2px);
   border-color: color-mix(in srgb, var(--accent, #f5b731) 50%, rgba(255, 255, 255, 0.2));
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5),
     -2px 0 16px -4px color-mix(in srgb, var(--accent, #f5b731) 25%, transparent);
@@ -24,10 +28,10 @@
 /* THUMBNAIL */
 .thumbWrapper {
   position: relative;
-  width: 58px;
-  height: 58px;
+  width: 50px;
+  height: 50px;
   flex-shrink: 0;
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--theme-gradient, #1c1c22);
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
@@ -37,117 +41,141 @@
 }
 
 .thumbEmoji {
-  font-size: 28px;
+  font-size: 24px;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
 }
 
 .thumbLogo {
-  max-width: 44px;
-  max-height: 40px;
+  max-width: 38px;
+  max-height: 34px;
   object-fit: contain;
 }
 
-/* MAIN INFO */
+/* MAIN INFO - FLEX CHILD ABSORBING SPACE SAFELY */
 .mainInfo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
+  gap: 3px;
+  flex: 1 1 0%;
   min-width: 0;
+  overflow: hidden;
 }
 
 .titleRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .gameTitle {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   color: #ffffff;
   margin: 0;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .badgePill {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  padding: 2px 7px;
+  padding: 1.5px 6px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #e4e4e7;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .liveBadge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 9.5px;
+  gap: 3.5px;
+  font-size: 9px;
   font-weight: 800;
-  padding: 2px 7px;
+  padding: 1.5px 6px;
   border-radius: 999px;
   background: rgba(16, 185, 129, 0.2);
   border: 1px solid rgba(16, 185, 129, 0.45);
   color: #34d399;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .pulseDot {
-  width: 5px;
-  height: 5px;
+  width: 4.5px;
+  height: 4.5px;
   border-radius: 50%;
   background: #10b981;
 }
 
 .gameDescription {
-  font-size: 12.5px;
+  font-size: 12px;
   color: #a1a1aa;
   margin: 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
+  line-height: 1.35;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
-/* STATS CHIPS (DESKTOP) */
+.mobileSubtitle {
+  display: none;
+  font-size: 11px;
+  color: #a1a1aa;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* STATS CHIPS (SHOWN ON WIDE SCREENS ONLY) */
 .statsGroup {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-shrink: 0;
-  padding: 0 12px;
+  padding: 0 8px;
 }
 
 .statChip {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .statLabel {
-  font-size: 9.5px;
+  font-size: 9px;
   color: #71717a;
   text-transform: uppercase;
   font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .statValue {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   color: #ffffff;
   white-space: nowrap;
 }
 
-/* ACTIONS */
+/* ACTION BUTTONS */
 .actionGroup {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -155,11 +183,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 18px;
+  padding: 7px 16px;
   border-radius: 999px;
   background: var(--accent, #f5b731);
   color: #0c0b0b;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 800;
   text-decoration: none;
   border: 0;
@@ -182,12 +210,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
@@ -199,50 +227,71 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
-/* MOBILE REFACTORING */
-@media (max-width: 680px) {
+.playBtnMobile {
+  display: none;
+}
+
+.playBtnDesktop {
+  display: inline;
+}
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS (PREVENTS ANY HORIZONTAL OVERFLOW)
+   ============================================================ */
+
+/* 1. MEDIUM VIEWPORTS (< 900px): Hide verbose stat chips to keep layout tight */
+@media (max-width: 900px) {
+  .statsGroup {
+    display: none;
+  }
+}
+
+/* 2. COMPACT MOBILE & TABLET (< 640px) */
+@media (max-width: 640px) {
   .listItem {
-    gap: 12px;
-    padding: 10px 12px;
+    gap: 10px;
+    padding: 8px 10px;
     border-radius: 14px;
   }
 
   .thumbWrapper {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
   }
 
   .thumbEmoji {
-    font-size: 22px;
+    font-size: 20px;
+  }
+
+  .thumbLogo {
+    max-width: 32px;
+    max-height: 28px;
   }
 
   .gameTitle {
-    font-size: 14px;
+    font-size: 13.5px;
   }
 
   .badgePill {
-    font-size: 8.5px;
-    padding: 1.5px 5px;
+    font-size: 8px;
+    padding: 1px 4px;
   }
 
   .gameDescription {
-    display: none; /* Hide long paragraph on mobile list to maintain high density */
-  }
-
-  .statsGroup {
-    display: none; /* Merged into compact subtitle */
+    display: none;
   }
 
   .mobileSubtitle {
     display: block;
-    font-size: 11px;
-    color: #a1a1aa;
-    font-weight: 600;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
+
+  .statsGroup {
+    display: none;
+  }
+
+  .secondaryBtn {
+    display: none;
   }
 
   .playBtn {
@@ -250,13 +299,37 @@
     font-size: 11.5px;
   }
 
-  .secondaryBtn {
-    display: none; /* Hide secondary 'Dashboard' button on mobile list to prevent overflow */
+  .playBtnDesktop {
+    display: none;
+  }
+
+  .playBtnMobile {
+    display: inline;
   }
 }
 
-@media (min-width: 681px) {
-  .mobileSubtitle {
-    display: none;
+/* 3. ULTRA COMPACT MOBILE (< 360px): Extra safety for small phones */
+@media (max-width: 360px) {
+  .listItem {
+    gap: 8px;
+    padding: 6px 8px;
+  }
+
+  .thumbWrapper {
+    width: 36px;
+    height: 36px;
+  }
+
+  .thumbEmoji {
+    font-size: 18px;
+  }
+
+  .badgePill {
+    display: none; /* Hide badge pill on <360px to preserve title readability */
+  }
+
+  .playBtn {
+    padding: 5px 10px;
+    font-size: 11px;
   }
 }

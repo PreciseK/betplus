@@ -1,8 +1,8 @@
 .viewport {
   height: 100vh;
   height: 100svh;
-  width: 100vw;
-  max-width: 100vw;
+  width: 100%;
+  max-width: 100%;
   background: #09090b;
   color: #ffffff;
   display: flex;
@@ -18,8 +18,8 @@
   display: flex;
   align-items: stretch;
   gap: 14px;
-  width: 100vw;
-  max-width: 100vw;
+  width: 100%;
+  max-width: 100%;
   height: 100vh;
   height: 100svh;
   margin: 0;
@@ -210,11 +210,14 @@
   }
 
   .consoleContainer {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     height: auto;
     max-height: none;
     border-radius: 20px;
     padding: 10px;
-    overflow: visible;
+    overflow-x: hidden;
   }
 
   .leftRail {

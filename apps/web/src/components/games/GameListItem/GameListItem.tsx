@@ -24,7 +24,7 @@ export function GameListItem({ game, onQuickPlay }: GameListItemProps) {
       {/* Thumbnail */}
       <div className={styles.thumbWrapper}>
         {game.isCrown ? (
-          <HeritageCrownLogo size={36} />
+          <HeritageCrownLogo size={32} />
         ) : game.logoSrc ? (
           <img
             src={game.logoSrc}
@@ -37,7 +37,7 @@ export function GameListItem({ game, onQuickPlay }: GameListItemProps) {
         )}
       </div>
 
-      {/* Main Details */}
+      {/* Main Details (Fluid flex child) */}
       <div className={styles.mainInfo}>
         <div className={styles.titleRow}>
           <h3 className={styles.gameTitle}>{game.title}</h3>
@@ -60,7 +60,7 @@ export function GameListItem({ game, onQuickPlay }: GameListItemProps) {
         </p>
       </div>
 
-      {/* Desktop Stat Chips */}
+      {/* Desktop Stat Chips (Hidden <= 900px) */}
       <div className={styles.statsGroup}>
         <div className={styles.statChip}>
           <span className={styles.statLabel}>Multiplier</span>
@@ -84,12 +84,18 @@ export function GameListItem({ game, onQuickPlay }: GameListItemProps) {
               onClick={() => onQuickPlay("blackred")}
               className={styles.playBtn}
             >
-              ⚡ Quick Play
+              <span className={styles.playBtnDesktop}>⚡ Quick Play</span>
+              <span className={styles.playBtnMobile}>⚡ Play</span>
             </button>
           </>
         ) : (
-          <Link href={game.route} className={styles.playBtn}>
-            Play {game.title}
+          <Link
+            href={game.route}
+            className={styles.playBtn}
+            aria-label={`Play ${game.title}`}
+          >
+            <span className={styles.playBtnDesktop}>Play {game.title}</span>
+            <span className={styles.playBtnMobile}>Play</span>
           </Link>
         )}
       </div>

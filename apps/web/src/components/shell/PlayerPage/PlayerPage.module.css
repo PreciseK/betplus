@@ -3,8 +3,11 @@
   flex-direction: column;
   gap: 24px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 8px 12px 32px;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* GAMING HEADER BANNER */

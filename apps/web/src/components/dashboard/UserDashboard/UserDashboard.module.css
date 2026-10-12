@@ -4,7 +4,10 @@
   gap: 20px;
   padding: 4px 6px 28px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* TOP SEARCH & ACTION BAR */

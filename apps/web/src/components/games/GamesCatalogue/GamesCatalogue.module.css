@@ -3,6 +3,10 @@
   flex-direction: column;
   gap: 16px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* TOOLBAR & CONTROLS */
@@ -13,12 +17,18 @@
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .countText {
   color: #948b9f;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .segmentedControl {
@@ -29,6 +39,7 @@
   background: #191622;
   border: 1px solid rgba(255, 255, 255, 0.08);
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .segmentBtn {
@@ -64,6 +75,9 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 @media (min-width: 680px) {
@@ -85,6 +99,9 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 18px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 @media (max-width: 640px) {
@@ -98,6 +115,9 @@
 .listContainer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
