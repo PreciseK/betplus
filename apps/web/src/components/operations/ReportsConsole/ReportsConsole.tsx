@@ -88,18 +88,18 @@ export function ReportsConsole() {
   return (
     <div className={styles.page}>
       <header className={styles.pageHeader}>
-        <div><p className={styles.context}>Compliance task</p><h1>Reports and regulatory exports</h1><p>Request a bounded financial export by game and attributed state. This runs asynchronously — no report data streams synchronously to this screen.</p></div>
+        <div><p className={styles.context}>Reports</p><h1>Reports and regulatory exports</h1><p>Export financial reports by date, game, and state.</p></div>
       </header>
 
       <section className={styles.runStrip} aria-labelledby="reporting-contract-title">
         <Icon name="lock" size="control" />
-        <div><h2 id="reporting-contract-title">Asynchronous export contract</h2><p>The request is audit-logged immediately (actor, filter). Row count and a signed, one-hour-expiring download link are attached once processing finishes.</p></div>
+        <div><h2 id="reporting-contract-title">Export downloads</h2><p>Reports are prepared in the background. Download links expire after one hour. Each request is recorded in the audit log.</p></div>
         <span><Icon name="check" />No synchronous data streaming</span>
       </section>
 
       <section className={styles.section} aria-labelledby="report-scope-title">
         <header className={styles.sectionHeader}>
-          <div><h2 id="report-scope-title">Report scope</h2><p>Slices stakes, payouts, GGR, RTP actual vs. modelled, and tax by game and attributed state. Provider fees are not yet accrued anywhere in this system and are reported as zero rather than estimated.</p></div>
+          <div><h2 id="report-scope-title">Report scope</h2><p>Includes stakes, payouts, GGR, RTP, and tax. Provider fees are not tracked and appear as zero.</p></div>
         </header>
         <div className={styles.controls}>
           <label className={styles.selectField} htmlFor="report-state">Attributed state<select id="report-state" value={filters.state} onChange={(event) => { updateFilter("state", event.target.value); setDateError(""); }}><option value="ALL">All states</option><option value="LAG">Lagos</option></select></label>
@@ -113,7 +113,7 @@ export function ReportsConsole() {
       </section>
 
       <section className={styles.section} aria-labelledby="export-jobs-title">
-        <header className={styles.sectionHeader}><div><h2 id="export-jobs-title">Export jobs this session</h2><p>There is no server-side history list for report exports — this table only tracks jobs requested in this browser session. Reloading the page loses this list; the underlying export and its audit record still exist.</p></div></header>
+        <header className={styles.sectionHeader}><div><h2 id="export-jobs-title">Export jobs this session</h2><p>Shows exports requested in this browser session. Refreshing clears the list; export files and audit records are retained.</p></div></header>
         {jobs.length === 0 ? (
           <EmptyState
             icon="calendar"

@@ -3,10 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon/Icon";
-import { OPERATOR_ROLE_LABELS } from "@/components/operations/operations-navigation";
 import { useOperationsUrlFilters } from "@/components/operations/useOperationsUrlFilters";
 import { OPERATOR_DASHBOARDS, type DashboardAnalytics } from "@/mocks/operator-dashboards";
-import { OPERATOR_ROLES, type OperatorRole } from "@/mocks/operator-session";
+import { type OperatorRole } from "@/mocks/operator-session";
 import { isOperationsGameScope, operationsGameLabel, OPERATIONS_GAME_OPTIONS, type OperationsGameScope } from "@/components/operations/operations-games";
 import { useOperationsDashboardData } from "./useOperationsDashboardData";
 import styles from "./OperationsOverview.module.css";
@@ -18,10 +17,6 @@ function today() { return new Date().toISOString().slice(0, 10); }
 const chartWidth = 720;
 const chartHeight = 210;
 const chartPadding = 28;
-
-function isOperatorRole(value: string): value is OperatorRole {
-  return (OPERATOR_ROLES as readonly string[]).includes(value);
-}
 
 function displayValue(analytics: DashboardAnalytics, value: number) {
   return `${analytics.valuePrefix ?? ""}${Number.isInteger(value) ? value.toLocaleString("en-NG") : value.toFixed(1)}${analytics.valueSuffix ?? ""}`;
@@ -64,7 +59,7 @@ function PerformanceChart({ analytics, periodLabel }: { analytics: DashboardAnal
   return (
     <figure className={styles.performance} aria-labelledby="performance-title" aria-describedby="performance-summary">
       <div className={styles.sectionHeader}>
-        <div><h2 id="performance-title">Performance</h2><p id="performance-summary">{analytics.summary}</p></div>
+        <div><h2 id="performance-title">{analytics.title}</h2><p id="performance-summary">{analytics.summary}</p></div>
         <span className={styles.period}>{periodLabel}</span>
       </div>
       <div className={styles.legend} aria-label="Chart legend">
@@ -137,12 +132,12 @@ export function OperationsOverview({ role = "super-admin" }: OperationsOverviewP
       <header className={styles.pageHeader}>
         <div>
           <p className={styles.date}>{dateLabel(selectedDate)}</p>
-          <h1>{isToday ? "Today at a Glance" : `${dateLabel(selectedDate, "short")} at a Glance`}</h1>
+          <h1>Overview</h1>
           <p>{selectedGameLabel} · {dashboard.title}</p>
         </div>
         <div className={styles.dashboardControls} aria-label="Dashboard view controls">
           <div className={styles.dateControl}>
-            <label htmlFor="dashboard-date">Data date</label>
+            <label htmlFor="dashboard-date">Date</label>
             <div>
               <button type="button" onClick={() => updateFilter("date", shiftDate(selectedDate, -1))}><Icon name="arrow-left" /> Previous</button>
               <input id="dashboard-date" type="date" max={todayIso} value={selectedDate} onChange={(event) => updateFilter("date", event.target.value)} />
@@ -154,7 +149,7 @@ export function OperationsOverview({ role = "super-admin" }: OperationsOverviewP
 
       <div className={styles.dataStatus} data-source={data.source} role={error ? "alert" : "status"}>
         <span aria-hidden="true" />
-        <p>{error ?? (data.source === "live" ? `${data.partial ? "Partial live" : "Live"} endpoint data · refreshed for the selected scope` : "Preview data · sign in through institutional access to load live endpoint data")}</p>
+        <p>{error ?? (data.source === "live" ? `${data.partial ? "Partial live" : "Live"} data` : "Preview data. Sign in to load current figures.")}</p>
         {(error || data.source === "live") && <button type="button" onClick={refresh}>{loading ? "Refreshing…" : "Refresh"}</button>}
       </div>
 
@@ -163,7 +158,7 @@ export function OperationsOverview({ role = "super-admin" }: OperationsOverviewP
           <section className={styles.metrics} aria-label="Key metrics">
             {data.metrics.map((metric) => (
               <article key={metric.label}>
-                <div className={styles.metricTop}><p>{metric.label}</p><Icon name="activity" /></div>
+                <div className={styles.metricTop}><p>{metric.label}</p></div>
                 <strong>{metric.value}</strong>
                 <span className={styles.change}>{metric.change}</span>
                 <small>{selectedGame === "all" ? metric.context : `${selectedGameLabel} only · ${metric.context}`}</small>
@@ -186,21 +181,21 @@ export function OperationsOverview({ role = "super-admin" }: OperationsOverviewP
                   <Link href={scopedHref(item.href, selectedGame)} aria-label={`Open ${item.task}`}><Icon name="arrow-right" /></Link>
                 </li>
               ))}</ul>
-            ) : <p className={styles.emptyQueue}>No items require action in this scope.</p>}
+            ) : <p className={styles.emptyQueue}>No items need attention.</p>}
           </section>
         </div>
 
         <aside className={styles.rightRail} aria-label="Dashboard supporting information">
           <section className={styles.statusPanel} aria-labelledby="status-panel-title">
-            <div className={styles.sectionHeader}><div><h2 id="status-panel-title">{contextualTitle(dashboardRole)}</h2><p>Only the checks needed for this role.</p></div></div>
+            <div className={styles.sectionHeader}><div><h2 id="status-panel-title">{contextualTitle(dashboardRole)}</h2></div></div>
             <dl>{data.rail.map((item) => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
-            <Link href={scopedHref(visibleQueue[0]?.href ?? "/back-office/daily-summary", selectedGame)}>Open priority work <Icon name="arrow-right" /></Link>
+            <Link href={scopedHref(visibleQueue[0]?.href ?? "/back-office/daily-summary", selectedGame)}>View work queue <Icon name="arrow-right" /></Link>
           </section>
 
           <section className={styles.activity} aria-labelledby="activity-title">
-            <div className={styles.sectionHeader}><div><h2 id="activity-title">Recent activity</h2><p>Latest recorded changes</p></div></div>
+            <div className={styles.sectionHeader}><div><h2 id="activity-title">Recent activity</h2></div></div>
             {data.recentActivityRestricted ? (
-              <p className={styles.emptyQueue}>Recent activity is visible to Compliance and System Admin. Open the audit log if your role has access.</p>
+              <p className={styles.emptyQueue}>Audit access is required to view recent activity.</p>
             ) : data.recentActivity.length > 0 ? (
               <ul>{data.recentActivity.map((item) => <li key={item.action}><span aria-hidden="true" /><div><strong>{item.action}</strong><p>{item.detail}</p></div></li>)}</ul>
             ) : (

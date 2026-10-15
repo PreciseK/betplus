@@ -27,6 +27,6 @@ describe("RolesConsole", () => {
     expect(row).not.toBeNull();
     expect(row!.textContent).toContain("Ada Okafor");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getByText(/no capability\/permissions table/)).toBeInTheDocument();
+    expect(screen.getByText(/Role permissions are fixed/)).toBeInTheDocument();
   });
 });

@@ -7,11 +7,47 @@ namespace Tests\Feature;
 use App\Models\Player;
 use App\Models\SignupSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Http::fake(['*' => Http::response([
+            'SMSMessageData' => ['Recipients' => [['status' => 'Success', 'messageId' => 'test-sms']]],
+        ])]);
+    }
+
+    public function test_selected_network_is_saved_on_the_signup_session(): void
+    {
+        foreach (['mtn', 'glo', 'airtel', 't2'] as $index => $network) {
+            $phone = '+234803123456'.$index;
+            $this->postJson('/v1/auth/register', ['msisdn' => $phone, 'mobile_network' => $network])
+                ->assertOk();
+            $this->assertDatabaseHas('signupSession', ['msisdn' => $phone, 'mobileNetwork' => $network]);
+        }
+    }
+
+    public function test_invalid_network_is_rejected_without_creating_a_signup_session(): void
+    {
+        $this->postJson('/v1/auth/register', ['msisdn' => '08031234567', 'mobile_network' => 'invalid'])
+            ->assertUnprocessable()->assertJsonValidationErrors('mobile_network');
+        $this->assertDatabaseCount('signupSession', 0);
+    }
+
+    public function test_starting_registration_cannot_overwrite_an_existing_players_network(): void
+    {
+        $player = Player::create([
+            'msisdn' => '+2348031234567', 'registeredName' => 'Existing Player',
+            'registrationChannel' => 'web', 'mobileNetwork' => 'glo',
+        ]);
+        $this->postJson('/v1/auth/register', ['msisdn' => $player->msisdn, 'mobile_network' => 'mtn'])->assertOk();
+        $this->assertSame('glo', $player->fresh()->mobileNetwork);
+    }
 
     public function test_register_normalises_msisdn_and_sends_otp(): void
     {

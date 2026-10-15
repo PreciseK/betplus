@@ -1,28 +1,15 @@
 const TOOLS = [
-  ["Deposit and stake limits", "Lower limits take effect immediately"],
-  ["Session reality checks", "Time, total staked, and net position"],
-  ["Cool-off periods", "24 hours, 7 days, or 30 days"],
-  ["Self-exclusion", "Across every Betplus game"],
-] as const;
+  ["Deposit and stake limits", "Lower limits take effect immediately. Increases take effect after 24 hours."],
+  ["Net position", "Review what you have won minus what you have staked."],
+  ["Take a break", "Pause play and deposits for a selected period."],
+  ["Self-exclusion", "Exclude yourself across Betplus games for your chosen period."],
+];
 
 export function SafePlaySection() {
   return (
     <section className="safe-section" id="safe-play" aria-labelledby="safe-title">
-      <div className="safe-copy reveal-on-scroll">
-        <p className="eyebrow eyebrow-dark">Your play. Your limits.</p>
-        <h2 id="safe-title">Control belongs<br />with you.</h2>
-        <p>See your net position, set limits across every game, take a break, or self-exclude. These tools stay easy to find, and withdrawals remain available when required.</p>
-        <a className="button button-dark" href="/safe-play">Explore safe-play tools</a>
-      </div>
-      <div className="safe-tools reveal-on-scroll" aria-label="Available safe-play tools">
-        {TOOLS.map(([title, body], index) => (
-          <div key={title}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <strong>{title}</strong>
-            <small>{body}</small>
-          </div>
-        ))}
-      </div>
+      <div className="safe-copy"><p className="eyebrow">Play responsibly</p><h2 id="safe-title">Set your limits.</h2><p>Manage your limits, take a break or self-exclude from your account. Eligible withdrawals remain available.</p><a className="arrow-link" href="/account">View account controls <span aria-hidden="true">↗</span></a></div>
+      <dl className="safe-tools">{TOOLS.map(([title, body]) => <div key={title}><dt>{title}</dt><dd>{body}</dd></div>)}</dl>
     </section>
   );
 }

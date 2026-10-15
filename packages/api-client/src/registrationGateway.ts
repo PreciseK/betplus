@@ -1,5 +1,7 @@
 import { post } from "./http";
 
+export type MobileNetwork = "mtn" | "glo" | "airtel" | "t2";
+
 /** Thrown by verifyOtp when the number already has an account (Story 1.7 non-disclosure —
  *  only revealed after OTP ownership is proven, never before). */
 export class ExistingAccountError extends Error {
@@ -18,8 +20,8 @@ function maskPhone(phoneE164: string): string {
  * imported type, so this package doesn't depend on apps/web.
  */
 export const registrationGateway = {
-  async requestOtp(phoneE164: string): Promise<{ challengeId: string; maskedPhone: string }> {
-    await post("/auth/register", { msisdn: phoneE164 });
+  async requestOtp(phoneE164: string, mobileNetwork?: MobileNetwork): Promise<{ challengeId: string; maskedPhone: string }> {
+    await post("/auth/register", { msisdn: phoneE164, mobile_network: mobileNetwork });
     // The msisdn itself is the natural key through the rest of this flow — the backend
     // has no separate opaque challenge concept (see epics.md Story 1.7).
     return { challengeId: phoneE164, maskedPhone: maskPhone(phoneE164) };

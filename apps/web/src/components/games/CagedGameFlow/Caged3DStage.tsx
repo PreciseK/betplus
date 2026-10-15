@@ -2,17 +2,19 @@
 
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { createCagedModels } from "./cagedModels";
 
 export interface Caged3DStageProps {
   roundPhase: "betting" | "flying" | "crashed";
   multiplier: number;
 }
+
 export type BirdEscape3DStageProps = Caged3DStageProps;
 
 interface BirdInstance {
   meshGroup: THREE.Group;
-  leftWing: THREE.Mesh;
-  rightWing: THREE.Mesh;
+  leftWing: THREE.Group;
+  rightWing: THREE.Group;
   homePos: THREE.Vector3;
   homeRot: THREE.Euler;
   state: "in_cage" | "escaping" | "crash_escaping" | "escaped";
@@ -56,7 +58,7 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
     // WebGL context creation can legitimately fail — disabled GPU, an embedded
     // webview, an older browser, or (as found in this project's own test suite) a
     // jsdom test environment with no GPU at all. Failing here must not crash the
-    // whole game; the parent's 2D mode remains available regardless.
+    // whole game; the betting controls remain usable without the decorative scene.
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -77,311 +79,48 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
       0.1,
       100
     );
-    camera.position.set(0, 1.6, 6.8);
-    camera.lookAt(0, 1.1, 0);
+    let cameraDistance = 8.2;
+    const cameraTarget = new THREE.Vector3(0, 1.55, 0);
+    camera.position.set(0, 2.1, cameraDistance);
+    camera.lookAt(cameraTarget);
     cameraRef.current = camera;
 
     // 3. Renderer
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, container.clientWidth < 600 ? 1.5 : 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.25;
     rendererRef.current = renderer;
     container.appendChild(renderer.domElement);
 
     // 4. Lights
-    const ambientLight = new THREE.AmbientLight(0x0d3826, 1.8);
+    const ambientLight = new THREE.HemisphereLight(0xe8f5ff, 0x263e2c, 2.6);
     scene.add(ambientLight);
 
-    const moonLight = new THREE.DirectionalLight(0x8ae8c0, 2.0);
-    moonLight.position.set(4, 7, 4);
+    const moonLight = new THREE.DirectionalLight(0xffe7ba, 3.5);
+    moonLight.position.set(-3, 6, 5);
+    const rim = new THREE.DirectionalLight(0x9bcdd4, 2);
+    rim.position.set(3, 3, -3);
+    scene.add(rim);
     scene.add(moonLight);
 
-    const goldPointLight = new THREE.PointLight(0xf5b731, 3.2, 8);
+    const goldPointLight = new THREE.PointLight(0xffdb8c, 1.8, 8);
     goldPointLight.position.set(0, 1.2, 0);
     scene.add(goldPointLight);
     goldPointLightRef.current = goldPointLight;
 
-    // Materials
-    const goldMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf5b731,
-      metalness: 0.85,
-      roughness: 0.22,
-      emissive: 0x4a3205,
-      emissiveIntensity: 0.2,
-    });
-
-    const darkPerchMaterial = new THREE.MeshStandardMaterial({
-      color: 0x1d4734,
-      metalness: 0.5,
-      roughness: 0.5,
-    });
-
-    // 5 Vibrant Songbird Color Palettes: Canary Gold, Emerald Jade, Sapphire Azure, Ruby Cardinal, Amethyst Violet
-    const BIRD_COLOR_PALETTES = [
-      // 1. Canary Gold
-      {
-        body: new THREE.MeshStandardMaterial({
-          color: 0xffcb47,
-          metalness: 0.35,
-          roughness: 0.3,
-          emissive: 0xf59e0b,
-          emissiveIntensity: 0.35,
-        }),
-        wing: new THREE.MeshStandardMaterial({
-          color: 0xffe082,
-          metalness: 0.4,
-          roughness: 0.2,
-          emissive: 0xf5b731,
-          emissiveIntensity: 0.45,
-          side: THREE.DoubleSide,
-        }),
-      },
-      // 2. Emerald Jade
-      {
-        body: new THREE.MeshStandardMaterial({
-          color: 0x10b981,
-          metalness: 0.35,
-          roughness: 0.3,
-          emissive: 0x059669,
-          emissiveIntensity: 0.35,
-        }),
-        wing: new THREE.MeshStandardMaterial({
-          color: 0x6ee7b7,
-          metalness: 0.4,
-          roughness: 0.2,
-          emissive: 0x10b981,
-          emissiveIntensity: 0.45,
-          side: THREE.DoubleSide,
-        }),
-      },
-      // 3. Sapphire Azure
-      {
-        body: new THREE.MeshStandardMaterial({
-          color: 0x3b82f6,
-          metalness: 0.35,
-          roughness: 0.3,
-          emissive: 0x1d4ed8,
-          emissiveIntensity: 0.35,
-        }),
-        wing: new THREE.MeshStandardMaterial({
-          color: 0x93c5fd,
-          metalness: 0.4,
-          roughness: 0.2,
-          emissive: 0x3b82f6,
-          emissiveIntensity: 0.45,
-          side: THREE.DoubleSide,
-        }),
-      },
-      // 4. Ruby Cardinal
-      {
-        body: new THREE.MeshStandardMaterial({
-          color: 0xef4444,
-          metalness: 0.35,
-          roughness: 0.3,
-          emissive: 0xb91c1c,
-          emissiveIntensity: 0.35,
-        }),
-        wing: new THREE.MeshStandardMaterial({
-          color: 0xfca5a5,
-          metalness: 0.4,
-          roughness: 0.2,
-          emissive: 0xef4444,
-          emissiveIntensity: 0.45,
-          side: THREE.DoubleSide,
-        }),
-      },
-      // 5. Amethyst Violet
-      {
-        body: new THREE.MeshStandardMaterial({
-          color: 0xa855f7,
-          metalness: 0.35,
-          roughness: 0.3,
-          emissive: 0x7e22ce,
-          emissiveIntensity: 0.35,
-        }),
-        wing: new THREE.MeshStandardMaterial({
-          color: 0xd8b4fe,
-          metalness: 0.4,
-          roughness: 0.2,
-          emissive: 0xa855f7,
-          emissiveIntensity: 0.45,
-          side: THREE.DoubleSide,
-        }),
-      },
-    ];
-
-    // 5. Build 3D Golden Birdcage
-    const cageGroup = new THREE.Group();
+    const models = createCagedModels();
+    const cageGroup = models.cage;
     cageGroupRef.current = cageGroup;
-
-    // Cage Base & Ring
-    const baseGeo = new THREE.CylinderGeometry(1.65, 1.7, 0.14, 32);
-    const cageBase = new THREE.Mesh(baseGeo, goldMaterial);
-    cageBase.position.y = -0.4;
-    cageGroup.add(cageBase);
-
-    // Cage Dome Top
-    const domeGeo = new THREE.SphereGeometry(1.65, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
-    const dome = new THREE.Mesh(domeGeo, new THREE.MeshStandardMaterial({
-      ...goldMaterial,
-      wireframe: true,
-      wireframeLinewidth: 2,
-    }));
-    dome.position.y = 1.9;
-    cageGroup.add(dome);
-
-    // Top Hook Ring
-    const hookGeo = new THREE.TorusGeometry(0.32, 0.06, 16, 32);
-    const hook = new THREE.Mesh(hookGeo, goldMaterial);
-    hook.position.y = 3.8;
-    cageGroup.add(hook);
-
-    // Cage Vertical Bars
-    const barCount = 16;
-    const barGeo = new THREE.CylinderGeometry(0.025, 0.025, 2.4, 8);
-    for (let i = 0; i < barCount; i++) {
-      const angle = (i / barCount) * Math.PI * 2;
-      // Front opening for door (between 0.4 and 1.1 rad)
-      if (angle > 0.35 && angle < 1.15) continue;
-
-      const bar = new THREE.Mesh(barGeo, goldMaterial);
-      bar.position.set(Math.cos(angle) * 1.6, 0.75, Math.sin(angle) * 1.6);
-      cageGroup.add(bar);
-    }
-
-    // Cage Horizontal Ring Bands
-    const ringGeo = new THREE.TorusGeometry(1.62, 0.035, 12, 36);
-    const ring1 = new THREE.Mesh(ringGeo, goldMaterial);
-    ring1.rotation.x = Math.PI / 2;
-    ring1.position.y = 0.4;
-    cageGroup.add(ring1);
-
-    const ring2 = new THREE.Mesh(ringGeo, goldMaterial);
-    ring2.rotation.x = Math.PI / 2;
-    ring2.position.y = 1.4;
-    cageGroup.add(ring2);
-
-    // Multiple Perches inside cage across tiers
-    const perchGeo = new THREE.CylinderGeometry(0.035, 0.035, 2.1, 8);
-    // Lower perch
-    const perchLower = new THREE.Mesh(perchGeo, darkPerchMaterial);
-    perchLower.rotation.z = Math.PI / 2;
-    perchLower.position.set(0, 0.15, -0.2);
-    cageGroup.add(perchLower);
-
-    // Higher perch
-    const perchHigher = new THREE.Mesh(perchGeo, darkPerchMaterial);
-    perchHigher.rotation.z = Math.PI / 2;
-    perchHigher.rotation.y = 0.4;
-    perchHigher.position.set(0.1, 0.85, 0.2);
-    cageGroup.add(perchHigher);
-
-    // Upper dome tier perch
-    const perchUpper = new THREE.Mesh(perchGeo, darkPerchMaterial);
-    perchUpper.rotation.z = Math.PI / 2;
-    perchUpper.rotation.y = -0.3;
-    perchUpper.position.set(-0.1, 1.25, -0.1);
-    cageGroup.add(perchUpper);
-
-    // Cage Door (Open door at the front-right opening)
-    const doorGroup = new THREE.Group();
-    doorGroup.position.set(Math.cos(1.15) * 1.6, 0, Math.sin(1.15) * 1.6);
-    const doorBarGeo = new THREE.CylinderGeometry(0.025, 0.025, 1.9, 8);
-    const doorBar1 = new THREE.Mesh(doorBarGeo, goldMaterial);
-    doorBar1.position.set(-0.35, 0.75, 0);
-    doorGroup.add(doorBar1);
-    const doorBar2 = new THREE.Mesh(doorBarGeo, goldMaterial);
-    doorBar2.position.set(0, 0.75, 0);
-    doorGroup.add(doorBar2);
-    doorGroup.rotation.y = 0.9; // Open door
-    cageDoorRef.current = doorGroup;
-    cageGroup.add(doorGroup);
-
+    cageDoorRef.current = models.door;
     scene.add(cageGroup);
 
-    // 6. Build Flock of 25 Birds inside the cage with 5 Color Variations
-    const totalBirds = 25;
+    // Three clear perching rows; all birds are decorative, independent of odds.
+    const totalBirds = models.spots.length;
     const birdsList: BirdInstance[] = [];
-
-    // Predefined 25 distinct perching spots inside the cage across tiers
-    const perchSpots = [
-      // Lower tier (y ~ -0.2 to -0.15)
-      { x: -0.7, y: -0.2, z: -0.4, rotY: 0.5 },
-      { x: -0.4, y: -0.2, z: 0.4, rotY: 0.1 },
-      { x: 0.0, y: -0.2, z: -0.6, rotY: -0.2 },
-      { x: 0.1, y: -0.2, z: 0.5, rotY: -0.4 },
-      { x: 0.6, y: -0.2, z: 0.3, rotY: 0.3 },
-      { x: 0.7, y: -0.2, z: -0.5, rotY: -0.6 },
-      { x: -0.2, y: -0.15, z: 0.0, rotY: 0.8 },
-
-      // Mid-lower perch bar (y ~ 0.35)
-      { x: -0.8, y: 0.35, z: -0.2, rotY: 0.3 },
-      { x: -0.5, y: 0.35, z: -0.2, rotY: 0.1 },
-      { x: -0.2, y: 0.35, z: -0.2, rotY: -0.1 },
-      { x: 0.1, y: 0.35, z: -0.2, rotY: 0.2 },
-      { x: 0.4, y: 0.35, z: -0.2, rotY: 0.4 },
-      { x: 0.7, y: 0.35, z: -0.2, rotY: -0.3 },
-
-      // Mid-upper perch bar (y ~ 0.7 to 0.85)
-      { x: -0.6, y: 0.75, z: -0.4, rotY: 0.4 },
-      { x: -0.3, y: 0.7, z: -0.5, rotY: 0.2 },
-      { x: 0.0, y: 0.85, z: 0.2, rotY: -0.2 },
-      { x: 0.3, y: 0.85, z: 0.2, rotY: -0.4 },
-      { x: 0.6, y: 0.85, z: 0.2, rotY: -0.5 },
-      { x: 0.4, y: 0.7, z: -0.5, rotY: -0.3 },
-
-      // Upper dome tier (y ~ 1.15 to 1.35)
-      { x: -0.5, y: 1.15, z: 0.1, rotY: 0.6 },
-      { x: -0.2, y: 1.25, z: 0.2, rotY: 0.2 },
-      { x: 0.2, y: 1.25, z: 0.1, rotY: -0.3 },
-      { x: 0.5, y: 1.15, z: 0.0, rotY: -0.5 },
-      { x: -0.1, y: 1.35, z: -0.3, rotY: 0.1 },
-      { x: 0.3, y: 1.35, z: -0.3, rotY: -0.2 },
-    ];
-
     for (let i = 0; i < totalBirds; i++) {
-      const spot = perchSpots[i % perchSpots.length];
-      const palette = BIRD_COLOR_PALETTES[i % BIRD_COLOR_PALETTES.length];
-      const birdGroup = new THREE.Group();
-
-      // Body
-      const bodyGeo = new THREE.ConeGeometry(0.14, 0.45, 12);
-      const body = new THREE.Mesh(bodyGeo, palette.body);
-      body.rotation.x = Math.PI / 2 + 0.2;
-      birdGroup.add(body);
-
-      // Head
-      const headGeo = new THREE.SphereGeometry(0.11, 12, 12);
-      const head = new THREE.Mesh(headGeo, palette.body);
-      head.position.set(0, 0.09, 0.22);
-      birdGroup.add(head);
-
-      // Beak
-      const beakGeo = new THREE.ConeGeometry(0.04, 0.12, 8);
-      const beak = new THREE.Mesh(beakGeo, new THREE.MeshStandardMaterial({ color: 0xff9100, roughness: 0.2 }));
-      beak.rotation.x = Math.PI / 2;
-      beak.position.set(0, 0.08, 0.34);
-      birdGroup.add(beak);
-
-      // Wings
-      const wingShape = new THREE.Shape();
-      wingShape.moveTo(0, 0);
-      wingShape.quadraticCurveTo(0.4, 0.2, 0.6, 0.04);
-      wingShape.quadraticCurveTo(0.35, -0.18, 0, 0);
-      const wingGeo = new THREE.ShapeGeometry(wingShape);
-
-      const leftWing = new THREE.Mesh(wingGeo, palette.wing);
-      leftWing.position.set(0.09, 0.06, 0.06);
-      leftWing.rotation.set(0, 0, 0.15);
-      birdGroup.add(leftWing);
-
-      const rightWing = new THREE.Mesh(wingGeo, palette.wing);
-      rightWing.position.set(-0.09, 0.06, 0.06);
-      rightWing.scale.x = -1;
-      rightWing.rotation.set(0, 0, -0.15);
-      birdGroup.add(rightWing);
-
+      const spot = models.spots[i];
+      const {group: birdGroup, leftWing, rightWing} = models.bird(i);
       // Initial placement
       const homePos = new THREE.Vector3(spot.x, spot.y, spot.z);
       const homeRot = new THREE.Euler(0, spot.rotY, 0);
@@ -405,7 +144,7 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
     birdsRef.current = birdsList;
 
     // 7. Ambient Forest Fireflies Particles
-    const pCount = 120;
+    const pCount = 45;
     const pGeo = new THREE.BufferGeometry();
     const pPositions = new Float32Array(pCount * 3);
     for (let i = 0; i < pCount * 3; i += 3) {
@@ -418,9 +157,9 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
 
     const pMat = new THREE.PointsMaterial({
       color: 0xf5b731,
-      size: 0.07,
+      size: 0.025,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.35,
       blending: THREE.AdditiveBlending,
     });
     const particles = new THREE.Points(pGeo, pMat);
@@ -430,25 +169,40 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
     // 8. Resize Listener
     const handleResize = () => {
       if (!container || !camera || !renderer) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.aspect = container.clientWidth / Math.max(container.clientHeight, 1);
+      // Fit the entire cage, including the hook, inside narrow phone stages.
+      cameraDistance = Math.max(container.clientWidth < 600 ? 9.2 : 8.5, 4.7 / camera.aspect);
+      camera.position.z = cameraDistance;
+      camera.setViewOffset(container.clientWidth, container.clientHeight, 0, container.clientHeight * .12, container.clientWidth, container.clientHeight);
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     };
-    window.addEventListener("resize", handleResize);
+    const observer = new ResizeObserver(handleResize);
+    observer.observe(container);
+    handleResize();
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduceMotion = motionQuery.matches;
+    const onMotionChange = () => { reduceMotion = motionQuery.matches; };
+    motionQuery.addEventListener("change", onMotionChange);
 
     // 9. Animation Loop
     const startEpoch = performance.now();
+    let previousFrame = startEpoch;
     let animId: number;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const elapsed = (performance.now() - startEpoch) * 0.001;
+      const now = performance.now();
+      const elapsed = (now - startEpoch) * 0.001;
+      const delta = Math.min((now - previousFrame) * .001, .05);
+      previousFrame = now;
+      if (document.hidden) return;
 
       const phase = phaseRef.current;
       const mult = multiplierRef.current;
 
       // Animate ambient fireflies
-      if (particlesRef.current && particlePositionsRef.current) {
+      if (!reduceMotion && particlesRef.current && particlePositionsRef.current) {
         const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
         for (let i = 1; i < pCount * 3; i += 3) {
           positions[i] += Math.sin(elapsed + i) * 0.002;
@@ -488,15 +242,15 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
           cageGroupRef.current.rotation.set(0, 0, 0);
         }
         if (cageDoorRef.current) {
-          cageDoorRef.current.rotation.y = 0.9;
+          cageDoorRef.current.rotation.y = 0;
         }
         birdsRef.current.forEach((b) => {
           b.state = "in_cage";
           b.meshGroup.position.copy(b.homePos);
           b.meshGroup.rotation.copy(b.homeRot);
           b.meshGroup.scale.set(1, 1, 1);
-          b.leftWing.rotation.set(0, 0, 0.15);
-          b.rightWing.rotation.set(0, 0, -0.15);
+          b.leftWing.rotation.set(0, 0, -1.1);
+          b.rightWing.rotation.set(0, 0, 1.1);
         });
       }
 
@@ -511,7 +265,7 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
           // Dramatic tilt and roll as it drops
           cageGroupRef.current.rotation.z = -Math.min(1.2, crashT * 1.8);
           cageGroupRef.current.rotation.x = Math.min(0.6, crashT * 1.2);
-          cageGroupRef.current.rotation.y += 0.02;
+          cageGroupRef.current.rotation.y = crashT * .65;
 
           // Door swings open violently during fall
           if (cageDoorRef.current) {
@@ -519,21 +273,21 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
           }
 
           // Screen impact camera shake during the initial severance/drop
-          const shake = Math.max(0, 0.18 * (1 - crashT / 0.6));
+          const shake = reduceMotion ? 0 : Math.max(0, 0.07 * (1 - crashT / 0.4));
           camera.position.x = (Math.random() - 0.5) * shake;
-          camera.position.y = 1.6 + (Math.random() - 0.5) * shake;
+          camera.position.y = 2.1 + (Math.random() - 0.5) * shake;
         } else {
           // Normal gentle hover / sway
-          cageGroupRef.current.position.y = Math.sin(elapsed * 1.5) * 0.03;
+          cageGroupRef.current.position.y = reduceMotion ? 0 : Math.sin(elapsed * .8) * .018;
           cageGroupRef.current.position.x = 0;
-          cageGroupRef.current.rotation.y = Math.sin(elapsed * 0.5) * 0.02;
+          cageGroupRef.current.rotation.y = reduceMotion ? 0 : Math.sin(elapsed * .5) * .015;
           cageGroupRef.current.rotation.x = 0;
           cageGroupRef.current.rotation.z = 0;
           if (cageDoorRef.current) {
-            cageDoorRef.current.rotation.y = 0.9;
+            cageDoorRef.current.rotation.y = THREE.MathUtils.damp(cageDoorRef.current.rotation.y, phase === "flying" ? -1.25 : 0, 6, delta);
           }
-          camera.position.x = Math.sin(elapsed * 0.3) * 0.15;
-          camera.position.y = 1.6 + Math.cos(elapsed * 0.2) * 0.08;
+          camera.position.x = reduceMotion ? 0 : Math.sin(elapsed * .3) * .04;
+          camera.position.y = 2.1;
         }
       }
 
@@ -550,14 +304,14 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
 
         if (bird.state === "in_cage") {
           // Gentle perching, breathing, pecking motion
-          const hop = Math.sin(elapsed * 2.5 + bird.perchSeed) * 0.015;
-          const headTurn = Math.sin(elapsed * 1.2 + bird.perchSeed) * 0.2;
+          const hop = reduceMotion ? 0 : Math.sin(elapsed * 2.5 + bird.perchSeed) * .008;
+          const headTurn = reduceMotion ? 0 : Math.sin(elapsed * 1.2 + bird.perchSeed) * .12;
           bird.meshGroup.position.set(bird.homePos.x, bird.homePos.y + hop, bird.homePos.z);
           bird.meshGroup.rotation.set(0, bird.homeRot.y + headTurn, 0);
 
           // Wings rest folded
-          bird.leftWing.rotation.z = 0.15 + Math.sin(elapsed * 2 + bird.perchSeed) * 0.03;
-          bird.rightWing.rotation.z = -0.15 - Math.sin(elapsed * 2 + bird.perchSeed) * 0.03;
+          bird.leftWing.rotation.z = -1.1 + (reduceMotion ? 0 : Math.sin(elapsed * 2 + bird.perchSeed) * .025);
+          bird.rightWing.rotation.z = 1.1 - (reduceMotion ? 0 : Math.sin(elapsed * 2 + bird.perchSeed) * .025);
         } else if (bird.state === "escaping") {
           // Progressive escape during flight: out the door and into the sky
           const flightTime = elapsed - bird.escapeStartTime;
@@ -566,16 +320,16 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
           bird.rightWing.rotation.z = -Math.sin(flightTime * flapSpeed) * 0.7;
 
           // Door opening coordinates: exit towards (1.6, 0.8, 1.2) then soar upward into distance
-          const exitT = Math.min(flightTime / 0.7, 1);
+          const exitT = THREE.MathUtils.smoothstep(flightTime, 0, .7);
           const soarT = Math.max(0, flightTime - 0.7);
 
           // Phase 1: Fly from home position out through the cage door
-          const exitX = THREE.MathUtils.lerp(bird.homePos.x, 1.8, exitT);
-          const exitY = THREE.MathUtils.lerp(bird.homePos.y, 1.2, exitT);
-          const exitZ = THREE.MathUtils.lerp(bird.homePos.z, 1.4, exitT);
+          const exitX = THREE.MathUtils.lerp(bird.homePos.x, 0, exitT);
+          const exitY = THREE.MathUtils.lerp(bird.homePos.y, .8, exitT);
+          const exitZ = THREE.MathUtils.lerp(bird.homePos.z, 1.9, exitT);
 
           // Phase 2: Soar upward into the sky and fade into distance
-          const finalX = exitX + Math.sin(soarT * 2 + index) * 2.5 + soarT * 1.2;
+          const finalX = exitX + (Math.sin(soarT * 2 + index) - Math.sin(index)) * 1.2 + soarT * 1.2;
           const finalY = exitY + soarT * 2.2;
           const finalZ = exitZ - soarT * 3.5;
 
@@ -610,8 +364,17 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
         }
       });
 
-      camera.position.z = 6.8;
-      camera.lookAt(0, 1.1, 0);
+      if (reduceMotion) {
+        cageGroup.visible = phase !== "crashed";
+        for (const bird of birdsRef.current) {
+          bird.meshGroup.visible = bird.state === "in_cage";
+        }
+      } else {
+        cageGroup.visible = true;
+        for (const bird of birdsRef.current) bird.meshGroup.visible = true;
+      }
+      camera.position.z = cameraDistance;
+      camera.lookAt(cameraTarget);
 
       renderer.render(scene, camera);
     };
@@ -621,7 +384,21 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
     // Cleanup
     return () => {
       cancelAnimationFrame(animId);
-      window.removeEventListener("resize", handleResize);
+      observer.disconnect();
+      motionQuery.removeEventListener("change", onMotionChange);
+      const geometries = new Set<THREE.BufferGeometry>();
+      const materials = new Set<THREE.Material>();
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh || object instanceof THREE.Points) {
+          geometries.add(object.geometry);
+          for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);
+        }
+      });
+      geometries.forEach((geometry) => geometry.dispose());
+      materials.forEach((material) => material.dispose());
+      birdsRef.current = [];
+      crashStartTimeRef.current = null;
+      lastEscapedCountRef.current = 0;
       if (renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
@@ -632,6 +409,7 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
   return (
     <div
       ref={mountRef}
+      aria-hidden="true"
       style={{
         position: "absolute",
         inset: 0,

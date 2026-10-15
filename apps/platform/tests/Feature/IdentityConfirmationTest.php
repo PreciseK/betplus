@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\Player;
 use App\Models\SignupSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -97,7 +97,7 @@ class IdentityConfirmationTest extends TestCase
 
     public function test_unreachable_opay_is_recoverable_and_preserves_session(): void
     {
-        Http::fake(['*/opay-wallet-validate' => fn () => throw new \Illuminate\Http\Client\ConnectionException('timed out')]);
+        Http::fake(['*/opay-wallet-validate' => fn () => throw new ConnectionException('timed out')]);
         $session = $this->verifiedSession();
 
         $response = $this->postJson('/v1/auth/register/confirm-identity', ['msisdn' => '08031234567']);
@@ -140,6 +140,16 @@ class IdentityConfirmationTest extends TestCase
             'kycTier' => 0,
         ]);
         $this->assertNotNull(SignupSession::first()->consumedAt);
+    }
+
+    public function test_completed_registration_copies_network_from_the_verified_session(): void
+    {
+        $session = $this->verifiedSession();
+        $session->forceFill(['mobileNetwork' => 't2', 'registeredName' => 'Ada Okafor'])->save();
+        $this->postJson('/v1/auth/register/complete', [
+            'msisdn' => $session->msisdn, 'mobile_network' => 'mtn',
+        ])->assertOk()->assertJson(['status' => 'registered']);
+        $this->assertDatabaseHas('player', ['msisdn' => $session->msisdn, 'mobileNetwork' => 't2']);
     }
 
     public function test_second_lookup_reuses_cache_instead_of_billing_opay_again(): void

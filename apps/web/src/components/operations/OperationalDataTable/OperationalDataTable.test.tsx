@@ -42,6 +42,6 @@ describe("OperationalDataTable", () => {
     rerender(<OperationalDataTable {...common} rows={rows} dataState="error" />);
     expect(screen.getByRole("alert")).toHaveTextContent("Records could not be loaded");
     rerender(<OperationalDataTable {...common} rows={[]} />);
-    expect(screen.getByText("No records in this scope")).toBeInTheDocument();
+    expect(screen.getByText("No records found")).toBeInTheDocument();
   });
 });

@@ -29,6 +29,6 @@ describe("PayoutsConsole", () => {
 
     expect(await screen.findByText("PO-1")).toBeInTheDocument();
     expect(screen.getByText("Needs review")).toBeInTheDocument();
-    expect(screen.getByText(/no provider-float or reserve-balance table/)).toBeInTheDocument();
+    expect(screen.getByText(/Provider float and reserve balances are not available/)).toBeInTheDocument();
   });
 });

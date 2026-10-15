@@ -3,7 +3,7 @@ import { ConnectedWalletDashboard } from "@/components/wallet/WalletDashboard/Co
 
 export default function WalletPage() {
   return (
-    <PlayerPage eyebrow="Wallet" title="Wallet" description="Fund, withdraw and review money movement from one place.">
+    <PlayerPage title="Wallet">
       <ConnectedWalletDashboard />
     </PlayerPage>
   );

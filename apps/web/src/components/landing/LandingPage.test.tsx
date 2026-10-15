@@ -1,53 +1,52 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { AccessSection } from "./AccessSection";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import Home from "../../app/page";
 import { GamesSection } from "./GamesSection";
 import { Hero } from "./Hero";
-import { HowItWorks } from "./HowItWorks";
+import { SiteHeader } from "./SiteHeader";
 
-describe("Landing Page Components", () => {
-  it("renders Hero with 3 games, Caged, and USSD *7006# details", () => {
+beforeEach(() => {
+  vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
+});
+afterEach(() => vi.unstubAllGlobals());
+
+describe("Public homepage", () => {
+  it("introduces Betplus and provides account creation and game navigation", () => {
     render(<Hero />);
-
-    expect(screen.getByText(/Your Move\./i)).toBeInTheDocument();
-    expect(screen.getByText(/Your Naira\./i)).toBeInTheDocument();
-    expect(screen.getByText(/USSD \*7006#/i)).toBeInTheDocument();
-    expect(screen.getByText(/CAGED CRASH/i)).toBeInTheDocument();
-    expect(screen.getByText(/USSD PLAY/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Play via USSD \(\*7006#\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Your Move. Your Moment. Your Win." })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Create account" })).toHaveAttribute("href", "/register");
+    expect(screen.getByRole("link", { name: "See the games" })).toHaveAttribute("href", "#games");
+    expect(screen.getByText(/18\+ only/)).toBeInTheDocument();
   });
 
-  it("renders GamesSection with BlackRed, Heritage, and Caged escape count mechanics", () => {
+  it("explains Caged as a cash-out game and links each game to its own route", () => {
     render(<GamesSection />);
-
-    expect(screen.getByRole("heading", { level: 3, name: "BlackRed" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Heritage" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Caged" })).toBeInTheDocument();
-
-    expect(screen.getByText(/03 \/ Crash & Escape Count/i)).toBeInTheDocument();
-    expect(screen.getByText(/Sparrow/i)).toBeInTheDocument();
-    expect(screen.getByText(/1\.35x/i)).toBeInTheDocument();
-    expect(screen.getByText(/Phoenix/i)).toBeInTheDocument();
-    expect(screen.getByText(/20x Win/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Discover Caged/i })).toHaveAttribute("href", "/games/caged");
+    for (const [title, slug] of [["BlackRed", "blackred"], ["Heritage", "heritage"], ["Caged", "caged"]]) {
+      expect(screen.getByRole("heading", { level: 3, name: title })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: `Play ${title}` })).toHaveAttribute("href", `/games/${slug}`);
+    }
+    expect(screen.getByText(/cash out before the cage drops/)).toBeInTheDocument();
   });
 
-  it("renders AccessSection with prominent USSD *7006# card and direct OPay funding info", () => {
-    render(<AccessSection />);
-
-    expect(screen.getAllByText("*7006#").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/Instant USSD Shortcode/i)).toBeInTheDocument();
-    expect(screen.getByText(/Direct OPay Funding/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Guaranteed SMS/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/MTN · Airtel · Glo · 9mobile/i)).toBeInTheDocument();
-    expect(screen.getByText(/USSD \(\*7006#\)/i)).toBeInTheDocument();
+  it("keeps homepage section links connected to real sections", () => {
+    const { container } = render(<Home />);
+    const anchors = container.querySelectorAll<HTMLAnchorElement>('a[href^="#"]');
+    for (const anchor of anchors) {
+      expect(document.getElementById(anchor.hash.slice(1)), anchor.href).not.toBeNull();
+    }
+    expect(screen.getByRole("link", { name: "Dial *7006#" })).toHaveAttribute("href", "tel:*7006%23");
+    expect(container.querySelectorAll(".t-tilt,.hero-glow,.orbit")).toHaveLength(0);
   });
 
-  it("renders HowItWorks with USSD and OPay references", () => {
-    render(<HowItWorks />);
-
-    expect(screen.getByText(/dial \*7006# for instant gateway authentication/i)).toBeInTheDocument();
-    expect(screen.getByText(/direct withdrawal automatically fund your stake/i)).toBeInTheDocument();
-    expect(screen.getByText(/Caged bird escape count/i)).toBeInTheDocument();
+  it("closes the mobile menu on Escape and returns focus to its toggle", () => {
+    render(<SiteHeader />);
+    fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
+    expect(screen.getByRole("button", { name: "Close menu" })).toHaveAttribute("aria-expanded", "true");
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveFocus();
+    fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
+    fireEvent.click(screen.getByRole("link", { name: "Games" }));
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false");
   });
 });

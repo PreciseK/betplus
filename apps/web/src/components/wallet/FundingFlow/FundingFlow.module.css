@@ -8,11 +8,11 @@
   width: 100%;
   max-width: 560px;
   box-sizing: border-box;
-  padding: 28px 28px 32px;
+  padding: 24px;
   background: #0e0e11;
-  border-radius: 24px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
 }
 
 /* ============================================================
@@ -26,16 +26,16 @@
 }
 
 .progressLabel {
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-size: 11px;
   font-weight: 600;
-  color: #71717a;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: #a1a1aa;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .progressLabel strong {
-  color: #150061;
+  color: #e4e4e7;
 }
 
 .progressTrack {
@@ -53,7 +53,7 @@
 }
 
 .progressStep.active {
-  background: linear-gradient(90deg, #d71108 0%, #150061 100%);
+  background: #18181b;
 }
 
 .progressStep.done {
@@ -64,8 +64,8 @@
    STEP HEADINGS
    ============================================================ */
 .stepHeading {
-  font-size: clamp(1.6rem, 3.5vw, 2.1rem);
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 600;
   color: #f6f1e7;
   letter-spacing: -0.03em;
   margin: 0 0 8px;
@@ -73,7 +73,7 @@
 
 .stepHeading em {
   font-style: normal;
-  color: #150061;
+  color: #e4e4e7;
 }
 
 .stepSub {
@@ -91,7 +91,7 @@
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border-radius: 16px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 20px;
@@ -100,7 +100,7 @@
 .sourceLogoBox {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 6px;
   background: rgba(234, 88, 12, 0.14);
   display: flex;
   align-items: center;
@@ -115,17 +115,17 @@
 }
 
 .sourceLabel {
-  font-family: var(--font-mono, monospace);
-  font-size: 10px;
+  font-family: inherit;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: rgba(255, 255, 255, 0.5);
   margin-bottom: 3px;
 }
 
 .sourceValue {
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-weight: 600;
   font-size: 14px;
   color: #f6f1e7;
@@ -134,14 +134,14 @@
 
 .sourceBadge {
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 5px;
   background: rgba(16, 185, 129, 0.12);
   color: #10b981;
-  font-family: var(--font-mono, monospace);
-  font-size: 9px;
+  font-family: inherit;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   flex-shrink: 0;
 }
 
@@ -151,30 +151,24 @@
 .amountDisplay {
   text-align: center;
   padding: 28px 20px 20px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #14090e 0%, #0d0c10 100%);
+  border-radius: 6px;
+  background: #18181b;
   border: 1px solid rgba(234, 88, 12, 0.22);
   margin-bottom: 18px;
   position: relative;
   overflow: hidden;
 }
 
-.amountDisplay::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 100%, rgba(234, 88, 12, 0.15), transparent 60%);
-  pointer-events: none;
-}
+
 
 .amountLabel {
   position: relative;
   z-index: 1;
-  font-family: var(--font-mono, monospace);
-  font-size: 10px;
+  font-family: inherit;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: rgba(246, 241, 231, 0.55);
   margin-bottom: 14px;
 }
@@ -189,7 +183,7 @@
 }
 
 .amountCur {
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-weight: 600;
   font-size: 18px;
   color: rgba(246, 241, 231, 0.5);
@@ -203,16 +197,16 @@
   background: transparent;
   border: none;
   outline: none;
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-weight: 700;
-  font-size: clamp(2.5rem, 10vw, 4rem);
+  font-size: clamp(28px, 7vw, 40px);
   line-height: 1;
   color: #f6f1e7;
   letter-spacing: -0.01em;
   text-align: center;
   font-variant-numeric: tabular-nums;
   padding: 0;
-  caret-color: #150061;
+  caret-color: #e4e4e7;
 }
 
 .amountInput::placeholder {
@@ -223,7 +217,7 @@
   position: relative;
   z-index: 1;
   margin-top: 14px;
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-size: 11px;
   color: rgba(246, 241, 231, 0.45);
   letter-spacing: 0.04em;
@@ -237,11 +231,11 @@
    QUICK AMOUNT CHIPS
    ============================================================ */
 .chipsLabel {
-  font-family: var(--font-mono, monospace);
-  font-size: 10px;
+  font-family: inherit;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: rgba(246, 241, 231, 0.55);
   margin: 0 0 10px;
 }
@@ -255,10 +249,10 @@
 
 .chip {
   padding: 10px 4px;
-  border-radius: 10px;
+  border-radius: 6px;
   background: rgba(246, 241, 231, 0.04);
   border: 1px solid rgba(246, 241, 231, 0.1);
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-weight: 700;
   font-size: 12px;
   color: #f6f1e7;
@@ -276,11 +270,11 @@
 .chipActive {
   background: rgba(234, 88, 12, 0.14) !important;
   border-color: #150061 !important;
-  box-shadow: 0 0 0 2px rgba(21, 0, 97, 0.2);
+  box-shadow: none;
 }
 
 .chipCur {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   color: rgba(246, 241, 231, 0.5);
   margin-right: 2px;
@@ -295,7 +289,7 @@
    ============================================================ */
 .summary {
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   margin-bottom: 20px;
@@ -315,16 +309,16 @@
 
 .summaryLabel {
   color: rgba(246, 241, 231, 0.55);
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .summaryVal {
   color: #f6f1e7;
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-weight: 600;
   font-size: 14px;
   letter-spacing: 0.02em;
@@ -344,7 +338,7 @@
   font-size: 0.72em;
   color: rgba(246, 241, 231, 0.45);
   margin-right: 4px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
 }
 
 /* ============================================================
@@ -357,7 +351,7 @@
   padding: 12px 14px;
   background: rgba(248, 113, 113, 0.1);
   border: 1px solid rgba(248, 113, 113, 0.3);
-  border-radius: 12px;
+  border-radius: 6px;
   margin-bottom: 16px;
   color: #f87171;
   font-size: 13px;
@@ -377,10 +371,10 @@
    BUTTONS
    ============================================================ */
 .btnPrimary {
+  background: #c9231c;
   width: 100%;
   padding: 15px 24px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #d71108 0%, #150061 100%);
+  border-radius: 6px;
   color: #ffffff;
   font-family: var(--font-sans, sans-serif);
   font-size: 15px;
@@ -392,13 +386,13 @@
   cursor: pointer;
   border: 0;
   transition: all 0.25s;
-  box-shadow: 0 10px 28px -8px rgba(234, 88, 12, 0.55);
+  box-shadow: none;
   margin-top: 6px;
 }
 
 .btnPrimary:hover:not(:disabled) {
-  box-shadow: 0 14px 36px -8px rgba(234, 88, 12, 0.7);
-  transform: translateY(-1px);
+  box-shadow: none;
+  transform: none;
 }
 
 .btnPrimary:disabled {
@@ -419,7 +413,7 @@
 .btnSecondary {
   width: 100%;
   padding: 13px 22px;
-  border-radius: 14px;
+  border-radius: 6px;
   background: rgba(246, 241, 231, 0.04);
   color: rgba(246, 241, 231, 0.75);
   font-size: 14px;
@@ -457,8 +451,8 @@
    ============================================================ */
 .authPanel {
   padding: 28px 20px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(21, 0, 97, 0.1) 0%, rgba(21, 0, 97, 0.02) 100%);
+  border-radius: 6px;
+  background: #18181b;
   border: 1px solid rgba(234, 88, 12, 0.25);
   margin-bottom: 22px;
   text-align: center;
@@ -473,13 +467,7 @@
   margin: 0 auto 16px;
 }
 
-.authPhoneRing {
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(234, 88, 12, 0.3);
-  animation: pulse-ring 2.2s ease-out infinite;
-}
+.authPhoneRing { display: none; }
 
 .authPhoneRing.r2 {
   inset: -14px;
@@ -495,9 +483,9 @@
 .authPhoneIcon {
   width: 70px;
   height: 70px;
-  border-radius: 18px;
+  border-radius: 6px;
   background: rgba(234, 88, 12, 0.14);
-  color: #150061;
+  color: #e4e4e7;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -515,15 +503,15 @@
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: 5px;
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.25);
   color: #10b981;
-  font-family: var(--font-mono, monospace);
-  font-size: 10px;
+  font-family: inherit;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   margin-bottom: 12px;
 }
 
@@ -542,7 +530,7 @@
 
 .authTitle {
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 600;
   color: #f6f1e7;
   letter-spacing: -0.02em;
   margin: 0 0 8px;
@@ -550,7 +538,7 @@
 
 .authTitle em {
   font-style: normal;
-  color: #150061;
+  color: #e4e4e7;
 }
 
 .authSub {
@@ -569,11 +557,11 @@
 }
 
 .fieldLabel {
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: rgba(246, 241, 231, 0.55);
 }
 
@@ -582,20 +570,20 @@
   padding: 14px 18px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
+  border-radius: 6px;
   color: #f6f1e7;
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.3em;
   text-align: center;
   outline: none;
   transition: border-color 0.2s;
-  caret-color: #150061;
+  caret-color: #e4e4e7;
 }
 
 .otpInput:focus {
-  border-color: #150061;
+  border-color: #e4e4e7;
 }
 
 .otpInput.inputError {
@@ -639,17 +627,17 @@
 }
 
 .successLabel {
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
   font-size: 11px;
   font-weight: 700;
   color: #10b981;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .successTitle {
   font-size: clamp(2rem, 6vw, 3rem);
-  font-weight: 800;
+  font-weight: 600;
   color: #f6f1e7;
   letter-spacing: -0.03em;
   margin: 0;
@@ -666,3 +654,10 @@
   line-height: 1.5;
   margin: 0;
 }
+
+@media (max-width: 640px) {
+  .flowContainer { padding: 16px; }
+  .sourceCard, .balancePill { padding: 12px; gap: 8px; flex-wrap: wrap; }
+  .sourceValue { overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-motion: reduce) { .authPhoneRing { animation: none; } }

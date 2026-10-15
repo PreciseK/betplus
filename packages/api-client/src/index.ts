@@ -1,4 +1,4 @@
-export { registrationGateway, ExistingAccountError } from "./registrationGateway";
+export { registrationGateway, ExistingAccountError, type MobileNetwork } from "./registrationGateway";
 export { sessionGateway } from "./sessionGateway";
 export { walletGateway } from "./walletGateway";
 export { blackRedGateway, BlackRedGatewayError, type BlackRedEligibilityCode } from "./blackRedGateway";

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { RegistrationFlow } from "./RegistrationFlow";
 import { maskNigerianPhone, normalizeNigerianPhone } from "@/lib/phone";
 import { createMockRegistrationGateway } from "@/mocks/registration";
@@ -7,6 +7,25 @@ import { parseNigerianDateInput } from "@/lib/date";
 import { KycTierGate } from "@/components/auth/KycTierGate/KycTierGate";
 
 describe("Story 1.7 registration flow", () => {
+  it("requires a network choice and passes it through initial and resent codes", async () => {
+    const gateway = createMockRegistrationGateway();
+    const requestOtp = vi.spyOn(gateway, "requestOtp");
+    render(<RegistrationFlow gateway={gateway} />);
+    fireEvent.change(screen.getByLabelText("Nigerian phone number"), { target: { value: "08012345678" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
+    expect(requestOtp).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("Select your mobile network.");
+    fireEvent.click(screen.getByRole("radio", { name: "T2" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
+    await screen.findByLabelText("Verification code");
+    expect(requestOtp).toHaveBeenLastCalledWith("+2348012345678", "t2");
+    fireEvent.click(screen.getByRole("button", { name: "Request a new code" }));
+    await screen.findByText(/A new code was sent/);
+    expect(requestOtp).toHaveBeenLastCalledWith("+2348012345678", "t2");
+    fireEvent.click(screen.getByRole("button", { name: "Change number" }));
+    expect(screen.getByRole("radio", { name: "T2" })).toBeChecked();
+  });
+
   it("normalizes accepted Nigerian phone formats to E.164", () => {
     expect(normalizeNigerianPhone("0801 234 5678")).toBe("+2348012345678");
     expect(normalizeNigerianPhone("+234 801 234 5678")).toBe("+2348012345678");
@@ -31,6 +50,7 @@ describe("Story 1.7 registration flow", () => {
   it("moves from phone to one-input OTP and confirms the phone", async () => {
     render(<RegistrationFlow />);
     fireEvent.change(screen.getByRole("textbox", { name: "Nigerian phone number" }), { target: { value: "08012345678" } });
+    fireEvent.click(screen.getByRole("radio", { name: "MTN" }));
     fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
     const otp = await screen.findByRole("textbox", { name: "Verification code" });
     fireEvent.change(otp, { target: { value: "123456" } });
@@ -42,6 +62,7 @@ describe("Story 1.7 registration flow", () => {
   it("shows the OPay-returned name as authoritative and not editable", async () => {
     render(<RegistrationFlow />);
     fireEvent.change(screen.getByRole("textbox", { name: "Nigerian phone number" }), { target: { value: "08012345678" } });
+    fireEvent.click(screen.getByRole("radio", { name: "MTN" }));
     fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
     fireEvent.change(await screen.findByRole("textbox", { name: "Verification code" }), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Verify phone number" }));
@@ -54,6 +75,7 @@ describe("Story 1.7 registration flow", () => {
   it("preserves progress when OPay is unavailable", async () => {
     render(<RegistrationFlow gateway={createMockRegistrationGateway("unavailable")} />);
     fireEvent.change(screen.getByRole("textbox", { name: "Nigerian phone number" }), { target: { value: "08012345678" } });
+    fireEvent.click(screen.getByRole("radio", { name: "MTN" }));
     fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
     fireEvent.change(await screen.findByRole("textbox", { name: "Verification code" }), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Verify phone number" }));
@@ -65,6 +87,7 @@ describe("Story 1.7 registration flow", () => {
   it("verifies NIN and date of birth into Tier 1 using server-returned limits", async () => {
     render(<RegistrationFlow />);
     fireEvent.change(screen.getByRole("textbox", { name: "Nigerian phone number" }), { target: { value: "08012345678" } });
+    fireEvent.click(screen.getByRole("radio", { name: "MTN" }));
     fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
     fireEvent.change(await screen.findByRole("textbox", { name: "Verification code" }), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Verify phone number" }));
@@ -89,6 +112,7 @@ describe("Story 1.7 registration flow", () => {
   it("uses a non-disclosing OTP failure message", async () => {
     render(<RegistrationFlow />);
     fireEvent.change(screen.getByRole("textbox", { name: "Nigerian phone number" }), { target: { value: "08012345678" } });
+    fireEvent.click(screen.getByRole("radio", { name: "MTN" }));
     fireEvent.submit(screen.getByRole("button", { name: "Send verification code" }).closest("form")!);
     const otp = await screen.findByRole("textbox", { name: "Verification code" });
     fireEvent.change(otp, { target: { value: "000000" } });

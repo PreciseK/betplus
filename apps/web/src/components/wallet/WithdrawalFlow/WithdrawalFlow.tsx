@@ -266,10 +266,10 @@ export function WithdrawalFlow({ context, gateway, onComplete, onCancel }: Withd
       </div>
 
       <h2 className={styles.stepHeading}>
-        How would you like to <em>withdraw?</em>
+        Withdraw
       </h2>
       <p className={styles.stepSub}>
-        Move winnings to your Play Balance to keep playing, or send them directly to your registered OPay wallet.
+        Choose where to send your winnings.
       </p>
 
       {/* Available payout balance */}
@@ -295,7 +295,7 @@ export function WithdrawalFlow({ context, gateway, onComplete, onCancel }: Withd
           </div>
           <div className={styles.destCardText}>
             <div className={styles.destCardTitle}>Move to Play Balance</div>
-            <div className={styles.destCardSub}>Recycle winnings to keep playing. Instant — no fees.</div>
+            <div className={styles.destCardSub}>Transfer winnings to your Play Balance. No fees.</div>
           </div>
           <div className={styles.destCardArrow}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -316,7 +316,7 @@ export function WithdrawalFlow({ context, gateway, onComplete, onCancel }: Withd
           <div className={styles.destCardText}>
             <div className={styles.destCardTitle}>Withdraw to OPay</div>
             <div className={styles.destCardSub}>
-              Send to: <strong>{context.destinationLabel}</strong>. Arrives in seconds.
+              Send to: <strong>{context.destinationLabel}</strong>.
             </div>
           </div>
           <div className={styles.destCardArrow}>

@@ -39,9 +39,9 @@ describe("OperationsNav", () => {
     render(<OperationsNav role="super-admin" variant="desktop" />);
     expect(screen.getByText("Customers")).toBeInTheDocument();
     expect(screen.getByText("Finance")).toBeInTheDocument();
-    expect(screen.getByText("Product")).toBeInTheDocument();
+    expect(screen.getByText("Games")).toBeInTheDocument();
     expect(screen.getByText("Compliance")).toBeInTheDocument();
-    expect(screen.getByText("Insights")).toBeInTheDocument();
+    expect(screen.getAllByText("Reports").length).toBeGreaterThan(0);
   });
 
   it("marks the current task semantically", () => {

@@ -77,15 +77,16 @@ export function GameListItem({ game, onQuickPlay }: GameListItemProps) {
         {game.id === "blackred" && onQuickPlay ? (
           <>
             <Link href={game.route} className={styles.secondaryBtn}>
-              Dashboard
+              Open game
             </Link>
             <button
               type="button"
+              aria-label={`Quick play ${game.title}`}
               onClick={() => onQuickPlay("blackred")}
               className={styles.playBtn}
             >
-              <span className={styles.playBtnDesktop}>⚡ Quick Play</span>
-              <span className={styles.playBtnMobile}>⚡ Play</span>
+              <span className={styles.playBtnDesktop}>Quick play</span>
+              <span className={styles.playBtnMobile}>Play</span>
             </button>
           </>
         ) : (

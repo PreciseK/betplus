@@ -1,4 +1,10 @@
 .dashboard {
+  --rg-divider: 1px solid #303034;
+  --rg-panel-background: #18181b;
+  --rg-panel-border: 1px solid #52525b;
+  --rg-subtle-background: #27272a;
+  --rg-editor-background: #18181b;
+  --rg-option-selected-border: #e4e4e7;
   width: 100%;
   display: grid;
   gap: 16px;
@@ -12,15 +18,16 @@
 
 .activeStatus,
 .withdrawalAccess {
-  padding: 16px 20px;
+  padding: 16px 0;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 14px;
-  background: #141417;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  background: transparent;
+  border-radius: 6px;
+  border: 0;
+  border-bottom: 1px solid #303034;
+  box-shadow: none;
   color: #ffffff;
 }
 
@@ -40,7 +47,7 @@
 .sectionHeading p,
 .protectionSection > div:first-child p,
 .limitEditor > div:first-child p {
-  color: #948b9f;
+  color: #a1a1aa;
 }
 
 .positionSection,
@@ -48,11 +55,12 @@
 .protectionSection {
   display: grid;
   gap: 14px;
-  background: #141417;
-  border-radius: 20px;
-  padding: 18px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  background: transparent;
+  border-radius: 6px;
+  padding: 20px 0;
+  border: 0;
+  border-bottom: 1px solid #303034;
+  box-shadow: none;
   color: #ffffff;
 }
 
@@ -71,7 +79,7 @@
 .sectionHeading h2,
 .protectionSection h2,
 .withdrawalAccess h2 {
-  font-size: var(--type-h3-size);
+  font-size: 17px;
   line-height: var(--type-h3-leading);
 }
 
@@ -89,7 +97,7 @@
 
 .position {
   min-width: 0;
-  padding: 12px 14px;
+  padding: 16px 0;
   display: grid;
   gap: 4px;
   text-align: center;
@@ -177,7 +185,7 @@
 
 .protectionSection {
   align-content: start;
-  padding: 18px 20px;
+  padding: 20px 0;
   gap: 12px;
 }
 
@@ -201,7 +209,7 @@
   justify-content: center;
   gap: 2px;
   border: var(--rg-panel-border);
-  border-radius: 10px;
+  border-radius: 6px;
   background: var(--rg-panel-background);
   color: var(--text-primary);
   text-align: start;
@@ -230,7 +238,7 @@
 
 .durationOptions span {
   color: var(--text-secondary);
-  font-size: 9.5px;
+  font-size: 12px;
   line-height: 1.1;
 }
 
@@ -255,14 +263,20 @@
 
 @media (max-width: 640px) {
   .dashboard {
+  --rg-divider: 1px solid #303034;
+  --rg-panel-background: #18181b;
+  --rg-panel-border: 1px solid #52525b;
+  --rg-subtle-background: #27272a;
+  --rg-editor-background: #18181b;
+  --rg-option-selected-border: #e4e4e7;
     gap: 12px;
   }
 
   .activeStatus,
   .withdrawalAccess {
     grid-template-columns: auto minmax(0, 1fr);
-    padding: 12px 14px;
-    border-radius: 16px;
+    padding: 16px 0;
+    border-radius: 6px;
     gap: 10px;
   }
 
@@ -274,8 +288,8 @@
   .positionSection,
   .limitsSection,
   .protectionSection {
-    padding: 14px 14px;
-    border-radius: 16px;
+    padding: 16px 0;
+    border-radius: 6px;
     gap: 10px;
   }
 
@@ -291,12 +305,12 @@
   }
 
   .position > span {
-    font-size: 9.5px;
-    white-space: nowrap;
+    font-size: 12px;
+    white-space: normal;
   }
 
   .position > small {
-    font-size: 9px;
+    font-size: 11px;
   }
 
   .limitRow {
@@ -311,7 +325,7 @@
   }
 
   .limitRow > div:first-child span {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .limitValue {
@@ -327,7 +341,7 @@
   }
 
   .limitValue span {
-    font-size: 9.5px;
+    font-size: 12px;
   }
 
   .limitRow > button {
@@ -344,7 +358,7 @@
 
   .ruleNote {
     max-width: none;
-    font-size: 10px;
+    font-size: 11px;
   }
 }
 
@@ -353,8 +367,8 @@
   gap: 10px;
   background: rgba(239, 68, 68, 0.04);
   border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 18px;
-  padding: 16px 20px;
+  border-radius: 6px;
+  padding: 16px 0;
   color: #ffffff;
 }
 
@@ -382,7 +396,7 @@
 
 .deactivationSummary {
   font-size: 12px;
-  color: #948b9f;
+  color: #a1a1aa;
   margin: 0;
   line-height: 1.4;
 }
@@ -405,15 +419,15 @@
 
 .complianceText {
   font-size: 11px;
-  color: #71717a;
+  color: #a1a1aa;
   line-height: 1.45;
   margin: 6px 0 0 0;
 }
 
 @media (max-width: 640px) {
   .deactivationSection {
-    padding: 14px 14px;
-    border-radius: 16px;
+    padding: 16px 0;
+    border-radius: 6px;
   }
 
   .deactivationTop {
@@ -426,3 +440,10 @@
     width: 100%;
   }
 }
+
+.dashboard { min-width: 0; gap: 24px; }
+.position { --type-body-size: 14px; }
+.position > span { overflow-wrap: anywhere; }
+.position > small { font-size: 11px; }
+.deactivationInfo { min-width: 0; }
+.durationOptions button { min-height: 52px; gap: 4px; }

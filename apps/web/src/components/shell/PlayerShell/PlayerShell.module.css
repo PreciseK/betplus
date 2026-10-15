@@ -203,6 +203,7 @@
 @media (max-width: 960px) {
   .viewport {
     height: auto;
+    min-height: 100svh;
     max-height: none;
     overflow-y: auto;
     padding: 8px;

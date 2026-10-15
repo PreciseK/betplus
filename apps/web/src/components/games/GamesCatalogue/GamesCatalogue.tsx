@@ -62,7 +62,7 @@ export function GamesCatalogue({
     <div className={`${styles.catalogueContainer} ${className ?? ""}`.trim()}>
       {showToolbar && (
         <div className={styles.toolbar}>
-          <span className={styles.countText}>{games.length} games available</span>
+          <span className={styles.countText}>{games.length} {games.length === 1 ? "game" : "games"}</span>
 
           <div
             className={styles.segmentedControl}
@@ -74,7 +74,7 @@ export function GamesCatalogue({
               className={styles.segmentBtn}
               aria-pressed={format === "matrix"}
               onClick={() => setFormat("matrix")}
-              title="3x3 Compact Grid"
+              title="Compact grid"
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                 <rect x="1" y="1" width="3.5" height="3.5" rx="1" />
@@ -87,7 +87,7 @@ export function GamesCatalogue({
                 <rect x="6.25" y="11.5" width="3.5" height="3.5" rx="1" />
                 <rect x="11.5" y="11.5" width="3.5" height="3.5" rx="1" />
               </svg>
-              <span>3×3</span>
+              <span>Tiles</span>
             </button>
 
             <button
@@ -129,7 +129,7 @@ export function GamesCatalogue({
         <div
           className={styles.matrixGrid}
           role="region"
-          aria-label="3x3 Games Matrix"
+          aria-label="Game tiles"
         >
           {games.map((game) => (
             <GamePosterTile

@@ -191,7 +191,7 @@ export function ResponsiblePlayDashboard({ gateway = mockResponsiblePlayGateway 
 
         {currentLimit && (
           <form className={styles.limitEditor} onSubmit={saveLimit} noValidate>
-            <div><h3>Change {currentLimit.label.toLowerCase()}</h3><p>The platform decides whether the change is immediate or held for 24 hours by comparing it with your current limit.</p></div>
+            <div><h3>Change {currentLimit.label.toLowerCase()}</h3><p>Lower limits apply immediately. Increases take effect after 24 hours.</p></div>
             {currentLimit.unit === "kobo" ? (
               <MoneyInput id="limit-value" label="New limit" valueKobo={draftValue} errorText={limitError} onValueChange={setDraftValue} required />
             ) : (
@@ -243,7 +243,7 @@ export function ResponsiblePlayDashboard({ gateway = mockResponsiblePlayGateway 
       <section className={styles.deactivationSection} aria-labelledby="deactivation-title">
         <div className={styles.deactivationTop}>
           <div className={styles.deactivationInfo}>
-            <h2 id="deactivation-title">Deactivate Account / Account Closure</h2>
+            <h2 id="deactivation-title">Close account</h2>
             <p className={styles.deactivationSummary}>
               Request account deactivation with a 6-month cooling-off period. Withdrawal remains available.
             </p>
@@ -312,7 +312,7 @@ export function ResponsiblePlayDashboard({ gateway = mockResponsiblePlayGateway 
 
 function StatusBanner({ snapshot }: { snapshot: ResponsiblePlaySnapshot }) {
   if (snapshot.status === "active") {
-    return <div className={styles.activeStatus}><Icon name="check" /><div><strong>Account protection active</strong><span>No break or exclusion is currently active.</span></div><Button href="/wallet" variant="secondary">Withdraw</Button></div>;
+    return <div className={styles.activeStatus}><Icon name="check" /><div><strong>Account active</strong><span>No break or exclusion is currently active.</span></div><Button href="/wallet" variant="secondary">Withdraw</Button></div>;
   }
 
   const copy = statusCopy(snapshot);

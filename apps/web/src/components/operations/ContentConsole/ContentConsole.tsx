@@ -61,7 +61,7 @@ export function ContentConsole() {
         <div>
           <p className={styles.context}>Content</p>
           <h1>Heritage catalogue</h1>
-          <p>All 90 real regalia items. Publishing requires a recorded cultural-advisor sign-off reference.</p>
+          <p>Manage regalia items. Publishing requires a cultural-advisor sign-off reference.</p>
         </div>
       </header>
 
@@ -116,8 +116,8 @@ export function ContentConsole() {
       </section>
 
       <aside className={styles.contractNote} aria-labelledby="content-boundary-title">
-        <h2 id="content-boundary-title">Integration boundary</h2>
-        <p>There is no draft/cultural-review workflow state machine — an item is either published or not. Every seeded item currently has no sign-off reference recorded, so publish is refused for all of them until Compliance records one.</p>
+        <h2 id="content-boundary-title">Publishing requirements</h2>
+        <p>Compliance must record a sign-off reference before an item can be published.</p>
       </aside>
     </div>
   );

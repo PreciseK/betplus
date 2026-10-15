@@ -19,11 +19,11 @@
 .sectionHeader {
   display: block;
   padding: 4px 10px 2px;
-  color: #94a3b8;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+
+
   user-select: none;
 }
 
@@ -32,7 +32,7 @@
 }
 
 .group summary {
-  min-height: 36px;
+  min-height: 42px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,7 +63,7 @@
 .group summary svg {
   width: 14px;
   height: 14px;
-  color: #94a3b8;
+  color: #64748b;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -86,11 +86,11 @@
 
 .subgroupLabel {
   padding: 4px 10px 2px;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 10px;
   font-weight: 650;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+
+
 }
 
 .groupBody ul {
@@ -104,7 +104,7 @@
 
 .link {
   position: relative;
-  min-height: 38px;
+  min-height: 42px;
   display: flex;
   align-items: center;
   gap: 10px;

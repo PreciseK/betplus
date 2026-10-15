@@ -3,7 +3,7 @@ import { PlayerPage } from "@/components/shell/PlayerPage/PlayerPage";
 
 export default function AccountPage() {
   return (
-    <PlayerPage eyebrow="Account" title="Safety and limits" description="See your true net position, set limits or step away from play. Withdrawal stays available.">
+    <PlayerPage title="Account" description="Manage your play limits and account access.">
       <ConnectedResponsiblePlayDashboard />
     </PlayerPage>
   );

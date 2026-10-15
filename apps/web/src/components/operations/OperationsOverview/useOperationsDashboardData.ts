@@ -81,7 +81,7 @@ function buildTrend(rows: readonly BackOfficeRollupRow[], from: string, to: stri
   }
   return {
     title: "Paid plays and deposits",
-    summary: "Completed events from the pre-aggregated operations rollup. No raw play-path events are queried.",
+    summary: "Completed plays and deposits over the last seven days.",
     primaryLabel: "Paid plays",
     comparisonLabel: "Deposits",
     points,

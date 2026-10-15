@@ -46,7 +46,7 @@ export function RolesConsole() {
         <div>
           <p className={styles.context}>Administration</p>
           <h1>Roles</h1>
-          <p>Who holds each role, derived from the real team access list.</p>
+          <p>View role assignments across the team.</p>
         </div>
       </header>
 
@@ -84,11 +84,9 @@ export function RolesConsole() {
       </section>
 
       <aside className={styles.contractNote} aria-labelledby="roles-boundary-title">
-        <h2 id="roles-boundary-title">Integration boundary</h2>
+        <h2 id="roles-boundary-title">Role permissions</h2>
         <p>
-          Roles are a fixed, hardcoded set of eight — there is no capability/permissions table, and nothing here
-          lets you edit which actions a role can take. This view is read-only by design; editing a role&apos;s
-          capabilities would need a new permissions table and a rewrite of how routes enforce roles today.
+          Role permissions are fixed. Use Team access to assign an operator to a role.
         </p>
       </aside>
     </div>

@@ -18,17 +18,17 @@ export default function BackOfficeSignInPage() {
           <Logo href="/" />
           <span>Back office</span>
         </div>
-        <span className={styles.restricted}><Icon name="lock" /><span>Restricted operator surface</span></span>
+        <span className={styles.restricted}><Icon name="lock" /><span>Staff access</span></span>
       </header>
       <main className={styles.main} id="operator-sign-in">
         <OperatorSignIn />
         <aside className={styles.security} aria-labelledby="security-title">
           <p className={styles.securityLabel}>Access controls</p>
-          <h2 id="security-title">Operator access is individually attributable</h2>
+          <h2 id="security-title">Account security</h2>
           <dl>
             <div><dt>MFA</dt><dd>Required for every account</dd></div>
             <div><dt>Network</dt><dd>Privileged roles require an approved IP</dd></div>
-            <div><dt>Permissions</dt><dd>Least privilege by assigned role</dd></div>
+            <div><dt>Permissions</dt><dd>Based on your assigned role</dd></div>
             <div><dt>Audit</dt><dd>Every completed action records its operator</dd></div>
           </dl>
           <p>Never share credentials or authenticator codes. Betplus support will not ask for either.</p>

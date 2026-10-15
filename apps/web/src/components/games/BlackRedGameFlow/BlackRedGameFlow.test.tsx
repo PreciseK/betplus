@@ -37,7 +37,7 @@ describe("BlackRedGameFlow Dashboard", () => {
     expect(screen.getByText("Step 1")).toBeInTheDocument();
     expect(screen.getByText("Step 2")).toBeInTheDocument();
     expect(screen.getByText("Step 3")).toBeInTheDocument();
-    expect(screen.getByText(/Betplus/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Betplus").length).toBeGreaterThan(0);
 
     const countButtons = [1, 2, 3, 4, 5].map((count) => screen.getByRole("button", { name: `${count} ${count === 1 ? "position" : "positions"}` }));
     expect(countButtons.every((button) => button.getAttribute("aria-pressed") === "false")).toBe(true);

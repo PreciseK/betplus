@@ -34,12 +34,19 @@ export function ActivityDashboard({
 
   const [activeTab, setActiveTab] = useState<TabType>("deposits");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("today");
+  const [filterNow, setFilterNow] = useState(() => Date.now());
+
+  function selectPeriod(period: TimeFilter) {
+    setFilterNow(Date.now());
+    setTimeFilter(period);
+  }
 
   useEffect(() => {
     let active = true;
     Promise.all([gateway.loadWallet(), payoutGateway.loadPayoutContext()])
       .then(([walletSnap, payoutContext]) => {
         if (active) {
+          setFilterNow(Date.now());
           setTransactions(walletSnap.transactions);
           setPayouts(payoutContext.payouts);
           setLoading(false);
@@ -58,14 +65,14 @@ export function ActivityDashboard({
 
   // Derived counts and totals
   const depositsList = useMemo(() => {
-    const now = Date.now();
+    const now = filterNow;
     return transactions.filter((t) => t.amountKobo > 0 && withinTimeFilter(t.occurredAt, timeFilter, now));
-  }, [transactions, timeFilter]);
+  }, [transactions, timeFilter, filterNow]);
 
   const withdrawalsList = useMemo(() => {
-    const now = Date.now();
+    const now = filterNow;
     return payouts.filter((p) => withinTimeFilter(p.createdAt, timeFilter, now));
-  }, [payouts, timeFilter]);
+  }, [payouts, timeFilter, filterNow]);
 
   const totalDepositsKobo = useMemo(() => {
     return depositsList.reduce((acc, t) => acc + (t.amountKobo || 0), 0);
@@ -79,66 +86,58 @@ export function ActivityDashboard({
     <div className={styles.activityContainer}>
       {/* 1. EYEBROW & MAIN TITLE */}
       <header className={styles.activityHeader}>
-        <div className={styles.eyebrow}>
-          <span className={styles.eyebrowDash}>──</span>
-          <span className={styles.eyebrowText}>YOUR ACTIVITY</span>
-        </div>
         <h1 className={styles.pageTitle}>Transactions</h1>
       </header>
 
       {/* 2. TOP METRICS TILES */}
       <div className={styles.metricsGrid}>
-        <div
+        <button
+          type="button"
           className={`${styles.metricCard} ${activeTab === "deposits" ? styles.metricCardActive : ""}`}
           onClick={() => setActiveTab("deposits")}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setActiveTab("deposits"); }}
           aria-label="Filter deposits"
+          aria-pressed={activeTab === "deposits"}
         >
           <div className={styles.metricHeaderRow}>
-            <span className={styles.metricLabel}>DEPOSITS</span>
-            <span className={styles.metricIconPill}>📥</span>
-          </div>
-          <div className={styles.metricValueRow}>
-            <span className={`${styles.currencyCode} ${styles.greenText}`}>NGN</span>
-            <strong className={`${styles.metricAmount} ${styles.greenText}`}>
-              {loading ? "0.00" : (totalDepositsKobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </strong>
-          </div>
-          <span className={styles.metricSub}>{depositsList.length} recorded</span>
-        </div>
-
-        <div
-          className={`${styles.metricCard} ${activeTab === "withdrawals" ? styles.metricCardActive : ""}`}
-          onClick={() => setActiveTab("withdrawals")}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setActiveTab("withdrawals"); }}
-          aria-label="Filter withdrawals"
-        >
-          <div className={styles.metricHeaderRow}>
-            <span className={styles.metricLabel}>WITHDRAWALS</span>
-            <span className={styles.metricIconPill}>📤</span>
+            <span className={styles.metricLabel}>Deposits</span>
           </div>
           <div className={styles.metricValueRow}>
             <span className={styles.currencyCode}>NGN</span>
             <strong className={styles.metricAmount}>
-              {loading ? "0.00" : (totalWithdrawalsKobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {loading || failed ? "—" : (totalDepositsKobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </strong>
+          </div>
+          <span className={styles.metricSub}>{depositsList.length} recorded</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.metricCard} ${activeTab === "withdrawals" ? styles.metricCardActive : ""}`}
+          onClick={() => setActiveTab("withdrawals")}
+          aria-label="Filter withdrawals"
+          aria-pressed={activeTab === "withdrawals"}
+        >
+          <div className={styles.metricHeaderRow}>
+            <span className={styles.metricLabel}>Withdrawals</span>
+          </div>
+          <div className={styles.metricValueRow}>
+            <span className={styles.currencyCode}>NGN</span>
+            <strong className={styles.metricAmount}>
+              {loading || failed ? "—" : (totalWithdrawalsKobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </strong>
           </div>
           <span className={styles.metricSub}>{withdrawalsList.length} recorded</span>
-        </div>
+        </button>
       </div>
 
       {/* 3. TABS: DEPOSITS & WITHDRAWALS TOGGLE BAR */}
-      <div className={styles.tabToggleBar}>
+      <div className={styles.tabToggleBar} role="group" aria-label="Transaction type">
         <button
           type="button"
           className={`${styles.tabBtn} ${activeTab === "deposits" ? styles.tabBtnActive : ""}`}
           onClick={() => setActiveTab("deposits")}
+          aria-pressed={activeTab === "deposits"}
         >
-          <span className={styles.tabIcon}>📥</span>
           <span>Deposits</span>
           <span className={styles.countBadge}>{depositsList.length}</span>
         </button>
@@ -147,8 +146,8 @@ export function ActivityDashboard({
           type="button"
           className={`${styles.tabBtn} ${activeTab === "withdrawals" ? styles.tabBtnActive : ""}`}
           onClick={() => setActiveTab("withdrawals")}
+          aria-pressed={activeTab === "withdrawals"}
         >
-          <span className={styles.tabIcon}>📤</span>
           <span>Withdrawals</span>
           <span className={styles.countBadge}>{withdrawalsList.length}</span>
         </button>
@@ -157,43 +156,47 @@ export function ActivityDashboard({
           type="button"
           className={`${styles.tabBtn} ${activeTab === "stakes" ? styles.tabBtnActive : ""}`}
           onClick={() => setActiveTab("stakes")}
+          aria-pressed={activeTab === "stakes"}
         >
-          <span className={styles.tabIcon}>🎲</span>
-          <span>Stake History</span>
+          <span>Stakes</span>
         </button>
       </div>
 
       {/* 4. FILTER BAR: TIME RANGES */}
       <div className={styles.filterRow}>
-        <span className={styles.filterLabel}>SHOW</span>
-        <div className={styles.filterPills}>
+        <span className={styles.filterLabel}>Period</span>
+        <div className={styles.filterPills} role="group" aria-label="Date range">
           <button
             type="button"
             className={`${styles.pillBtn} ${timeFilter === "today" ? styles.pillBtnActive : ""}`}
-            onClick={() => setTimeFilter("today")}
+            onClick={() => selectPeriod("today")}
+            aria-pressed={timeFilter === "today"}
           >
-            Today
+            Last 24 hours
           </button>
           <button
             type="button"
             className={`${styles.pillBtn} ${timeFilter === "week" ? styles.pillBtnActive : ""}`}
-            onClick={() => setTimeFilter("week")}
+            onClick={() => selectPeriod("week")}
+            aria-pressed={timeFilter === "week"}
           >
-            This Week
+            Last 7 days
           </button>
           <button
             type="button"
             className={`${styles.pillBtn} ${timeFilter === "month" ? styles.pillBtnActive : ""}`}
-            onClick={() => setTimeFilter("month")}
+            onClick={() => selectPeriod("month")}
+            aria-pressed={timeFilter === "month"}
           >
-            This Month
+            Last 30 days
           </button>
           <button
             type="button"
             className={`${styles.pillBtn} ${timeFilter === "all" ? styles.pillBtnActive : ""}`}
-            onClick={() => setTimeFilter("all")}
+            onClick={() => selectPeriod("all")}
+            aria-pressed={timeFilter === "all"}
           >
-            All Time
+            All time
           </button>
         </div>
       </div>
@@ -202,37 +205,32 @@ export function ActivityDashboard({
       {activeTab === "stakes" ? (
         <StakeHistory hideHeader={true} />
       ) : (
-        <div className={styles.feedCard}>
+        <div className={styles.feedCard} aria-live="polite">
           {loading ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIconBox}>⏳</div>
               <h3 className={styles.emptyTitle}>Loading activity</h3>
-              <p className={styles.emptySub}>Retrieving your latest durable transaction history...</p>
+              <p className={styles.emptySub}>Fetching your transactions.</p>
             </div>
           ) : failed ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIconBox}>⚠️</div>
               <h3 className={styles.emptyTitle}>Couldn&apos;t load</h3>
-              <p className={styles.emptySub}>Could not reach the server.</p>
+              <p className={styles.emptySub}>Refresh the page to try again.</p>
             </div>
           ) : activeTab === "deposits" && depositsList.length > 0 ? (
             <div className={styles.transactionList}>
               {depositsList.map((tx) => (
                 <div key={tx.reference} className={styles.transactionRow}>
-                  <div className={styles.txIconBox}>
-                    <span>📥</span>
-                  </div>
                   <div className={styles.txMainInfo}>
-                    <strong className={styles.txTitle}>{tx.type} ({tx.provider})</strong>
+                    <strong className={styles.txTitle}>{tx.type}</strong>
                     <span className={styles.txMeta}>
-                      Ref: {tx.reference} • {new Date(tx.occurredAt).toLocaleDateString("en-NG", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      Ref: {tx.reference} • {new Date(tx.occurredAt).toLocaleDateString("en-NG", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" })}
                     </span>
                   </div>
                   <div className={styles.txAmountLockup}>
-                    <strong className={`${styles.txAmount} ${styles.greenText}`}>
+                    <strong className={styles.txAmount}>
                       +₦{(tx.amountKobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                     </strong>
-                    <span className={styles.txStatusBadge}>✓ {tx.status}</span>
+                    <span className={styles.txStatusBadge} data-status={tx.status}>{tx.status}</span>
                   </div>
                 </div>
               ))}
@@ -241,27 +239,23 @@ export function ActivityDashboard({
             <div className={styles.transactionList}>
               {withdrawalsList.map((po) => (
                 <div key={po.reference} className={styles.transactionRow}>
-                  <div className={`${styles.txIconBox} ${styles.withdrawalIconBox}`}>
-                    <span>📤</span>
-                  </div>
                   <div className={styles.txMainInfo}>
                     <strong className={styles.txTitle}>Payout ({po.destinationLabel})</strong>
                     <span className={styles.txMeta}>
-                      Ref: {po.reference} • {new Date(po.createdAt).toLocaleDateString("en-NG", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      Ref: {po.reference} • {new Date(po.createdAt).toLocaleDateString("en-NG", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" })}
                     </span>
                   </div>
                   <div className={styles.txAmountLockup}>
                     <strong className={styles.txAmount}>
                       -₦{(po.amountKobo / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                     </strong>
-                    <span className={styles.txStatusBadge}>✓ {po.displayStatus}</span>
+                    <span className={styles.txStatusBadge} data-status={po.displayStatus}>{po.displayStatus.replaceAll("-", " ")}</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIconBox}>ⓘ</div>
               <h3 className={styles.emptyTitle}>No records found</h3>
               <p className={styles.emptySub}>
                 {activeTab === "deposits"

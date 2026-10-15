@@ -3,7 +3,7 @@ import { ConnectedRegistrationFlow } from "@/components/auth/RegistrationFlow/Co
 
 export const metadata: Metadata = {
   title: "Create your account — Betplus",
-  description: "Create and verify your Betplus account with fast OPay settlement.",
+  description: "Create your Betplus account and verify your phone, OPay wallet and identity.",
 };
 
 export default function RegisterPage() {

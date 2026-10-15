@@ -21,20 +21,21 @@ use Illuminate\Support\Facades\RateLimiter;
 final class RegistrationService
 {
     private const OTP_TTL_MINUTES = 5;
+
     private const MAX_VERIFY_ATTEMPTS = 5;
+
     private const MAX_RESENDS_PER_HOUR = 3;
 
-    public function __construct(private readonly SmsSender $sms)
-    {
-    }
+    public function __construct(private readonly SmsSender $sms) {}
 
     private const DEMO_MSISDN = '+2348000000000';
+
     private const DEMO_OTP = '123456';
 
     /**
      * @return array{status: string, expires_in: int}
      */
-    public function startOrResume(string $rawMsisdn): array
+    public function startOrResume(string $rawMsisdn, ?MobileNetwork $mobileNetwork = null): array
     {
         $msisdn = PhoneNumber::toE164($rawMsisdn);
 
@@ -44,6 +45,7 @@ final class RegistrationService
 
             SignupSession::create([
                 'msisdn' => $msisdn,
+                'mobileNetwork' => $mobileNetwork?->value,
                 'otpHash' => hash('sha256', $code),
                 'otpExpiresAt' => $expiresAt,
                 'otpAttempts' => 0,
@@ -62,7 +64,7 @@ final class RegistrationService
         // 'local' only, deliberately not 'testing' too — the test suite's whole job is
         // to verify this rate limiting actually works; gating it off under 'testing'
         // would make those assertions pass against behavior that isn't really there.
-        if (!app()->environment('local')) {
+        if (! app()->environment('local')) {
             if (RateLimiter::tooManyAttempts($resendKey, self::MAX_RESENDS_PER_HOUR) || Cache::has($cooldownKey)) {
                 // Same response shape as success either way — do not reveal rate-limit state
                 // to a caller who may not own this number (UX-DR17-style non-disclosure).
@@ -78,6 +80,7 @@ final class RegistrationService
 
         $session = SignupSession::create([
             'msisdn' => $msisdn,
+            'mobileNetwork' => $mobileNetwork?->value,
             'otpHash' => hash('sha256', $code),
             'otpExpiresAt' => $expiresAt,
             'otpAttempts' => 0,
@@ -98,7 +101,7 @@ final class RegistrationService
         $isDemo = $msisdn === self::DEMO_MSISDN;
 
         $verifyKey = "otp-verify:$msisdn";
-        if (!$isDemo && RateLimiter::tooManyAttempts($verifyKey, self::MAX_VERIFY_ATTEMPTS)) {
+        if (! $isDemo && RateLimiter::tooManyAttempts($verifyKey, self::MAX_VERIFY_ATTEMPTS)) {
             return ['status' => 'invalid_or_expired', 'next' => 'resend'];
         }
 
@@ -123,8 +126,9 @@ final class RegistrationService
                 || ($isDemo && $code === self::DEMO_OTP)
             );
 
-        if (!$valid) {
+        if (! $valid) {
             RateLimiter::hit($verifyKey, 300);
+
             return ['status' => 'invalid_or_expired', 'next' => 'resend'];
         }
 

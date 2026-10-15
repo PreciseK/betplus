@@ -40,7 +40,6 @@ export function GameCatalogueCard({ game, onQuickPlay }: GameCatalogueCardProps)
         ) : (
           <span className={styles.emblemEmoji}>{game.emblemText ?? "🦅"}</span>
         )}
-        <span className={styles.badge}>{game.badge}</span>
       </div>
 
       <div className={styles.gridBody}>
@@ -63,15 +62,16 @@ export function GameCatalogueCard({ game, onQuickPlay }: GameCatalogueCardProps)
       <div className={styles.gridFooter}>
         {game.id === "blackred" && onQuickPlay ? (
           <div className={styles.btnGroupRow}>
-            <Button href={game.route} className={styles.secondaryActionBtn}>
-              Dashboard
+            <Button href={game.route} variant="secondary" className={styles.secondaryActionBtn}>
+              Open game
             </Button>
             <Button
               type="button"
+              aria-label={`Quick play ${game.title}`}
               onClick={() => onQuickPlay("blackred")}
               className={styles.playButton}
             >
-              ⚡ Quick Play
+              Quick play
             </Button>
           </div>
         ) : (

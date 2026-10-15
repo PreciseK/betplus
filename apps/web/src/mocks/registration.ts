@@ -1,5 +1,7 @@
+import type { MobileNetwork } from "@betplus/api-client";
+
 export interface RegistrationGateway {
-  requestOtp(phoneE164: string): Promise<{ challengeId: string; maskedPhone: string }>;
+  requestOtp(phoneE164: string, mobileNetwork?: MobileNetwork): Promise<{ challengeId: string; maskedPhone: string }>;
   verifyOtp(challengeId: string, code: string): Promise<{ verified: true }>;
   validateOpayWallet(phoneE164: string): Promise<
     | { status: "found"; registeredName: string }

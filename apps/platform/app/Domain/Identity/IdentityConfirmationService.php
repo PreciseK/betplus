@@ -20,8 +20,7 @@ final class IdentityConfirmationService
         private readonly OpayGateway $opay,
         private readonly SessionService $sessions,
         private readonly AnalyticsEventRecorder $analytics,
-    ) {
-    }
+    ) {}
 
     /** @return array{status: 'confirm', registered_name: string}|array{status: 'no_wallet'|'error'|'otp_not_verified'} */
     public function confirmIdentity(string $rawMsisdn): array
@@ -43,7 +42,7 @@ final class IdentityConfirmationService
             $cached = NameLookupCache::create([
                 'msisdn' => $msisdn,
                 'returnedName' => $result['status'] === 'found'
-                    ? trim($result['firstName'] . ' ' . $result['lastName'])
+                    ? trim($result['firstName'].' '.$result['lastName'])
                     : null,
                 'lookupStatus' => match ($result['status']) {
                     'found' => 'success',
@@ -93,6 +92,7 @@ final class IdentityConfirmationService
             'msisdn' => $msisdn,
             'registeredName' => $session->registeredName,
             'registrationChannel' => $channel,
+            'mobileNetwork' => $session->mobileNetwork,
             'kycTier' => 0,
         ]);
         $session->forceFill(['consumedAt' => now()])->save();

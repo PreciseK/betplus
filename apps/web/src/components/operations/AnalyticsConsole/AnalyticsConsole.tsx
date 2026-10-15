@@ -88,17 +88,17 @@ export function AnalyticsConsole() {
   return (
     <div className={styles.page}>
       <header className={styles.pageHeader}>
-        <div><p className={styles.context}>Product and compliance task</p><h1>First-party analytics</h1><p>Inspect pre-aggregated Betplus rollups without exposing raw player events or adding a third-party measurement dependency.</p></div>
+        <div><p className={styles.context}>Analytics</p><h1>First-party analytics</h1><p>Review player activity and conversion by date, game, and channel.</p></div>
       </header>
 
       <section className={styles.runStrip} aria-labelledby="analytics-store-title">
         <Icon name="lock" size="control" />
-        <div><h2 id="analytics-store-title">Betplus-owned append-only store</h2><p>Dashboards query monthly pre-aggregated rollups. Raw events are retained for 25 months and never queried from the play path.</p></div>
+        <div><h2 id="analytics-store-title">Data coverage</h2><p>Figures use aggregated activity. Raw events are retained for 25 months.</p></div>
         <span><Icon name="check" />First-party pipeline only</span>
       </section>
 
       <section className={styles.section} aria-labelledby="analytics-scope-title">
-        <header className={styles.sectionHeader}><div><h2 id="analytics-scope-title">Analytics scope</h2><p>The default view is bounded to 30 days; every segmentation control persists in the URL. App-version and locale segmentation aren't available yet — the rollup table isn't keyed on either dimension (see the note below the funnel view).</p></div></header>
+        <header className={styles.sectionHeader}><div><h2 id="analytics-scope-title">Analytics scope</h2><p>The default range is 30 days. App version and locale filters are not available.</p></div></header>
         <div className={styles.controls}>
           <SelectFilter id="analytics-channel" label="Channel" value={filters.channel} options={["ALL", "web"]} onChange={(value) => updateFilter("channel", value)} />
           <SelectFilter id="analytics-game" label="Game" value={filters.game} options={["ALL", "BLACKRED", "HERITAGE", "CAGED"]} onChange={(value) => updateFilter("game", value)} />
@@ -111,7 +111,7 @@ export function AnalyticsConsole() {
 
       <section className={styles.workspace} aria-labelledby="funnel-workspace-title">
         <div>
-          <header className={styles.sectionHeader}><div><h2 id="funnel-workspace-title">Six required funnels</h2><p>Select one; two are honestly reported as not measurable rather than estimated.</p></div></header>
+          <header className={styles.sectionHeader}><div><h2 id="funnel-workspace-title">Conversion funnels</h2><p>Select a funnel to view its available measurements.</p></div></header>
           <ul className={styles.recordList}>{FUNNEL_ORDER.map((id, index) => {
             const funnel = funnels?.[id];
             return (
@@ -151,7 +151,7 @@ export function AnalyticsConsole() {
       </section>
 
       <section className={styles.section} aria-labelledby="rollup-table-title">
-        <header className={styles.sectionHeader}><div><h2 id="rollup-table-title">Underlying rollup table</h2><p>The raw pre-aggregated rows the funnels above are computed from, for this scope and window.</p></div></header>
+        <header className={styles.sectionHeader}><div><h2 id="rollup-table-title">Underlying rollup table</h2><p>Aggregated activity for the selected filters and dates.</p></div></header>
         <OperationalDataTable
           caption="Analytics daily rollup rows"
           columns={rollupColumns}

@@ -12,7 +12,7 @@ describe("OperationsOverview", () => {
 
   it("renders role-specific finance decisions and exact analytics values", () => {
     render(<OperationsOverview role="finance" />);
-    expect(screen.getByRole("heading", { name: "Today at a Glance" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Overview" })).toBeInTheDocument();
     expect(screen.getByText(/Finance overview/)).toBeInTheDocument();
     expect(screen.getByText("Open variance")).toBeInTheDocument();
     fireEvent.click(screen.getByText("View exact figures"));
@@ -38,10 +38,9 @@ describe("OperationsOverview", () => {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayIso = yesterday.toISOString().slice(0, 10);
-    const yesterdayLabel = new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short" }).format(yesterday);
 
     fireEvent.click(screen.getByRole("button", { name: /Previous/ }));
-    expect(screen.getByRole("heading", { name: `${yesterdayLabel} at a Glance` })).toBeInTheDocument();
+    expect(screen.getByLabelText("Date")).toHaveValue(yesterdayIso);
     expect(window.location.search).toContain(`date=${yesterdayIso}`);
   });
 
@@ -81,7 +80,7 @@ describe("OperationsOverview", () => {
 
     render(<OperationsOverview role="finance" />);
 
-    await waitFor(() => expect(screen.getByText(/Live endpoint data/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Live data/)).toBeInTheDocument());
     expect(screen.getAllByText("Deposits").length).toBeGreaterThan(0);
     expect(screen.getByText("Open exceptions")).toBeInTheDocument();
     expect(screen.getByText("Provider Mismatch")).toBeInTheDocument();

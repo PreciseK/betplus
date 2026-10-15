@@ -69,9 +69,9 @@ export function PlayerRightPanel() {
       <div className={styles.scrollableContent}>
         {!checked ? null : !signedIn ? (
           <section className={styles.emptyStateCard}>
-            <span className={styles.emptyStateIcon}>👤</span>
+
             <strong className={styles.emptyStateTitle}>Sign in to see your account</strong>
-            <p className={styles.emptyStateDesc}>Your balance, verification status and account details show up here once you're signed in.</p>
+            <p className={styles.emptyStateDesc}>View your balance and account details.</p>
             <div className={styles.emptyStateActions}>
               <Link href="/login" className={styles.depositActionBtn}>Sign in</Link>
               <Link href="/register" className={styles.withdrawActionBtn}>Create account</Link>
@@ -89,13 +89,13 @@ export function PlayerRightPanel() {
                 <div className={styles.profileTextLockup}>
                   <strong className={styles.heroName}>{registeredName ?? "Loading…"}</strong>
                   <span className={styles.verifiedAccountTag}>
-                    {kycTier !== undefined ? (KYC_TIER_LABELS[kycTier] ?? `KYC tier ${kycTier}`).toUpperCase() : "…"}
+                    {kycTier !== undefined ? (KYC_TIER_LABELS[kycTier] ?? `KYC tier ${kycTier}`) : "…"}
                   </span>
                 </div>
               </div>
 
               <div className={styles.balanceHeaderRow}>
-                <span className={styles.balanceSectionLabel}>BETPLUS BALANCE</span>
+                <span className={styles.balanceSectionLabel}>Wallet</span>
                 <button
                   type="button"
                   className={styles.eyeToggleBtn}
@@ -119,14 +119,14 @@ export function PlayerRightPanel() {
 
               <div className={styles.balanceTilesGrid}>
                 <div className={styles.balanceTile}>
-                  <span className={styles.tileLabel}>PLAY BALANCE</span>
+                  <span className={styles.tileLabel}>Play balance</span>
                   <div className={styles.tileValueRow}>
                     <strong className={styles.tileAmount}>{hideBalances ? "••••••" : formatKobo(playBalanceKobo)}</strong>
                   </div>
                 </div>
 
                 <div className={styles.balanceTile}>
-                  <span className={styles.tileLabel}>WINNINGS BALANCE</span>
+                  <span className={styles.tileLabel}>Winnings</span>
                   <div className={styles.tileValueRow}>
                     <strong className={styles.tileAmount}>{hideBalances ? "••••••" : formatKobo(winningsBalanceKobo)}</strong>
                   </div>
@@ -134,7 +134,7 @@ export function PlayerRightPanel() {
 
                 {bonusBalanceKobo > 0 && (
                   <div className={styles.balanceTile}>
-                    <span className={styles.tileLabel}>BONUS BALANCE</span>
+                    <span className={styles.tileLabel}>Bonus</span>
                     <div className={styles.tileValueRow}>
                       <strong className={styles.tileAmount}>{hideBalances ? "••••••" : formatKobo(bonusBalanceKobo)}</strong>
                     </div>
@@ -144,11 +144,11 @@ export function PlayerRightPanel() {
 
               <div className={styles.heroActionBtnsRow}>
                 <Link href="/wallet" className={styles.depositActionBtn}>
-                  <span className={styles.actionIcon}>📥</span>
+
                   <span>Deposit</span>
                 </Link>
                 <Link href="/wallet" className={styles.withdrawActionBtn}>
-                  <span className={styles.actionIcon}>📤</span>
+
                   <span>Withdraw</span>
                 </Link>
               </div>
@@ -158,8 +158,8 @@ export function PlayerRightPanel() {
 
             <section className={styles.detailsGroup}>
               <div className={styles.groupHeadingRow}>
-                <span className={styles.groupDash}>──</span>
-                <h3 className={styles.groupTitle}>PERSONAL DETAILS</h3>
+
+                <h3 className={styles.groupTitle}>Personal details</h3>
               </div>
 
               <div className={styles.groupCardContainer}>
@@ -171,7 +171,7 @@ export function PlayerRightPanel() {
                     </svg>
                   </div>
                   <div className={styles.detailContent}>
-                    <span className={styles.detailFieldLabel}>FULL NAME</span>
+                    <span className={styles.detailFieldLabel}>Full name</span>
                     <strong className={styles.detailFieldValue}>{registeredName ?? "—"}</strong>
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export function PlayerRightPanel() {
                     </svg>
                   </div>
                   <div className={styles.detailContent}>
-                    <span className={styles.detailFieldLabel}>FUNDING SOURCE</span>
+                    <span className={styles.detailFieldLabel}>Funding source</span>
                     <strong className={styles.detailFieldValue}>{registeredSourceLabel ?? "—"}</strong>
                   </div>
                 </div>
@@ -193,8 +193,8 @@ export function PlayerRightPanel() {
 
             <section className={styles.detailsGroup}>
               <div className={styles.groupHeadingRow}>
-                <span className={styles.groupDash}>──</span>
-                <h3 className={styles.groupTitle}>ACCOUNT</h3>
+
+                <h3 className={styles.groupTitle}>Account</h3>
               </div>
 
               <div className={styles.groupCardContainer}>
@@ -207,7 +207,7 @@ export function PlayerRightPanel() {
                     </svg>
                   </div>
                   <div className={styles.securityTextLockup}>
-                    <strong className={styles.logoutTitle}>{signingOut ? "Signing out…" : "Log Out"}</strong>
+                    <strong className={styles.logoutTitle}>{signingOut ? "Signing out…" : "Sign out"}</strong>
                     <span className={styles.logoutSub}>Sign out of Betplus on this device</span>
                   </div>
                   <span className={styles.chevronIcon}>›</span>
@@ -220,20 +220,20 @@ export function PlayerRightPanel() {
         {/* Support links stay visible regardless of sign-in state — they're real external links. */}
         <section className={styles.detailsGroup}>
           <div className={styles.groupHeadingRow}>
-            <span className={styles.groupDash}>──</span>
-            <h3 className={styles.groupTitle}>SUPPORT</h3>
+
+            <h3 className={styles.groupTitle}>Support</h3>
           </div>
 
           <div className={styles.supportCardContainer}>
             <div className={styles.quickChannelsRow}>
               <a href="https://wa.me/2348000000000" target="_blank" rel="noreferrer" className={styles.channelChip}>
-                <span>💬 WhatsApp</span>
+                <span>WhatsApp</span>
               </a>
               <a href="tel:+2348000000000" className={styles.channelChip}>
-                <span>📞 Call</span>
+                <span>Call</span>
               </a>
               <Link href="/account" className={styles.channelChip}>
-                <span>❓ Help</span>
+                <span>Help</span>
               </Link>
             </div>
           </div>

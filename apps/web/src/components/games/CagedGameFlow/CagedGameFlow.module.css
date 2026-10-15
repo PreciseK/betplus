@@ -434,6 +434,10 @@
 
 /* Multiplier & Status Display */
 .stageCenterDisplay {
+  position: absolute;
+  bottom: 16px;
+  left: 12px;
+  right: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -443,7 +447,7 @@
 
 .multiplierValue {
   font-family: var(--font-display, "Outfit", sans-serif);
-  font-size: 4.5rem;
+  font-size: 2.8rem;
   font-weight: 900;
   color: #f5b731;
   letter-spacing: -0.04em;
@@ -1948,12 +1952,12 @@
 
   .gameStage {
     min-height: 250px;
-    height: 270px;
+    height: 310px;
     border-radius: 8px;
   }
 
   .multiplierValue {
-    font-size: 2.85rem;
+    font-size: 1.9rem;
   }
 
   .crashHeroBanner {

@@ -39,6 +39,18 @@ describe("SignInFlow", () => {
     localStorageSpy.mockRestore();
   });
 
+  it("offers sign-in guidance without claiming to send a recovery message", () => {
+    const sessionGateway = gateway();
+    render(<SignInFlow gateway={sessionGateway} />);
+    const help = screen.getByRole("button", { name: "Need help signing in?" });
+    fireEvent.click(help);
+    expect(help).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText(/You need access to this phone/)).toBeInTheDocument();
+    expect(sessionGateway.requestSignInCode).not.toHaveBeenCalled();
+    fireEvent.click(help);
+    expect(screen.queryByText(/You need access to this phone/)).not.toBeInTheDocument();
+  });
+
   it("explains a forced session end and lets the player restart", () => {
     render(<SignInFlow gateway={gateway()} initialState="session-ended" />);
     expect(screen.getByRole("heading", { name: "Your session has ended." })).toBeInTheDocument();

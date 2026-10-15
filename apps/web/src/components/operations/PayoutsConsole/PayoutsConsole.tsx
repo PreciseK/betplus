@@ -41,7 +41,7 @@ export function PayoutsConsole() {
         <div>
           <p className={styles.context}>Finance</p>
           <h1>Payouts</h1>
-          <p>Real automatic-prize and withdrawal payouts from the OPay dispatch pipeline.</p>
+          <p>Track prize payments and withdrawals sent through OPay.</p>
         </div>
         <div className={styles.controls}>
           <label className={styles.selectField} htmlFor="payout-review-filter">
@@ -86,8 +86,8 @@ export function PayoutsConsole() {
       </section>
 
       <aside className={styles.contractNote} aria-labelledby="payouts-boundary-title">
-        <h2 id="payouts-boundary-title">Integration boundary</h2>
-        <p>There is no provider-float or reserve-balance table anywhere in the backend, so this screen shows payout records only — no float view is offered rather than fabricating one.</p>
+        <h2 id="payouts-boundary-title">Available data</h2>
+        <p>Payout records are available here. Provider float and reserve balances are not available.</p>
       </aside>
     </div>
   );

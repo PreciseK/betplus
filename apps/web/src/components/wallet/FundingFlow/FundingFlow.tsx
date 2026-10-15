@@ -107,10 +107,10 @@ export function FundingFlow({ gateway, sourceLabel, onComplete, onCancel }: Fund
   return (
     <div className={styles.flowContainer}>
       <h2 className={styles.stepHeading}>
-        How much are you <em>depositing?</em>
+        Deposit
       </h2>
       <p className={styles.stepSub}>
-        Pick a quick amount or enter your own. Minimum ₦100, maximum ₦500,000 per deposit.
+        Minimum ₦100. Maximum ₦500,000 per deposit.
       </p>
 
       {/* Source card */}

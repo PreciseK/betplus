@@ -10,27 +10,15 @@ interface GamePosterTileProps {
   onQuickPlay?: (gameId: string) => void;
 }
 
-export function GamePosterTile({ game, onQuickPlay }: GamePosterTileProps) {
-  const handleClick = (e: React.MouseEvent) => {
-    if (game.id === "blackred" && onQuickPlay) {
-      // Optional quick play behavior if requested by parent
-    }
-  };
+export function GamePosterTile({ game }: GamePosterTileProps) {
 
   return (
     <Link
       href={game.route}
       className={styles.posterTile}
-      style={
-        {
-          "--accent": game.accentColor,
-          "--theme-gradient": game.themeGradient,
-        } as React.CSSProperties
-      }
-      onClick={handleClick}
+
       aria-label={`Play ${game.title} - ${game.multiplier}`}
     >
-      <div className={styles.backdropGlow} aria-hidden="true" />
 
       {/* Top Status Badges */}
       <div className={styles.topBar}>
@@ -39,8 +27,6 @@ export function GamePosterTile({ game, onQuickPlay }: GamePosterTileProps) {
             <span className={styles.pulseDot} />
             Live
           </span>
-        ) : game.hot ? (
-          <span className={styles.hotBadge}>Hot</span>
         ) : (
           <span className={styles.topSpacer} />
         )}

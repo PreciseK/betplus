@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AccessSection } from "@/components/landing/AccessSection";
 import { FinalCta } from "@/components/landing/FinalCta";
 import { GamesSection } from "@/components/landing/GamesSection";
@@ -7,18 +8,17 @@ import { SafePlaySection } from "@/components/landing/SafePlaySection";
 import { SiteFooter } from "@/components/landing/SiteFooter";
 import { SiteHeader } from "@/components/landing/SiteHeader";
 import { WalletSection } from "@/components/landing/WalletSection";
-import { LandingMotion } from "@/components/landing/LandingMotion";
+
+export const metadata: Metadata = {
+  title: "Betplus — BlackRed, Heritage and Caged",
+  description: "Explore BlackRed, Heritage and Caged. Manage your wallet, view your transactions and set your play limits on Betplus.",
+};
 
 export default function Home() {
   return (
-    <>
-      <a className="skip-link" href="#main">
-        Skip to main content
-      </a>
-      <div className="scroll-progress" aria-hidden="true" />
-      <LandingMotion />
+    <div className="landing-page">
+      <a className="skip-link" href="#main">Skip to main content</a>
       <SiteHeader />
-
       <main id="main">
         <Hero />
         <GamesSection />
@@ -28,8 +28,7 @@ export default function Home() {
         <SafePlaySection />
         <FinalCta />
       </main>
-
       <SiteFooter />
-    </>
+    </div>
   );
 }

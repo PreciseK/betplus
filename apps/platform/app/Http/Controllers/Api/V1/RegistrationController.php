@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Domain\Identity\IdentityConfirmationService;
+use App\Domain\Identity\MobileNetwork;
 use App\Domain\Identity\RegistrationService;
 use App\Http\Controllers\Api\V1\Concerns\IssuesSessionCookies;
 use App\Http\Controllers\Controller;
@@ -20,12 +21,14 @@ class RegistrationController extends Controller
     public function __construct(
         private readonly RegistrationService $registration,
         private readonly IdentityConfirmationService $identity,
-    ) {
-    }
+    ) {}
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        return $this->handle(fn () => $this->registration->startOrResume($request->string('msisdn')->toString()));
+        return $this->handle(fn () => $this->registration->startOrResume(
+            $request->string('msisdn')->toString(),
+            MobileNetwork::tryFrom($request->validated('mobile_network') ?? ''),
+        ));
     }
 
     public function verify(VerifyOtpRequest $request): JsonResponse

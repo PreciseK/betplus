@@ -8,14 +8,14 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("GamesCatalogue Component", () => {
-  it("renders all 3 games in 3x3 matrix mode by default", () => {
+  it("renders the current catalogue as game tiles", () => {
     render(<GamesCatalogue showToolbar initialFormat="matrix" />);
 
-    expect(screen.getByRole("region", { name: "3x3 Games Matrix" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Game tiles" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Play Caged/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Play BlackRed/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Play Heritage/i })).toBeInTheDocument();
-    expect(screen.getByText("3 games available")).toBeInTheDocument();
+    expect(screen.getByText("3 games")).toBeInTheDocument();
   });
 
   it("switches to list view when list toggle button is clicked", () => {
@@ -25,7 +25,7 @@ describe("GamesCatalogue Component", () => {
     fireEvent.click(listBtn);
 
     expect(screen.getByRole("region", { name: "Games List" })).toBeInTheDocument();
-    expect(screen.getByText("Watch birds escape the golden cage. Cash out your stake with dual-bet slots before the cage drops!")).toBeInTheDocument();
+    expect(screen.getByText("Cash out before the cage drops. Place up to two bets per round.")).toBeInTheDocument();
   });
 
   it("switches to detailed cards view when cards toggle button is clicked", () => {

@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { profileGateway, walletGateway } from "@betplus/api-client";
-import { HeritageCrownLogo } from "@/components/ui/HeritageCrownLogo/HeritageCrownLogo";
-import { Button } from "@/components/ui/Button/Button";
 import { InlineMessage } from "@/components/ui/feedback/InlineMessage/InlineMessage";
 import { BlackRedPlayModal } from "@/components/games/BlackRedPlayModal/BlackRedPlayModal";
 import { GamesCatalogue } from "@/components/games/GamesCatalogue/GamesCatalogue";
@@ -13,16 +11,10 @@ import { GAMES } from "@/components/games/gamesData";
 import { requireAuth, useSignedIn } from "@/lib/player-auth";
 import styles from "./UserDashboard.module.css";
 
-function timeOfDayGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "GOOD MORNING";
-  if (hour < 17) return "GOOD AFTERNOON";
-  return "GOOD EVENING";
-}
-
 export function UserDashboard() {
   const router = useRouter();
   const { signedIn, checked } = useSignedIn();
+  const [query, setQuery] = useState("");
   const [isBlackRedModalOpen, setIsBlackRedModalOpen] = useState(false);
   const [playBalanceKobo, setPlayBalanceKobo] = useState(0);
   const [registeredName, setRegisteredName] = useState<string>();
@@ -40,155 +32,55 @@ export function UserDashboard() {
       .catch(() => {
         if (active) setLoadFailed(true);
       });
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [checked, signedIn]);
 
   function startQuickPlay() {
     requireAuth(router, () => setIsBlackRedModalOpen(true));
   }
 
+  const searchTerm = query.trim().toLowerCase();
+  const games = GAMES.filter((game) =>
+    `${game.title} ${game.category} ${game.description}`.toLowerCase().includes(searchTerm),
+  );
+
   return (
     <div className={styles.dashboard}>
-      {/* Top Search & Quick Action Bar */}
-      <header className={styles.topActionBar}>
-        <div className={styles.searchWrapper}>
-          <span className={styles.searchIcon}>🔍</span>
-          <input
-            type="search"
-            placeholder="Search games, rules, tickets..."
-            className={styles.topSearchInput}
-            aria-label="Search games"
-          />
+      <header className={styles.pageHeader}>
+        <div>
+          <h1 className={styles.heading}>Dashboard</h1>
+          {registeredName && <p className={styles.greeting}>Welcome back, {registeredName}.</p>}
         </div>
-
-        <button type="button" className={styles.filterBtn} aria-label="Filters" title="Filters">
-          🎚️
-        </button>
-
-        <button
-          type="button"
-          onClick={startQuickPlay}
-          className={styles.startStreamBtn}
-        >
-          <span>⚡ Start Play</span>
-          <span className={styles.playCircleIcon}>▶</span>
-        </button>
+        <Link href="/wallet" className={styles.walletLink}>Wallet <span aria-hidden="true">↗</span></Link>
       </header>
 
       {loadFailed && (
-        <InlineMessage tone="error" title="Some details couldn't load">
-          Your balance and name couldn't be verified. Figures shown elsewhere on this page may be out of date until you refresh.
+        <InlineMessage tone="error" title="Account details unavailable">
+          Refresh the page to load your name and balance.
         </InlineMessage>
       )}
 
-      {/* Welcome Greeting Area */}
-      <section className={styles.welcomeHeroArea} aria-label="Welcome greeting">
-        <div className={styles.welcomeEyebrow}>
-          <span className={styles.eyebrowDash}>──</span>
-          <span className={styles.eyebrowText}>{timeOfDayGreeting()}</span>
-        </div>
-        <h1 className={styles.welcomeHeading}>
-          Welcome back{registeredName ? <>, <span className={styles.welcomeName}>{registeredName}</span></> : null}.
-        </h1>
-      </section>
-
-      {/* 1. Games Catalogue Section (Interactive 3x3 / Cards / List) */}
-      <section className={styles.section} aria-labelledby="catalogue-heading">
+      <section className={styles.gamesSection} aria-labelledby="games-heading">
         <div className={styles.sectionHeader}>
-          <h2 id="catalogue-heading" className={styles.sectionTitle}>
-            Featured games
-          </h2>
-          <Link href="/games" className={styles.seeAllLink}>
-            View full catalogue ({GAMES.length} games)
-          </Link>
+          <h2 id="games-heading" className={styles.sectionTitle}>Games</h2>
+          <label className={styles.searchWrapper}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="m16 16 4.5 4.5" />
+            </svg>
+            <input type="search" placeholder="Search games" aria-label="Search games" value={query} onChange={(event) => setQuery(event.target.value)} className={styles.searchInput} />
+          </label>
         </div>
-
-        <GamesCatalogue
-          showToolbar
-          initialFormat="matrix"
-          onQuickPlay={startQuickPlay}
-        />
+        <GamesCatalogue showToolbar initialFormat="matrix" games={games} onQuickPlay={startQuickPlay} />
+        {games.length === 0 && (
+          <div className={styles.emptyState} role="status">
+            <p>No games match “{query.trim()}”.</p>
+            <button type="button" onClick={() => setQuery("")}>Clear search</button>
+          </div>
+        )}
       </section>
 
-      {/* 2. Showcase Grid: BlackRed Attached Image Arena & Small Monarch Showcase */}
-      <section className={styles.section} aria-labelledby="showcase-heading">
-        <div className={styles.sectionHeader}>
-          <h2 id="showcase-heading" className={styles.sectionTitle}>
-            Game Arenas & Highlights
-          </h2>
-        </div>
-
-        <div className={styles.showcaseGrid}>
-          {/* Column 1: BlackRed Card Arena using User Uploaded Cards Image */}
-          <Link href="/games/blackred" className={styles.showcaseCard}>
-            <div className={styles.blackredArenaMedia}>
-              <img
-                src="/assets/blackred-arena-cards.png"
-                alt="BlackRed Ace and King Cards"
-                className={styles.blackredCardsImg}
-              />
-              <span className={styles.deck3DBadge}>⚡ Instant Fixed-Odds · 2× to 100×</span>
-              <div className={styles.showcasePlayOverlay}>
-                <span className={styles.overlayPlayBtn}>▶</span>
-              </div>
-            </div>
-            <div className={styles.showcaseInfo}>
-              <strong>BlackRed Card Arena</strong>
-              <p>Predict sequence of 1 to 5 Black or Red cards with verifiable fixed odds.</p>
-            </div>
-          </Link>
-
-          {/* Column 2: Monarch Showcase (Small Sized King & Queen Portraits) */}
-          <Link href="/games/heritage" className={styles.showcaseCard}>
-            <div className={styles.monarchDualContainer}>
-              <div className={styles.monarchPairGrid}>
-                {/* Small King Portrait */}
-                <div className={styles.monarchSmallPortrait}>
-                  <img
-                    src="/games/heritage/monarchs/yoruba_king.png"
-                    alt="Yoruba King"
-                    className={styles.monarchPortraitImg}
-                  />
-                  <div className={styles.monarchLabelChip}>
-                    <span>Ọba (King)</span>
-                  </div>
-                </div>
-
-                {/* Small Queen Portrait */}
-                <div className={styles.monarchSmallPortrait}>
-                  <img
-                    src="/games/heritage/monarchs/yoruba_queen.png"
-                    alt="Yoruba Queen"
-                    className={styles.monarchPortraitImg}
-                  />
-                  <div className={styles.monarchLabelChip}>
-                    <span>Olórì (Queen)</span>
-                  </div>
-                </div>
-              </div>
-
-              <span className={styles.heritageBadgeTop}>👑 7 Nigerian Royal Dynasties</span>
-              <div className={styles.showcasePlayOverlay}>
-                <span className={styles.overlayPlayBtn}>▶</span>
-              </div>
-            </div>
-            <div className={styles.showcaseInfo}>
-              <strong>Heritage Regalia & Royal Dynasty</strong>
-              <p>Match sacred royal crowns, beads and attire for instant payouts and draw entries.</p>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* BlackRed Quick Play Modal */}
-      <BlackRedPlayModal
-        isOpen={isBlackRedModalOpen}
-        onClose={() => setIsBlackRedModalOpen(false)}
-        playBalanceKobo={playBalanceKobo}
-        onBalanceChange={(newPlayBalanceKobo) => setPlayBalanceKobo(newPlayBalanceKobo)}
-      />
+      <BlackRedPlayModal isOpen={isBlackRedModalOpen} onClose={() => setIsBlackRedModalOpen(false)} playBalanceKobo={playBalanceKobo} onBalanceChange={setPlayBalanceKobo} />
     </div>
   );
 }

@@ -26,14 +26,14 @@ export function StakeHistory({ hideHeader = true }: { hideHeader?: boolean }) {
 
       <div className={styles.feedCard}>
         <div className={styles.emptyState}>
-          <div className={styles.emptyIconBox}>ⓘ</div>
+
           <h3 className={styles.emptyTitle}>Stake history isn&apos;t available here yet</h3>
           <p className={styles.emptySub}>
             You can look up a specific ticket by its reference from your receipt, but a combined list of past
-            stakes isn&apos;t wired up yet.
+            stakes is not available yet.
           </p>
           <Link href="/games" className={styles.retryBtn}>
-            ⚡ Play Games
+            Browse games
           </Link>
         </div>
       </div>

@@ -29,13 +29,13 @@ const navigationGroups: readonly OperationsNavigationGroup[] = [
 ];
 
 const GROUP_HEADER_LABELS: Record<OperationsNavigationGroup, string> = {
-  Home: "MAIN MENU",
-  Customers: "CUSTOMERS & SUPPORT",
-  Finance: "FINANCE & RISK",
-  Product: "GAMES & PRODUCT",
-  Compliance: "COMPLIANCE & AUDIT",
-  Insights: "ANALYTICS & INSIGHTS",
-  Administration: "SYSTEM & ACCESS",
+  Home: "Overview",
+  Customers: "Customers",
+  Finance: "Finance",
+  Product: "Games",
+  Compliance: "Compliance",
+  Insights: "Reports",
+  Administration: "Administration",
 };
 
 const NAVIGATION_FILTER_DEFAULTS = { game: "all" };
