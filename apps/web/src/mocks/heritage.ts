@@ -1,5 +1,5 @@
 import { HeritageGatewayError, type HeritageGatewayErrorCode } from "@betplus/api-client";
-import { pickRegaliaBoardPieces, type RegaliaPiece } from "./heritageRegaliaCatalogue";
+import { pickRegaliaBoardAssignment, type RegaliaPiece } from "./heritageRegaliaCatalogue";
 
 // Re-exported (not redefined) so `error instanceof HeritageGatewayError` is true
 // regardless of whether the real gateway or this mock threw it.
@@ -217,11 +217,16 @@ function regaliaPieceToCatalogueItem(piece: RegaliaPiece, number: number): Herit
 }
 
 /**
- * Which 9 regalia images appear on the board is purely cosmetic: it is
- * derived from the chosen tradition/leader (5 authentic pieces + 4 random
- * decoys from other sets, reshuffled every round), never from the tier. The
- * `winners` set below — the only thing that decides payout — is computed
- * exactly as before, from the stake tier alone.
+ * Which 9 regalia images appear on the board is purely cosmetic — derived
+ * from the chosen tradition/leader, never from the tier. The `winners` set
+ * below (the only thing that decides payout) is computed exactly as before,
+ * from the stake tier alone. What changed: the 5 authentic pieces are always
+ * placed on the 5 "winning" positions and the 4 decoys on the 4 non-winning
+ * ones, instead of letting authentic/decoy placement land independently of
+ * winner placement. That independence used to mean a jackpot (5 of 5) could
+ * reveal 2+ pieces sharing a slot (e.g. two different necklaces) and miss
+ * another slot entirely — a jackpot now always reveals a complete, distinct
+ * 5-slot outfit.
  */
 function makeBoard(
   selectedPositions: number[],
@@ -233,14 +238,20 @@ function makeBoard(
   const selectedList = [...selectedPositions].sort((a, b) => a - b);
   const unselectedList = Array.from({ length: 9 }, (_, index) => index + 1).filter((position) => !selected.has(position));
   const matches = tier === "jackpot" ? 5 : tier === "high" ? 4 : tier === "second-chance" ? 3 : 2;
-  const winners = new Set([
-    ...selectedList.slice(0, matches),
-    ...unselectedList.slice(0, 5 - matches),
-  ]);
-  const boardPieces = pickRegaliaBoardPieces(traditionId, leader);
-  const boardCatalogue = BOARD_CATALOGUE_NUMBERS.map((number, index) =>
-    boardPieces[index] ? regaliaPieceToCatalogueItem(boardPieces[index], number) : PREVIEW_CATALOGUE[index],
-  );
+  const winnerPositions = [...selectedList.slice(0, matches), ...unselectedList.slice(0, 5 - matches)];
+  const winners = new Set(winnerPositions);
+  const nonWinnerPositions = Array.from({ length: 9 }, (_, index) => index + 1).filter((position) => !winners.has(position));
+
+  const { authentic, decoys } = pickRegaliaBoardAssignment(traditionId, leader);
+  const combined = [...authentic, ...decoys]; // always 9: authentic fills the winning slots first, decoys fill the rest
+  const pieceByPosition = new Map<number, RegaliaPiece>();
+  winnerPositions.forEach((position, index) => pieceByPosition.set(position, combined[index]));
+  nonWinnerPositions.forEach((position, index) => pieceByPosition.set(position, combined[winnerPositions.length + index]));
+
+  const boardCatalogue = BOARD_CATALOGUE_NUMBERS.map((number, index) => {
+    const piece = pieceByPosition.get(index + 1);
+    return piece ? regaliaPieceToCatalogueItem(piece, number) : PREVIEW_CATALOGUE[index];
+  });
 
   return boardCatalogue.map((item, index) => ({
     position: index + 1,

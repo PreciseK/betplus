@@ -18,6 +18,41 @@ def test_draw_board_is_deterministic() -> None:
     assert boardmod.draw_board(seed, 100) == boardmod.draw_board(seed, 100)
 
 
+def test_tribe_leader_numbers_covers_21_to_90_with_no_gaps_or_overlaps() -> None:
+    all_numbers = [n for numbers in boardmod.TRIBE_LEADER_NUMBERS.values() for n in numbers]
+    assert len(boardmod.TRIBE_LEADER_NUMBERS) == 14  # 7 tribes x king/queen
+    assert all(len(numbers) == 5 for numbers in boardmod.TRIBE_LEADER_NUMBERS.values())
+    assert sorted(all_numbers) == list(range(21, 91))
+
+
+def test_draw_board_places_the_known_tribes_numbers_exactly_on_winning_positions() -> None:
+    seed = os.urandom(32)
+    winning_positions = [1, 3, 5, 6, 8]
+    board = boardmod.draw_board(
+        seed, 100, winning_positions=winning_positions, tradition="edo", leader_type="queen"
+    )
+
+    assert len(board) == 9
+    assert len(set(board)) == 9
+    assert all(1 <= n <= 90 for n in board)
+    authentic = set(boardmod.TRIBE_LEADER_NUMBERS[("edo", "queen")])
+    on_winning_positions = {board[p] for p in winning_positions}
+    non_winning_positions = [p for p in range(9) if p not in winning_positions]
+    on_other_positions = {board[p] for p in non_winning_positions}
+
+    assert on_winning_positions == authentic
+    assert on_other_positions.isdisjoint(authentic)
+
+
+def test_draw_board_falls_back_to_fully_random_for_an_unknown_tradition() -> None:
+    seed = os.urandom(32)
+    board = boardmod.draw_board(
+        seed, 100, winning_positions=[0, 1, 2, 3, 4], tradition="atlantis", leader_type="king"
+    )
+    assert len(board) == 9
+    assert len(set(board)) == 9
+
+
 @pytest.mark.parametrize("match_count", [1, 2, 3, 4, 5])
 def test_assign_winning_positions_hits_exactly_match_count_of_the_pick(match_count: int) -> None:
     seed = os.urandom(32)

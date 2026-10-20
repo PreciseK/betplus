@@ -152,21 +152,28 @@ function shuffle<T>(items: readonly T[], rng: () => number): T[] {
 }
 
 /**
- * Builds the 9 regalia pieces shown on a Heritage board for a given
- * tradition + leader: the real 5-piece set (head/neck/torso/hand/feet) plus
- * 4 random decoy pieces drawn from every other tribe/leader set, in random
- * order. Which tile is "winning" is decided entirely by `makeBoard` in
- * mocks/heritage.ts from the stake tier — this only controls what is shown.
+ * Builds the pieces shown on a Heritage board for a given tradition + leader,
+ * split into the real 5-piece set (head/neck/torso/hand/feet) and 4 random
+ * decoy pieces drawn from every other tribe/leader set. Kept as two separate
+ * lists (not pre-combined into 9 positions) so the caller can place the
+ * authentic set exactly on the 5 "winning" positions — guaranteeing a jackpot
+ * reveal always shows a complete, distinct 5-slot outfit rather than letting
+ * authentic and decoy pieces land on winning/non-winning positions by chance,
+ * which could put 2+ pieces of the same slot on the winning set and none of
+ * another. Which positions are "winning" is decided entirely by `makeBoard`
+ * in mocks/heritage.ts from the stake tier — this only controls what is shown.
  */
-export function pickRegaliaBoardPieces(
+export function pickRegaliaBoardAssignment(
   tribeId: string,
   leader: RegaliaLeader,
   rng: () => number = Math.random,
-): RegaliaPiece[] {
+): { authentic: RegaliaPiece[]; decoys: RegaliaPiece[] } {
   const setKey = `${tribeId}_${leader}`;
   const authentic = REGALIA_SETS[setKey] ?? [];
   const decoyPool = ALL_REGALIA_PIECES.filter((piece) => piece.setKey !== setKey);
   const decoyCount = Math.max(0, 9 - authentic.length);
-  const decoys = shuffle(decoyPool, rng).slice(0, decoyCount);
-  return shuffle([...authentic, ...decoys], rng);
+  return {
+    authentic: shuffle(authentic, rng),
+    decoys: shuffle(decoyPool, rng).slice(0, decoyCount),
+  };
 }

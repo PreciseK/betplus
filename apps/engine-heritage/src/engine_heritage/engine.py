@@ -47,9 +47,20 @@ def resolve(
 
     tier = tiersmod.draw_tier(seed, _TIER_COUNTER, tiers)
     match_count = tiersmod.draw_match_count(seed, _MATCH_COUNTER, tier.name)
-    board = boardmod.draw_board(seed, _BOARD_COUNTER_START)
+    # winning_positions must be computed before the board: it's the input draw_board()
+    # uses to place the player's chosen tradition/leader's regalia exactly on the
+    # winning tiles (see board.py's doc comment). It depends only on match_count and
+    # the player's own picks, never on the board, so this reordering changes nothing
+    # about which positions win.
     winning_positions = boardmod.assign_winning_positions(
         seed, _WINNER_COUNTER_START, player_input.selected_positions, match_count
+    )
+    board = boardmod.draw_board(
+        seed,
+        _BOARD_COUNTER_START,
+        winning_positions=winning_positions,
+        tradition=player_input.tradition,
+        leader_type=player_input.leader_type,
     )
 
     if tier.outcome_type == "cash":

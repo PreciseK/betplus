@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ALL_REGALIA_PIECES,
   REGALIA_SETS,
-  pickRegaliaBoardPieces,
+  pickRegaliaBoardAssignment,
   type RegaliaSlot,
 } from "./heritageRegaliaCatalogue";
 
@@ -34,7 +34,7 @@ describe("heritage regalia catalogue", () => {
     }
   });
 
-  it("builds a 9-piece board: the real 5 plus 4 distinct decoys from other sets", () => {
+  it("splits into the real 5 (one per slot) and 4 distinct decoys from other sets", () => {
     const rng = (() => {
       let seed = 1;
       return () => {
@@ -42,20 +42,20 @@ describe("heritage regalia catalogue", () => {
         return seed / 2147483647;
       };
     })();
-    const board = pickRegaliaBoardPieces("yoruba", "king", rng);
-    expect(board).toHaveLength(9);
+    const { authentic, decoys } = pickRegaliaBoardAssignment("yoruba", "king", rng);
 
-    const authentic = board.filter((piece) => piece.setKey === "yoruba_king");
-    const decoys = board.filter((piece) => piece.setKey !== "yoruba_king");
     expect(authentic).toHaveLength(5);
+    expect(authentic.every((piece) => piece.setKey === "yoruba_king")).toBe(true);
     expect(new Set(authentic.map((piece) => piece.slot))).toEqual(new Set(SLOTS));
     expect(decoys).toHaveLength(4);
     expect(decoys.every((piece) => piece.setKey !== "yoruba_king")).toBe(true);
-    expect(new Set(board.map((piece) => `${piece.setKey}:${piece.id}`)).size).toBe(9);
+    const all = [...authentic, ...decoys];
+    expect(new Set(all.map((piece) => `${piece.setKey}:${piece.id}`)).size).toBe(9);
   });
 
-  it("falls back to an all-decoy board when no tradition is selected yet", () => {
-    const board = pickRegaliaBoardPieces("", "king");
-    expect(board).toHaveLength(9);
+  it("falls back to an all-decoy assignment when no tradition is selected yet", () => {
+    const { authentic, decoys } = pickRegaliaBoardAssignment("", "king");
+    expect(authentic).toHaveLength(0);
+    expect(decoys).toHaveLength(9);
   });
 });

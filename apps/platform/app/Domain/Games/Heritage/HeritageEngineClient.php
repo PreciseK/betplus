@@ -25,6 +25,32 @@ use Illuminate\Support\Facades\Http;
  */
 final class HeritageEngineClient
 {
+    /**
+     * Tribe+leader -> the 5 catalogue numbers that belong to it. Mirrors
+     * apps/platform/database/seeders/HeritageGameSeeder.php's seedCatalogue()
+     * exactly (items 21-90) and apps/engine-heritage/src/engine_heritage/board.py's
+     * identical map — kept in sync by hand, since the real engine holds no
+     * database and this fallback holds no dependency on the real engine.
+     *
+     * @var array<string, list<int>>
+     */
+    private const TRIBE_LEADER_NUMBERS = [
+        'yoruba:king' => [21, 22, 23, 24, 25],
+        'yoruba:queen' => [26, 27, 28, 29, 30],
+        'igbo:king' => [31, 32, 33, 34, 35],
+        'igbo:queen' => [36, 37, 38, 39, 40],
+        'hausa_fulani:king' => [41, 42, 43, 44, 45],
+        'hausa_fulani:queen' => [46, 47, 48, 49, 50],
+        'edo:king' => [51, 52, 53, 54, 55],
+        'edo:queen' => [56, 57, 58, 59, 60],
+        'efik_ibibio:king' => [61, 62, 63, 64, 65],
+        'efik_ibibio:queen' => [66, 67, 68, 69, 70],
+        'ijaw:king' => [71, 72, 73, 74, 75],
+        'ijaw:queen' => [76, 77, 78, 79, 80],
+        'middle_belt:king' => [81, 82, 83, 84, 85],
+        'middle_belt:queen' => [86, 87, 88, 89, 90],
+    ];
+
     public function __construct(
         private readonly string $baseUrl,
         private readonly int $timeoutSeconds,
@@ -191,13 +217,18 @@ final class HeritageEngineClient
             default => [1, 2, 3][$this->intBelow($seed, 1, 3)],
         };
 
-        $board = $this->drawWithoutReplacement($seed, 100, range(1, 90), 9);
-
+        // winningPositions is computed before the board: it's the input the board
+        // draw uses to place the player's chosen tradition/leader's regalia exactly
+        // on the winning tiles (see drawHeritageBoard()'s doc comment). It depends
+        // only on matchCount and the player's own picks, never on the board, so
+        // this ordering changes nothing about which positions win.
         $complement = array_values(array_diff(range(0, 8), $selectedPositions));
         $playerPicks = $this->drawWithoutReplacement($seed, 200, $selectedPositions, $matchCount);
         $otherPicks = $this->drawWithoutReplacement($seed, 200 + $matchCount, $complement, 5 - $matchCount);
         $winningPositions = array_merge($playerPicks, $otherPicks);
         sort($winningPositions);
+
+        $board = $this->drawHeritageBoard($seed, $winningPositions, $tradition, $leaderType);
 
         $outcomeType = $selectedTier->outcomeType ?? 'none';
         $multiplierHundredths = (int) ($selectedTier->multiplierHundredths ?? 0);
@@ -224,6 +255,47 @@ final class HeritageEngineClient
             engineVersion: 'heritage-1.0.0',
             digest: $digest,
         );
+    }
+
+    /**
+     * 9 distinct integers from 1-90, one per position, in position order.
+     *
+     * When (tradition, leaderType) resolve to a known tribe+leader, the 5
+     * catalogue numbers belonging to it are placed exactly on winningPositions,
+     * and the remaining 4 positions get random decoys from the other 85. This
+     * never touches odds — winningPositions is already fully determined before
+     * this runs, purely from the tier and the player's own picks, so which
+     * regalia is shown stays cosmetic (REQ-HG-051) even though it's no longer
+     * independent of the winning set. Falls back to a fully random,
+     * tradition-agnostic draw for an unrecognized tribe+leader.
+     *
+     * @param list<int> $winningPositions
+     * @return list<int>
+     */
+    private function drawHeritageBoard(string $seed, array $winningPositions, string $tradition, string $leaderType): array
+    {
+        $authentic = self::TRIBE_LEADER_NUMBERS["{$tradition}:{$leaderType}"] ?? null;
+        if ($authentic === null) {
+            return $this->drawWithoutReplacement($seed, 100, range(1, 90), 9);
+        }
+
+        $decoyPool = array_values(array_diff(range(1, 90), $authentic));
+        $shuffledAuthentic = $this->drawWithoutReplacement($seed, 100, $authentic, count($authentic));
+        $decoys = $this->drawWithoutReplacement($seed, 100 + count($authentic), $decoyPool, 9 - count($authentic));
+
+        $sortedWinners = array_values(array_unique($winningPositions));
+        sort($sortedWinners);
+        $nonWinningPositions = array_values(array_diff(range(0, 8), $sortedWinners));
+
+        $board = array_fill(0, 9, 0);
+        foreach ($sortedWinners as $index => $position) {
+            $board[$position] = $shuffledAuthentic[$index];
+        }
+        foreach ($nonWinningPositions as $index => $position) {
+            $board[$position] = $decoys[$index];
+        }
+
+        return $board;
     }
 
     private function intBelow(string $seed, int $counter, int $n): int
