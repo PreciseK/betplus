@@ -1,4 +1,5 @@
 import { HeritageGatewayError, type HeritageGatewayErrorCode } from "@betplus/api-client";
+import { pickRegaliaBoardPieces, type RegaliaPiece } from "./heritageRegaliaCatalogue";
 
 // Re-exported (not redefined) so `error instanceof HeritageGatewayError` is true
 // regardless of whether the real gateway or this mock threw it.
@@ -25,6 +26,7 @@ export interface HeritagePrizeTier {
 export interface HeritageCatalogueItem {
   number: number;
   canonicalName: string;
+  imageUrl?: string;
   localName?: string;
   origin: string;
   context: string;
@@ -192,7 +194,41 @@ const INITIAL_SNAPSHOT: HeritageSnapshot = {
 
 let roundIndex = 0;
 
-function makeBoard(selectedPositions: number[], tier: HeritagePrizeTier["id"]): HeritageBoardPosition[] {
+function regaliaPieceToCatalogueItem(piece: RegaliaPiece, number: number): HeritageCatalogueItem {
+  const tribeName = TRADITIONS.find((tradition) => tradition.id === piece.tribeId)?.name ?? piece.tribeId;
+  return Object.freeze({
+    number,
+    canonicalName: piece.canonicalName,
+    imageUrl: piece.imageUrl,
+    localName: piece.localName ?? undefined,
+    origin: tribeName,
+    context:
+      piece.description ??
+      `${piece.leader === "king" ? "King's" : "Queen's"} regalia from the ${tribeName} tradition.`,
+    slot: piece.slot,
+    depiction: "abstract-placeholder" as const,
+    applicableTraditions: [piece.tribeId],
+    applicableLeaders: [piece.leader],
+    layerPriority: SLOT_SEQUENCE.indexOf(piece.slot) + 1,
+    depictionConstraints: "Stylized concept regalia derived from Heritage portrait art.",
+    advisorSignOffReference: null,
+    publicationStatus: "approved" as const,
+  });
+}
+
+/**
+ * Which 9 regalia images appear on the board is purely cosmetic: it is
+ * derived from the chosen tradition/leader (5 authentic pieces + 4 random
+ * decoys from other sets, reshuffled every round), never from the tier. The
+ * `winners` set below — the only thing that decides payout — is computed
+ * exactly as before, from the stake tier alone.
+ */
+function makeBoard(
+  selectedPositions: number[],
+  tier: HeritagePrizeTier["id"],
+  traditionId: string,
+  leader: HeritageLeader,
+): HeritageBoardPosition[] {
   const selected = new Set(selectedPositions);
   const selectedList = [...selectedPositions].sort((a, b) => a - b);
   const unselectedList = Array.from({ length: 9 }, (_, index) => index + 1).filter((position) => !selected.has(position));
@@ -201,8 +237,12 @@ function makeBoard(selectedPositions: number[], tier: HeritagePrizeTier["id"]): 
     ...selectedList.slice(0, matches),
     ...unselectedList.slice(0, 5 - matches),
   ]);
+  const boardPieces = pickRegaliaBoardPieces(traditionId, leader);
+  const boardCatalogue = BOARD_CATALOGUE_NUMBERS.map((number, index) =>
+    boardPieces[index] ? regaliaPieceToCatalogueItem(boardPieces[index], number) : PREVIEW_CATALOGUE[index],
+  );
 
-  return PREVIEW_CATALOGUE.map((item, index) => ({
+  return boardCatalogue.map((item, index) => ({
     position: index + 1,
     selected: selected.has(index + 1),
     winning: winners.has(index + 1),
@@ -225,7 +265,7 @@ export function createHeritageSettlement(
   const grossKobo = Math.round(input.stakeKobo * multiplier);
   const taxableWinningsKobo = Math.max(0, grossKobo - input.stakeKobo);
   const taxKobo = Math.round(taxableWinningsKobo * INITIAL_SNAPSHOT.taxRateBasisPoints / 10_000);
-  const board = makeBoard(input.selectedPositions, tier);
+  const board = makeBoard(input.selectedPositions, tier, input.traditionId, input.leader);
   const matchCount = board.filter((position) => position.selected && position.winning).length;
   const reference = `BP-HG-260817-${String(roundIndex + 1).padStart(3, "0")}`;
 
@@ -279,7 +319,10 @@ export const mockHeritageGateway: HeritageGateway = {
     }
 
     await new Promise((resolve) => setTimeout(resolve, 260));
-    const tierCycle: HeritagePrizeTier["id"][] = ["TIER_HIGH", "TIER_LOSS", "TIER_JACKPOT", "TIER_LOSS"];
+    // These must match the literal tier strings makeBoard()/createHeritageSettlement()
+    // compare against below ("jackpot" | "high" | "second-chance" | "loss") — not the
+    // "TIER_*" ids from HERITAGE_PRIZE_TIERS, which are a different naming convention.
+    const tierCycle: Array<"jackpot" | "high" | "second-chance" | "loss"> = ["high", "loss", "jackpot", "loss"];
     const settlement = createHeritageSettlement(input, tierCycle[roundIndex % tierCycle.length]);
     roundIndex += 1;
     return settlement;

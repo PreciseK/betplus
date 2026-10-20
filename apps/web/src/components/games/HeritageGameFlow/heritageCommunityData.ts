@@ -67,11 +67,11 @@ export const TRIBE_ATTIRE_LORE: Record<string, TribeAttireLore> = {
     regaliaName: "Erhu Ivie & Ewu-Ivie",
     description: "The Benin Kingdom boasts the world-renowned coral bead mesh dress (Ewu-Ivie), crown (Erhu Ivie), and bronze ceremonial emblems.",
     pieces: [
-      { slot: "head", name: "High Coral Crown", localName: "Erhu Ivie", significance: "Dome-shaped solid coral mesh crown handed down across dynasties." },
-      { slot: "neck", name: "Layered Coral Choker", localName: "Odigba", significance: "Multi-tiered coral choker encasing the neck in royal red." },
-      { slot: "torso", name: "Full Coral Mesh Robe", localName: "Ewu-Ivie", significance: "Thousands of sacred coral beads woven into a majestic tunic." },
-      { slot: "hand", name: "Bronze Scepter / Ceremonial Sword", localName: "Ada & Eben", significance: "Traditional bronze blades danced during royal palace rites." },
-      { slot: "feet", name: "Palace Beaded Slippers", localName: "Bata Ivie", significance: "Ornate coral-studded footwear exclusive to the royal court." },
+      { slot: "head", name: "Coral Crown & Headdress", localName: "Erhu Ivie (king) · Ukpe-okhue (queen)", significance: "The king's Erhu Ivie coral crown (also called Ede) and the Iyoba's Ukpe-okhue coral headdress (also called Okuku) are each layered coral beadwork." },
+      { slot: "neck", name: "Coral Collar", localName: "Odigba (king) · Ivie (queen)", significance: "The king's Odigba coral neck collar is worn alongside separate Ivie-Obo wrist beads; the queen's coral beads are called simply Ivie." },
+      { slot: "torso", name: "Coral-Mesh Regalia", localName: "Ewu Ivie (king) · Ukpon-Ododo (queen)", significance: "The king's Ewu Ivie coral-beaded tunic is worn over an Ukpon base robe; the queen's coral-patterned ceremonial robe, Ukpon-Ododo, is also called simply Ukpon." },
+      { slot: "hand", name: "Staff & Fan", localName: "Ukhurhe (king) · Ezuzu (queen)", significance: "The king carries the Ukhurhe ceremonial staff; the queen carries the Ezuzu ceremonial fan." },
+      { slot: "feet", name: "Coral-Beaded Slippers", localName: "Ibata Ivie", significance: "Coral-beaded slippers worn by both the king and queen." },
     ],
   },
   "efik-ibibio": {
@@ -82,11 +82,11 @@ export const TRIBE_ATTIRE_LORE: Record<string, TribeAttireLore> = {
     regaliaName: "Ntinya & Onyonyo",
     description: "Efik-Ibibio royalty celebrates the feathered Ntinya crown, layered flowing Onyonyo gowns, and Ekpe society sacred emblems.",
     pieces: [
-      { slot: "head", name: "Sacred Feathered Crown", localName: "Ntinya", significance: "Conical crown woven with rare bird feathers symbolizing high chieftaincy." },
-      { slot: "neck", name: "Court Beaded Collar", localName: "Mkpat", significance: "Cascading beaded collar draped over the royal shoulders." },
-      { slot: "torso", name: "Flowing Silk Brocade", localName: "Onyonyo / Ikpanya", significance: "Voluminous high-society dress with ornate metallic embroidery." },
-      { slot: "hand", name: "Staff of Peace & Whisk", localName: "Esan Obong", significance: "Staff carved with Ekpe ancestral motifs for ceremonial blessings." },
-      { slot: "feet", name: "Velvet Court Shoes", localName: "Ikpa Ukot", significance: "Velvet slippers with brass embellishments." },
+      { slot: "head", name: "Royal Cap & Headpiece", localName: "Itam (king) · Eba (queen)", significance: "The king's Itam cap (also called the Ntinya-crowned cap) is worn with an Ntang Ntrukpm eagle feather; the queen's Eba hairstyle (also called Ibuot Mbopo) is adorned with Edet Idat gold/brass hair combs." },
+      { slot: "neck", name: "Coral Neck Beads", localName: "Nkwa", significance: "Also called Nkwa Eto; coral neck beads worn by both the king and queen." },
+      { slot: "torso", name: "Ceremonial Attire", localName: "Eku and Usobo (king) · Onyonyo (queen)", significance: "The king wears a velvet Eku top with the heavy Usobo wrapper (also called Okpomkpom); the queen's flowing Onyonyo gown is its own garment." },
+      { slot: "hand", name: "Staff & Fan", localName: "Esang Ubong (king) · Ufat (queen)", significance: "The king carries the Esang Ubong royal staff of office; the queen carries the Ufat ceremonial hand fan." },
+      { slot: "feet", name: "Court Shoes", localName: "Ikpa Ukot", significance: "Ceremonial court shoes worn by both the king and queen." },
     ],
   },
   ijaw: {
@@ -94,14 +94,14 @@ export const TRIBE_ATTIRE_LORE: Record<string, TribeAttireLore> = {
     tribeName: "Ijaw",
     leaderTitleKing: "Amanyanabo",
     leaderTitleQueen: "Queen Consort",
-    regaliaName: "Woko & Coral Regalia",
-    description: "Ijaw coastal kings don bespoke tailored Woko jackets, bowler hats with gold bands, and magnificent coral strings.",
+    regaliaName: "Etibo & Coral Regalia",
+    description: "Ijaw coastal kings don bespoke tailored Etibo jumpers, bowler-style Ogbogbo hats, and magnificent Ila coral strings.",
     pieces: [
-      { slot: "head", name: "Feathered Crown Hat", localName: "Sun-hat with Gold Trim", significance: "High-brim crown hat adorned with aquatic motifs." },
-      { slot: "neck", name: "Heavy River Coral", localName: "Ibu Iléke", significance: "Chunky barrel corals traded along the historic delta coast." },
-      { slot: "torso", name: "Royal Woko Tunic", localName: "Woko & Wrapper", significance: "Structured high-collar tunic worn over silk George wrappers." },
-      { slot: "hand", name: "Ivory Head Walking Staff", localName: "Kpoko Staff", significance: "Carved ivory cane symbolizing steady leadership over waterways." },
-      { slot: "feet", name: "Polished Palace Shoes", localName: "Royal Court Shoes", significance: "Handmade leather loafers with gold buckles." },
+      { slot: "head", name: "Royal Hat & Headtie", localName: "Ogbogbo (king) · Egenekpe (queen)", significance: "The king's Ogbogbo hat (also called Bolou, a bowler-style hat) is worn with an Agbalakoko eagle feather; the queen's Egenekpe George headtie is also called Tukpa or Tibibedegi." },
+      { slot: "neck", name: "Coral Neck Beads", localName: "Ila", significance: "Also called Pina-ila; coral neck beads worn by both the king and queen." },
+      { slot: "torso", name: "Jumper & George Wrapper", localName: "Etibo and Injiri (king) · Ewu and Injiri (queen)", significance: "The king's Etibo royal jumper (also called Don) is worn with the heavy Injiri George wrapper (also called Ikagi); the queen's Ewu embroidered blouse (also called Keme-sibi) is worn with a double-tied Injiri wrapper." },
+      { slot: "hand", name: "Staff & Fan", localName: "Okubo (king) · Azuzu (queen)", significance: "The king carries the Okubo walking staff of office (also called Akparakpa) and a separate Azuzu horsehair fly-whisk; the queen carries an Azuzu beaded hand fan (also called Efefe)." },
+      { slot: "feet", name: "Ceremonial Shoes", localName: "Angala-gbasa", significance: "Also called Bue-ere; ceremonial shoes worn by both the king and queen." },
     ],
   },
   "middle-belt": {
@@ -109,14 +109,14 @@ export const TRIBE_ATTIRE_LORE: Record<string, TribeAttireLore> = {
     tribeName: "Middle Belt",
     leaderTitleKing: "Etsu / Shehu / Tor",
     leaderTitleQueen: "Queen Mother",
-    regaliaName: "A'nger & Babban Riga",
-    description: "Diverse royal traditions across Tiv, Nupe, and Jukun featuring bold black-and-white A'nger textiles and royal bronze regalia.",
+    regaliaName: "A'nger & Gbough",
+    description: "Diverse royal traditions across Tiv, Nupe, and Jukun featuring bold black-and-white A'nger textiles and carved royal staffs.",
     pieces: [
-      { slot: "head", name: "Striped Royal Headdress", localName: "A'nger Cap", significance: "Black-and-white woven fabric headdress denoting balance and justice." },
-      { slot: "neck", name: "Glass & Coral Strand", localName: "Bida Glass Beads", significance: "Historic Nupe brass and glasswork necklace." },
-      { slot: "torso", name: "Woven Warrior Mantle", localName: "Tiv A'nger Robe", significance: "Signature geometric striped textile representing ancestral courage." },
-      { slot: "hand", name: "Horsehair Whisk & Staff", localName: "Kume & Staff", significance: "Traditional horsehair wand for dispersing negative energy." },
-      { slot: "feet", name: "Hide Palace Mules", localName: "Leather Slippers", significance: "Specially cured leather mules for state occasions." },
+      { slot: "head", name: "Woven Cap & Headtie", localName: "Agbande-Tsa (king) · Ichoho-Tsa (queen)", significance: "The king's Agbande-Tsa A'nger-woven cap (also called Adzenga) and the queen's Ichoho-Tsa A'nger headtie." },
+      { slot: "neck", name: "Coral & Traditional Beads", localName: "Akaa", significance: "Also called Mbakaa; royal coral/traditional beads worn by both the king and queen." },
+      { slot: "torso", name: "A'nger Ensemble", localName: "A'nger over Ivavtyo (king) · A'nger with Riga (queen)", significance: "The iconic black-and-white striped Tiv A'nger wrapper: worn over an Ivavtyo base tunic by the king, and paired with a Riga (or Ivavtyo) lace blouse by the queen." },
+      { slot: "hand", name: "Staff & Fan", localName: "Gbough (king) · Pepe (queen)", significance: "The king carries the Gbough carved royal staff of office; the queen carries the Pepe carved wooden hand fan." },
+      { slot: "feet", name: "A'nger-Upholstered Shoes", localName: "Akov a Anger", significance: "A'nger-upholstered royal shoes worn by both the king and queen." },
     ],
   },
 };
@@ -158,14 +158,36 @@ export const HALL_OF_CHAMPIONS: ChampionItem[] = [
 
 export const MONARCH_ARTWORK_MAP: Record<string, { king?: string; queen?: string }> = {
   yoruba: {
-    king: "/games/heritage/monarchs/yoruba_king.png",
-    queen: "/games/heritage/monarchs/yoruba_queen.png",
+    king: "/games/heritage/monarchs/yoruba_king_v2.png",
+    queen: "/games/heritage/monarchs/yoruba_queen_v2.png",
   },
-  igbo: {},
-  "hausa-fulani": {},
-  "edo-benin": {},
-  "efik-ibibio": {},
-  ijaw: {},
-  "middle-belt": {},
+  igbo: {
+    king: "/games/heritage/monarchs/igbo_king_v2.png",
+    queen: "/games/heritage/monarchs/igbo_queen_v2.png",
+  },
+  "hausa-fulani": {
+    king: "/games/heritage/monarchs/hausa-fulani_king_v2.png",
+    queen: "/games/heritage/monarchs/hausa-fulani_queen_v2.png",
+  },
+  edo: {
+    king: "/games/heritage/monarchs/edo_king_v2.png",
+    queen: "/games/heritage/monarchs/edo_queen_v2.png",
+  },
+  "edo-benin": {
+    king: "/games/heritage/monarchs/edo_king_v2.png",
+    queen: "/games/heritage/monarchs/edo_queen_v2.png",
+  },
+  "efik-ibibio": {
+    king: "/games/heritage/monarchs/efik-ibibio_king_v2.png",
+    queen: "/games/heritage/monarchs/efik-ibibio_queen_v2.png",
+  },
+  ijaw: {
+    king: "/games/heritage/monarchs/ijaw_king_v2.png",
+    queen: "/games/heritage/monarchs/ijaw_queen_v2.png",
+  },
+  "middle-belt": {
+    king: "/games/heritage/monarchs/middle-belt_king_v2.png",
+    queen: "/games/heritage/monarchs/middle-belt_queen_v2.png",
+  },
 };
 

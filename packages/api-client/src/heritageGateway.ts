@@ -22,6 +22,7 @@ type ApiTradition = { code: string; label: string; king_title: string; queen_tit
 type ApiCatalogueItem = {
   number: number;
   canonical_name: string;
+  image_url?: string | null;
   local_name: string | null;
   origin: string;
   context: string | null;
@@ -52,6 +53,7 @@ function toCatalogueItem(item: ApiCatalogueItem) {
   return {
     number: item.number,
     canonicalName: item.canonical_name,
+    imageUrl: item.image_url ?? undefined,
     localName: item.local_name ?? undefined,
     origin: item.origin,
     context: item.context ?? "",

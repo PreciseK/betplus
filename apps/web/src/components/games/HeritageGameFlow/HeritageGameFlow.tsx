@@ -1,21 +1,23 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type RefObject } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type RefObject,
+} from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { formatKobo, parseNairaInputToKobo } from "@/lib/money";
 import { sounds } from "../BlackRedPlayModal/soundEffects";
-import { HeritageArenaModal } from "./HeritageArenaModal";
 import { OpayDirectCheckoutModal } from "@/components/wallet/OpayDirectCheckoutModal";
-import { MonarchSilhouetteWing } from "./MonarchSilhouetteWing";
-import { CommunitySidebarWing } from "./CommunitySidebarWing";
+import { RegaliaArtwork } from "./RegaliaArtwork";
+import { RegaliaReview } from "./RegaliaReview";
+import { MONARCH_ARTWORK_MAP } from "./heritageCommunityData";
 import {
-  TRIBE_ATTIRE_LORE,
-  RECENT_ACTIVITY_MOCK,
-  HALL_OF_CHAMPIONS,
-  type RecentActivityItem,
-  type ChampionItem,
-} from "./heritageCommunityData";
-import {
-  HeritageGatewayError,
   formatProbability,
   getLeaderTitle,
   mockHeritageGateway,
@@ -29,57 +31,61 @@ import {
 import styles from "./HeritageGameFlow.module.css";
 
 const STAKE_PRESETS_KOBO = [10_000, 50_000, 100_000, 500_000] as const;
-
 type GamePhase = "configuring" | "confirming" | "resolving" | "settled";
-type BannerPhase = "idle" | "flash" | "settled";
-
-interface ConfettiPiece {
-  id: number;
-  left: number;
-  color: string;
-  delay: number;
-  duration: number;
-}
-
 const ERROR_COPY: Record<string, string> = {
-  INSUFFICIENT_PLAY_BALANCE: "Your stake exceeds your available balance. Please top up your wallet or lower the stake.",
-  INVALID_SELECTION: "Please select exactly five distinct positions on the board.",
-  LIMIT_REACHED: "You have reached your daily play limit. You can review or adjust your limits anytime in Account Settings.",
-  PLAY_BLOCKED: "Player protection currently blocks new games (such as an active cool-off or exclusion). Withdrawals remain available.",
-  GAME_UNAVAILABLE: "Heritage is temporarily undergoing maintenance. Please check back shortly.",
+  INSUFFICIENT_PLAY_BALANCE:
+    "Your stake exceeds your available balance. Lower your stake or add funds to your wallet.",
+  INVALID_SELECTION: "Select exactly five different positions on the board.",
+  LIMIT_REACHED:
+    "You have reached your daily play limit. Review your limits in Account.",
+  PLAY_BLOCKED:
+    "Player protection currently blocks new games, such as an active break or exclusion. Withdrawals remain available.",
+  GAME_UNAVAILABLE:
+    "Heritage is unavailable right now. Your selection is saved on this screen.",
 };
-
 export interface HeritageGameFlowProps {
   gateway?: HeritageGateway;
   initialSnapshot?: HeritageSnapshot;
 }
 
-export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGameFlowProps) {
-  const [snapshot, setSnapshot] = useState<HeritageSnapshot>();
+export function HeritageGameFlow({
+  gateway = mockHeritageGateway,
+  initialSnapshot,
+}: HeritageGameFlowProps) {
+  const [snapshot, setSnapshot] = useState<HeritageSnapshot | undefined>(
+    initialSnapshot,
+  );
+  const [session, setSession] = useState(initialSnapshot?.session);
   const [loadError, setLoadError] = useState(false);
   const [phase, setPhase] = useState<GamePhase>("configuring");
-  const [bannerPhase, setBannerPhase] = useState<BannerPhase>("idle");
-  const [traditionId, setTraditionId] = useState("");
-  const [leader, setLeader] = useState<HeritageLeader | "">("");
+  const [traditionId, setTraditionId] = useState(
+    initialSnapshot?.traditions[0]?.id ?? "",
+  );
+  const [leader, setLeader] = useState<HeritageLeader>("king");
   const [selectedPositions, setSelectedPositions] = useState<number[]>([]);
   const [stakeInput, setStakeInput] = useState("1000");
   const [selectionMessage, setSelectionMessage] = useState("");
   const [playError, setPlayError] = useState("");
   const [settlement, setSettlement] = useState<HeritageSettlement>();
+  const [inspectedPosition, setInspectedPosition] =
+    useState<HeritageBoardPosition>();
+  const [reviewTrigger, setReviewTrigger] = useState<HTMLButtonElement | null>(
+    null,
+  );
+  const reviewOpen = useRef(false);
   const [visibleCount, setVisibleCount] = useState(0);
   const [quickPicking, setQuickPicking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isArenaModalOpen, setIsArenaModalOpen] = useState(false);
-  const [paymentOption, setPaymentOption] = useState<"wallet" | "opay">("wallet");
+  const [paymentOption, setPaymentOption] = useState<"wallet" | "opay">(
+    "wallet",
+  );
   const [opayCheckoutOpen, setOpayCheckoutOpen] = useState(false);
-  const [confettiItems, setConfettiItems] = useState<ConfettiPiece[]>([]);
-  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>(RECENT_ACTIVITY_MOCK);
-  const [hallOfChampions, setHallOfChampions] = useState<ChampionItem[]>(HALL_OF_CHAMPIONS);
-  const [isRulesExpanded, setIsRulesExpanded] = useState(false);
-  const [isCommunityExpanded, setIsCommunityExpanded] = useState(false);
-  const [isLoadoutExpanded, setIsLoadoutExpanded] = useState(false);
-  const [isProofExpanded, setIsProofExpanded] = useState(false);
-  const [isMetricsExpanded, setIsMetricsExpanded] = useState(false);
+  const [balanceStatus, setBalanceStatus] = useState<
+    "ready" | "loading" | "error"
+  >("ready");
+  const submitting = useRef(false);
+  const mounted = useRef(false);
+  const rulesRef = useRef<HTMLDetailsElement>(null);
   const confirmDialogId = useId();
   const confirmTitleId = useId();
   const confirmPopoverRef = useRef<HTMLDivElement>(null);
@@ -88,248 +94,229 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
   const settlementHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
+    mounted.current = true;
     let active = true;
-    gateway.load().then((data) => {
-      if (active) {
+    gateway
+      .load()
+      .then((data) => {
+        if (!active) return;
         setSnapshot(data);
-        if (data.traditions.length > 0) {
-          setTraditionId((prev) => prev || data.traditions[0].id);
-        }
-        setLeader((prev) => prev || "king");
-      }
-    }).catch(() => {
-      if (active) setLoadError(true);
-    });
-    return () => { active = false; };
+        setSession(data.session);
+        setTraditionId((current) => current || data.traditions[0]?.id || "");
+      })
+      .catch(() => {
+        if (active) setLoadError(true);
+      });
+    return () => {
+      active = false;
+      mounted.current = false;
+    };
   }, [gateway]);
 
+  // One reveal, on the board itself. The server has already settled the ticket.
   useEffect(() => {
     if (!settlement || phase !== "resolving") return;
-    const reducedMotion = typeof window !== "undefined" && (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
-    if (reducedMotion) {
-      setVisibleCount(9);
-      setBannerPhase("settled");
-      setPhase("settled");
-      return;
-    }
-
+    let count = 0;
     const timer = window.setInterval(() => {
-      setVisibleCount((current) => {
-        const next = Math.min(9, current + 1);
-        const positionResult = settlement.board[next - 1];
-        if (positionResult) {
-          const isHit = positionResult.selected && positionResult.winning;
-          sounds.playFlip(isHit);
-        }
-
-        if (next === 9) {
-          window.clearInterval(timer);
-          const won = settlement.tier !== "loss" || settlement.netKobo > 0;
-          setBannerPhase("flash");
-          if (settlement.matchCount === 5) {
-            sounds.playWinFanfare();
-            const greenPalette = ["#22c55e", "#86efac", "#ffd88a", "#ffffff", "#15803d"];
-            const particles: ConfettiPiece[] = Array.from({ length: 48 }).map((_, i) => ({
-              id: i,
-              left: Math.random() * 96 + 2,
-              color: greenPalette[i % greenPalette.length],
-              delay: Math.random() * 0.4,
-              duration: 1.3 + Math.random() * 1.3,
-            }));
-            setConfettiItems(particles);
-          } else if (settlement.matchCount === 4) {
-            sounds.playWinFanfare();
-            const yellowPalette = ["#fef08a", "#facc15", "#ffffff", "#eab308", "#fde047"];
-            const particles: ConfettiPiece[] = Array.from({ length: 32 }).map((_, i) => ({
-              id: i,
-              left: Math.random() * 96 + 2,
-              color: yellowPalette[i % yellowPalette.length],
-              delay: Math.random() * 0.3,
-              duration: 1.1 + Math.random() * 0.9,
-            }));
-            setConfettiItems(particles);
-          } else {
-            sounds.playFlip(false);
-          }
-
-          // Dynamically update recent activity and champions list for community hub
-          if (settlement.matchCount === 5) {
-            const newAct: RecentActivityItem = {
-              id: `user-act-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-              timeAgo: "Just now",
-              player: "You",
-              tribe: snapshot?.traditions.find((t) => t.id === traditionId)?.name ?? "Royal",
-              action: "Matched 5/5 Jackpot!",
-              amount: `+${formatKobo(settlement.netKobo)}`,
-              badge: "win",
-            };
-            setRecentActivity((prev) => [newAct, ...prev.slice(0, 4)]);
-          } else if (settlement.matchCount === 4) {
-            const newAct: RecentActivityItem = {
-              id: `user-act-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-              timeAgo: "Just now",
-              player: "You",
-              tribe: snapshot?.traditions.find((t) => t.id === traditionId)?.name ?? "Royal",
-              action: "Matched 4/5 (You tried)",
-              amount: `+${formatKobo(settlement.netKobo)}`,
-              badge: "match",
-            };
-            setRecentActivity((prev) => [newAct, ...prev.slice(0, 4)]);
-          }
-
-          if (settlement.matchCount === 5 && settlement.netKobo > 0) {
-            const newChamp: ChampionItem = {
-              id: `user-champ-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-              rank: 1,
-              player: "You",
-              tribe: snapshot?.traditions.find((t) => t.id === traditionId)?.name ?? "Royal",
-              prize: formatKobo(settlement.netKobo),
-              multiplier: "25x",
-              date: "Just now",
-            };
-            setHallOfChampions((prev) => [
-              newChamp,
-              ...prev.map((c, idx) => ({ ...c, rank: idx + 2 })).slice(0, 3),
-            ]);
-          }
-
-          window.setTimeout(() => {
-            setBannerPhase("settled");
-            setPhase("settled");
-          }, 1800);
-        }
-        return next;
-      });
-    }, 520);
+      count += 1;
+      setVisibleCount(count);
+      const tile = settlement.board[count - 1];
+      sounds.playFlip(Boolean(tile?.selected && tile.winning));
+      if (count >= settlement.board.length) {
+        window.clearInterval(timer);
+        setPhase("settled");
+      }
+    }, 420);
     return () => window.clearInterval(timer);
-  }, [phase, settlement, traditionId, snapshot]);
+  }, [phase, settlement]);
 
   useEffect(() => {
-    if (phase === "settled") settlementHeadingRef.current?.focus({ preventScroll: true });
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase === "confirming") confirmYesRef.current?.focus({ preventScroll: true });
+    if (phase === "settled" && !reviewOpen.current) {
+      settlementHeadingRef.current?.focus({ preventScroll: true });
+      settlementHeadingRef.current?.scrollIntoView?.({ block: "nearest" });
+    }
+    if (phase === "confirming")
+      confirmYesRef.current?.focus({ preventScroll: true });
   }, [phase]);
 
   const stakeKobo = parseNairaInputToKobo(stakeInput);
-  const selectedTradition = snapshot?.traditions.find((tradition) => tradition.id === traditionId);
-  const selectionReady = selectedPositions.length === 5;
-  const stakeReady = Boolean(snapshot && stakeKobo !== null && stakeKobo >= snapshot.minStakeKobo && stakeKobo <= snapshot.maxStakeKobo);
-  const ready = selectionReady && Boolean(traditionId) && Boolean(leader) && stakeReady;
-  const controlsLocked = phase === "resolving" || phase === "settled";
-  const isLoss = settlement?.tier === "loss";
-  const revealedBoard = settlement?.board ?? [];
-  const revealedMatches = revealedBoard.slice(0, visibleCount).filter((position) => position.selected && position.winning).length;
-  const revealedSelected = revealedBoard.slice(0, visibleCount).filter((position) => position.selected).length;
-  const lastRevealed = visibleCount > 0 ? revealedBoard[visibleCount - 1] : undefined;
-  const dressedItems = revealedBoard.slice(0, visibleCount).filter((position) => position.selected && position.winning);
-  const latestDressedItem = dressedItems[dressedItems.length - 1]?.item;
+  const selectedTradition = snapshot?.traditions.find(
+    (tradition) => tradition.id === traditionId,
+  );
+  const stakeReady = Boolean(
+    snapshot &&
+    stakeKobo !== null &&
+    stakeKobo >= snapshot.minStakeKobo &&
+    stakeKobo <= snapshot.maxStakeKobo,
+  );
+  const ready =
+    selectedPositions.length === 5 && Boolean(selectedTradition) && stakeReady;
+  const controlsLocked = phase !== "configuring" || opayCheckoutOpen;
+  const jackpotTier = snapshot?.prizeTiers.find(
+    (tier) => tier.outcomeType === "cash" && (tier.multiplier ?? 0) > 1,
+  );
+  const jackpotGrossKobo =
+    stakeKobo && jackpotTier?.multiplier
+      ? Math.round(stakeKobo * jackpotTier.multiplier)
+      : 0;
+  const jackpotTaxKobo =
+    snapshot && stakeKobo
+      ? Math.round(
+          (Math.max(0, jackpotGrossKobo - stakeKobo) *
+            snapshot.taxRateBasisPoints) /
+            10_000,
+        )
+      : 0;
+  const dressedItems = useMemo(
+    () =>
+      settlement?.board
+        .slice(0, visibleCount)
+        .filter((tile) => tile.selected && tile.winning) ?? [],
+    [settlement, visibleCount],
+  );
+  const equippedSlots = new Set(
+    dressedItems.map(({ item }) =>
+      item.slot === "wrist"
+        ? "hand"
+        : item.slot === "waist"
+          ? "torso"
+          : item.slot,
+    ),
+  );
+  const artwork = selectedTradition
+    ? MONARCH_ARTWORK_MAP[selectedTradition.id.replaceAll("_", "-")]?.[leader]
+    : undefined;
+  const leaderTitle = selectedTradition
+    ? getLeaderTitle(selectedTradition, leader)
+    : leader === "king"
+      ? "King"
+      : "Queen";
+  const balanceText = (value: number) =>
+    balanceStatus === "ready"
+      ? formatKobo(value)
+      : balanceStatus === "loading"
+        ? "Updating…"
+        : "Unavailable";
 
-  const equippedSlotsSet = useMemo(() => {
-    const set = new Set<string>();
-    if (settlement) {
-      settlement.board.slice(0, visibleCount).forEach((pos) => {
-        if (pos.selected && pos.winning) {
-          if (pos.item.slot === "wrist") set.add("hand");
-          else if (pos.item.slot === "waist") set.add("torso");
-          else set.add(pos.item.slot);
-        }
-      });
-    }
-    return set;
-  }, [settlement, visibleCount]);
-
-  const jackpotTier = snapshot?.prizeTiers.find((tier) => tier.multiplier === 25 || tier.outcomeType === "cash" && tier.multiplier && tier.multiplier > 1);
-  const jackpotGrossKobo = stakeKobo && jackpotTier?.multiplier ? stakeKobo * jackpotTier.multiplier : 0;
-  const jackpotTaxKobo = snapshot && stakeKobo ? Math.round(Math.max(0, jackpotGrossKobo - stakeKobo) * snapshot.taxRateBasisPoints / 10_000) : 0;
-
-  const currentSession = useMemo(() => {
-    if (!snapshot) return undefined;
-    if (!settlement) return snapshot.session;
-    return {
-      ...snapshot.session,
-      rounds: snapshot.session.rounds + 1,
-      totalStakedKobo: snapshot.session.totalStakedKobo + settlement.stakeKobo,
-      totalWonKobo: snapshot.session.totalWonKobo + settlement.netKobo,
-      netPositionKobo: snapshot.session.netPositionKobo + settlement.netKobo - settlement.stakeKobo,
-    };
-  }, [settlement, snapshot]);
-
-  if (loadError) {
-    return <SystemState title="Heritage could not load" message="The game is unavailable right now. No ticket was created and no money moved." />;
+  function inspectRegalia(
+    position: HeritageBoardPosition,
+    trigger: HTMLButtonElement,
+  ) {
+    setReviewTrigger(trigger);
+    reviewOpen.current = true;
+    setInspectedPosition(position);
   }
-  if (!snapshot) {
-    return <SystemState title="Loading Heritage" message="Checking the prize table, balances and play permissions." loading />;
-  }
-
-  function handleToggleMute() {
-    const muted = sounds.toggleMute();
-    setIsMuted(muted);
+  function closeRegaliaReview() {
+    reviewOpen.current = false;
+    setInspectedPosition(undefined);
   }
 
   function togglePosition(position: number) {
-    if (controlsLocked) return;
-    setPlayError("");
-    setSelectedPositions((current) => {
-      if (current.includes(position)) {
-        setSelectionMessage("");
-        sounds.playToggle();
-        return current.filter((item) => item !== position);
-      }
-      if (current.length === 5) {
-        setSelectionMessage("Five positions are already selected. Remove one before choosing another.");
-        return current;
-      }
+    if (controlsLocked || quickPicking) return;
+    if (selectedPositions.includes(position)) {
+      setSelectedPositions(
+        selectedPositions.filter((item) => item !== position),
+      );
       setSelectionMessage("");
-      sounds.playToggle();
-      return [...current, position].sort((a, b) => a - b);
-    });
+    } else if (selectedPositions.length === 5) {
+      setSelectionMessage(
+        "Five positions are already selected. Remove one before choosing another.",
+      );
+    } else {
+      setSelectedPositions(
+        [...selectedPositions, position].sort((a, b) => a - b),
+      );
+      setSelectionMessage("");
+    }
+    setPlayError("");
+    sounds.playToggle();
   }
 
   async function quickPick() {
     setQuickPicking(true);
     setPlayError("");
     try {
-      setSelectedPositions(await gateway.quickPick());
-      sounds.playShuffle();
-      setSelectionMessage("Five positions selected by Quick Pick. Your odds are unchanged.");
+      const positions = await gateway.quickPick();
+      if (!mounted.current) return;
+      setSelectedPositions(positions);
+      setSelectionMessage(
+        "Five positions selected by Quick Pick. Your odds are unchanged.",
+      );
     } catch {
-      setPlayError("Quick Pick is unavailable. You can still select five positions yourself.");
+      if (mounted.current)
+        setPlayError(
+          "Quick Pick is unavailable. You can still select five positions yourself.",
+        );
     } finally {
-      setQuickPicking(false);
+      if (mounted.current) setQuickPicking(false);
+    }
+  }
+
+  async function refreshBalances() {
+    setBalanceStatus("loading");
+    try {
+      const fresh = await gateway.load();
+      if (!mounted.current) return;
+      setSnapshot((current) =>
+        current
+          ? {
+              ...current,
+              playBalanceKobo: fresh.playBalanceKobo,
+              winningsBalanceKobo: fresh.winningsBalanceKobo,
+            }
+          : current,
+      );
+      setBalanceStatus("ready");
+    } catch {
+      if (mounted.current) setBalanceStatus("error");
     }
   }
 
   async function confirmPlay() {
-    if (!ready || !stakeKobo || !leader) return;
+    if (!ready || !stakeKobo || submitting.current) return;
+    submitting.current = true;
     setPhase("resolving");
-    setBannerPhase("idle");
     setPlayError("");
     setVisibleCount(0);
-    setConfettiItems([]);
-    sounds.playShuffle();
     try {
-      const result = await gateway.placeTicket({ selectedPositions, traditionId, leader, stakeKobo });
+      const result = await gateway.placeTicket({
+        selectedPositions,
+        traditionId,
+        leader,
+        stakeKobo,
+      });
+      if (!mounted.current) return;
       setSettlement(result);
-      setIsArenaModalOpen(true);
-      const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-      if (reducedMotion) {
-        setVisibleCount(9);
-        setBannerPhase("settled");
+      setSession((current) =>
+        current
+          ? {
+              ...current,
+              rounds: current.rounds + 1,
+              totalStakedKobo: current.totalStakedKobo + result.stakeKobo,
+              totalWonKobo: current.totalWonKobo + result.netKobo,
+              netPositionKobo:
+                current.netPositionKobo + result.netKobo - result.stakeKobo,
+            }
+          : current,
+      );
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+        setVisibleCount(result.board.length);
         setPhase("settled");
       }
+      void refreshBalances();
     } catch (error) {
-      const friendlyMessage =
-        error instanceof HeritageGatewayError
-          ? (error.message && error.message !== error.code
-              ? error.message
-              : ERROR_COPY[error.code] ?? ERROR_COPY.GAME_UNAVAILABLE)
-          : (error instanceof Error && error.message && !error.message.includes("HERITAGE_REQUEST_FAILED")
-              ? error.message
-              : ERROR_COPY.GAME_UNAVAILABLE);
-      setPlayError(friendlyMessage);
+      if (!mounted.current) return;
+      const code =
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        typeof error.code === "string"
+          ? error.code
+          : "GAME_UNAVAILABLE";
+      setPlayError(ERROR_COPY[code] ?? ERROR_COPY.GAME_UNAVAILABLE);
       setPhase("configuring");
+    } finally {
+      submitting.current = false;
     }
   }
 
@@ -339,766 +326,806 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
     setPlayError("");
     setSettlement(undefined);
     setVisibleCount(0);
-    setBannerPhase("idle");
-    setConfettiItems([]);
     setPhase("configuring");
   }
-
   function closeConfirmation() {
     setPhase("configuring");
-    window.setTimeout(() => playButtonRef.current?.focus({ preventScroll: true }), 0);
+    window.setTimeout(
+      () => playButtonRef.current?.focus({ preventScroll: true }),
+      0,
+    );
   }
-
-  function handleConfirmationKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+  function handleConfirmationKeyDown(
+    event: ReactKeyboardEvent<HTMLDivElement>,
+  ) {
     if (event.key === "Escape") {
       event.preventDefault();
       closeConfirmation();
       return;
     }
     if (event.key !== "Tab") return;
-
-    const buttons = Array.from(confirmPopoverRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? []);
-    if (buttons.length === 0) return;
-    const first = buttons[0];
-    const last = buttons[buttons.length - 1];
+    const buttons = Array.from(
+      confirmPopoverRef.current?.querySelectorAll<HTMLButtonElement>(
+        "button",
+      ) ?? [],
+    );
+    const first = buttons[0],
+      last = buttons[buttons.length - 1];
     if (event.shiftKey && document.activeElement === first) {
       event.preventDefault();
-      last.focus();
+      last?.focus();
     } else if (!event.shiftKey && document.activeElement === last) {
       event.preventDefault();
-      first.focus();
+      first?.focus();
     }
   }
 
+  if (loadError)
+    return (
+      <SystemState
+        title="Heritage could not load"
+        message="The game is unavailable right now. No ticket was created and no money moved."
+      />
+    );
+  if (!snapshot)
+    return (
+      <SystemState
+        title="Loading Heritage"
+        message="Loading the board, balances and prize table."
+        loading
+      />
+    );
+
   return (
     <div className={styles.game}>
-      <a className="skip-link" href="#heritage-board">Skip to Heritage board</a>
-
-      {/* Full-Screen Dramatic Heritage Gold & Velvet Banner (YOU WIN / YOU TRIED / MISSED) */}
-      {bannerPhase === "flash" && (
-        <div className={`${styles.flashOverlay} ${settlement?.matchCount === 5 ? styles.flashWin : settlement?.matchCount === 4 ? styles.flashTried : styles.flashLoss}`} aria-live="assertive" role="alert">
-          <div className={styles.flashInner}>
-            <div className={styles.flashEmblem} aria-hidden="true">
-              {settlement?.matchCount === 5 ? "👑" : "🛡️"}
-            </div>
-            <h1 className={`${styles.flashBannerText} ${settlement?.matchCount === 5 ? styles.flashBannerTextWin : settlement?.matchCount === 4 ? styles.flashBannerTextTried : styles.flashBannerTextLoss}`}>
-              {settlement?.matchCount === 5 ? "YOU WIN!!!" : settlement?.matchCount === 4 ? "YOU TRIED" : "MISSED"}
-            </h1>
-            <p className={styles.flashSubtitle}>
-              {settlement?.matchCount === 5
-                ? `${formatKobo(settlement.netKobo)} Net Prize · 5 of 5 Regalia Matched`
-                : settlement?.matchCount === 4
-                ? `Half stake returned (${formatKobo(settlement.netKobo)}) · 4 of 5 matched`
-                : `${settlement?.matchCount ?? 0} of 5 matched · Round settled`}
-            </p>
-          </div>
-          {settlement && settlement.matchCount >= 4 && confettiItems.length > 0 && (
-            <div className={styles.confettiContainer} aria-hidden="true">
-              {confettiItems.map((item) => (
-                <div
-                  key={item.id}
-                  className={styles.confettiPiece}
-                  style={{
-                    left: `${item.left}%`,
-                    backgroundColor: item.color,
-                    animationDelay: `${item.delay}s`,
-                    animationDuration: `${item.duration}s`,
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
+      <a className="skip-link" href="#heritage-board">
+        Skip to Heritage board
+      </a>
       <header className={styles.topbar}>
-        <a className={styles.backBtn} href="/games" aria-label="Exit game and return to dashboard">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ marginRight: '2px' }}>
-            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span>Exit Game</span>
-        </a>
-        <div className={styles.topbarDivider}></div>
-        <a className={styles.brand} href="/games" aria-label="Heritage games home">
-          <span className={styles.brandCrest} aria-hidden="true">👑</span>
-          <div className={styles.brandTitles}>
-            <span>Instant win · 5/90 draw</span>
-            <strong>Heritage RPG</strong>
-          </div>
-        </a>
-        <div className={styles.traditionSummary}>
-          <span className={styles.royalGlyph} aria-hidden="true">H</span>
-          <strong>{selectedTradition ? `${selectedTradition.name} · ${getLeaderTitle(selectedTradition, leader)}` : "Choose your royal"}</strong>
-        </div>
-        <div className={styles.prizeStrip} aria-label="Heritage prize ladder">
-          {snapshot.prizeTiers.map((tier) => (
-            <span key={tier.id} data-tier={tier.id}>
-              <b>{tier.matches}</b>{" "}
-              {tier.multiplier === 25
-                ? "25× jackpot"
-                : tier.multiplier === 0.5
-                ? "0.5× (half stake back)"
-                : tier.outcomeType === "draw_entry"
-                ? "5/90 draw"
-                : "No prize"}
-            </span>
-          ))}
-        </div>
-        <div className={styles.balances} aria-label="Account balances">
-          <div className={`${styles.rpgCapsule} ${styles.goldCapsule}`} aria-label={`Play Balance: ${formatKobo(snapshot.playBalanceKobo)}`}>
-            <div className={styles.capsuleMedal} aria-hidden="true">🪙</div>
-            <div className={styles.capsuleData}>
-              <span className={styles.capsuleLabel}>Play Balance</span>
-              <strong className={styles.capsuleAmount}>{formatKobo(snapshot.playBalanceKobo)}</strong>
-            </div>
-            <a className={styles.capsuleQuickAdd} href="/wallet" title="Quick Top Up" aria-label="Top up Play Balance">+</a>
-          </div>
-
-          <div className={`${styles.rpgCapsule} ${styles.gemCapsule}`} aria-label={`Winnings Balance: ${formatKobo(snapshot.winningsBalanceKobo)}`}>
-            <div className={`${styles.capsuleMedal} ${styles.gemMedal}`} aria-hidden="true">💎</div>
-            <div className={styles.capsuleData}>
-              <span className={styles.capsuleLabel}>Winnings Balance</span>
-              <strong className={styles.capsuleAmount}>{formatKobo(snapshot.winningsBalanceKobo)}</strong>
-            </div>
-          </div>
-        </div>
+        <Link href="/games" className={styles.backBtn}>
+          <span aria-hidden="true">←</span> Games
+        </Link>
+        <Link href="/games" className={styles.brand}>
+          Heritage<span>by Betplus</span>
+        </Link>
         <div className={styles.topActions}>
+          <a
+            href="#heritage-rules"
+            onClick={() => {
+              if (rulesRef.current) rulesRef.current.open = true;
+            }}
+          >
+            Rules & odds
+          </a>
           <button
             type="button"
             className={styles.soundBtn}
-            onClick={handleToggleMute}
-            title={isMuted ? "Unmute Sound" : "Mute Sound"}
+            onClick={() => setIsMuted(sounds.toggleMute())}
             aria-label={isMuted ? "Unmute sound effects" : "Mute sound effects"}
+            aria-pressed={isMuted}
           >
-            {isMuted ? "🔇" : "🔊"}
+            Sound {isMuted ? "off" : "on"}
           </button>
-          <a className={styles.topup} href="/wallet">Top up</a>
-          <span className={styles.ageMark}>18+</span>
         </div>
       </header>
-
-      <main className={styles.workspace}>
-        {/* LEFT WING: Royal Monarch Silhouette Standee */}
-        <div className={styles.leftWingWrapper}>
-          <MonarchSilhouetteWing
-            tradition={selectedTradition}
-            leader={leader || "king"}
-            equippedSlots={equippedSlotsSet}
-            revealedBoard={settlement?.board}
-          />
-        </div>
-
-        {/* CENTER ARENA: 1x2 Board & Controls */}
-        <section className={styles.playSurface} data-phase={phase} aria-labelledby="heritage-title">
-          <div className={styles.intro}>
-            <h1 id="heritage-title">
-              {phase === "settled" && settlement
-                ? `${settlement.matchCount} of 5 positions matched`
-                : "Select five tiles to reveal and dress your royal"}
-            </h1>
-            <span className={styles.phaseLabel}>{phaseCopy(phase, settlement)}</span>
+      <main className={styles.main}>
+        <div className={styles.pageHeading}>
+          <div>
+            <p className={styles.eyebrow}>The royal arena · Five of nine</p>
+            <h1>Heritage</h1>
+            <p>Choose your royal. Pick five tiles. Reveal the regalia.</p>
           </div>
+          <div className={styles.balances} aria-label="Account balances">
+            <div>
+              <span>Play Balance</span>
+              <strong>{balanceText(snapshot.playBalanceKobo)}</strong>
+            </div>
+            <div>
+              <span>Winnings Balance</span>
+              <strong>{balanceText(snapshot.winningsBalanceKobo)}</strong>
+            </div>
+            <Link href="/wallet">
+              Wallet <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+        </div>
+        {balanceStatus === "error" && (
+          <p className={styles.balanceNotice} role="status">
+            Your ticket is settled. Balances could not refresh.{" "}
+            <button type="button" onClick={refreshBalances}>
+              Refresh balances
+            </button>
+          </p>
+        )}
+        <div className={styles.workspace}>
+          <aside
+            className={styles.monarchPanel}
+            aria-label="Your royal and regalia"
+          >
+            <div className={styles.royalCaption}>
+              <p className={styles.eyebrow}>
+                {selectedTradition?.name ?? "Choose a tradition"}
+              </p>
+              <h2>{leaderTitle}</h2>
+              <span className={styles.royalIdentity}>Your royal</span>
+            </div>
+            <div
+              className={styles.royalArtwork}
+              data-equipped={dressedItems.length > 0}
+            >
+              <div className={styles.royalHalo} aria-hidden="true" />
+              {artwork ? (
+                <Image
+                  src={artwork}
+                  alt={`${selectedTradition?.name} ${leaderTitle}`}
+                  width={300}
+                  height={360}
+                  priority
+                  unoptimized
+                />
+              ) : (
+                <svg viewBox="0 0 100 120" aria-hidden="true">
+                  <path
+                    d="m14 30 20 14 16-23 16 23 20-14-10 42H24Z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  />
+                  <path
+                    d="M25 82h50M32 96h36"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  />
+                </svg>
+              )}
+              <span className={styles.royalPedestal} aria-hidden="true" />
+            </div>
+            <div className={styles.inventoryHeading}>
+              <h3>Royal regalia</h3>
+              <span>{dressedItems.length}/5 matched</span>
+            </div>
+            <ul className={styles.equipmentGrid} aria-label="Royal equipment">
+              {(
+                [
+                  ["head", "Headwear"],
+                  ["neck", "Neckwear"],
+                  ["torso", "Clothing"],
+                  ["hand", "Hand & wrist"],
+                  ["feet", "Footwear"],
+                ] as const
+              ).map(([slot, label]) => {
+                const matched = dressedItems.find(
+                  ({ item }) =>
+                    (item.slot === "wrist"
+                      ? "hand"
+                      : item.slot === "waist"
+                        ? "torso"
+                        : item.slot) === slot,
+                );
+                return (
+                  <li key={slot} data-equipped={equippedSlots.has(slot)}>
+                    <button
+                      type="button"
+                      disabled={!matched}
+                      aria-label={
+                        matched
+                          ? `Inspect matched ${label}`
+                          : `Empty ${label} slot`
+                      }
+                      onClick={(event) => {
+                        if (matched)
+                          inspectRegalia(matched, event.currentTarget);
+                      }}
+                    >
+                      <RegaliaArtwork
+                        item={
+                          matched?.item ?? {
+                            number: 0,
+                            slot,
+                            canonicalName: label,
+                          }
+                        }
+                      />
+                      <span>{label}</span>
+                      <b aria-hidden="true">{matched ? "✓" : "◇"}</b>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className={styles.inventoryNote}>
+              {settlement
+                ? "Inspect a matched piece to view its regalia."
+                : "Matched regalia fill your royal’s equipment slots."}
+            </p>
+          </aside>
 
-          <div className={styles.playArenaGrid}>
-            <div className={styles.arenaLeftCol}>
-              <div className={styles.configureRow}>
-                <label>
-                  <span>Royal tradition</span>
-                  <select value={traditionId} onChange={(event) => setTraditionId(event.target.value)} disabled={controlsLocked} aria-label="Royal tradition">
-                    <option value="">Choose a tradition</option>
-                    {snapshot.traditions.map((tradition) => <option key={tradition.id} value={tradition.id}>{tradition.name}</option>)}
-                  </select>
-                </label>
-                <fieldset disabled={controlsLocked}>
-                  <legend>Leader</legend>
-                  <div className={styles.segmented}>
-                    {(["king", "queen"] as const).map((option) => (
-                      <button key={option} type="button" aria-pressed={leader === option} onClick={() => setLeader(option)}>
-                        {option === "king" ? "King" : "Queen"}
+          <section
+            className={styles.playSurface}
+            aria-label="Heritage board and royal selection"
+          >
+            <div className={styles.setupHeading}>
+              <span className={styles.stepNumber}>1</span>
+              <h2>Choose your royal</h2>
+              <span>Visual choice · same odds</span>
+            </div>
+            <div className={styles.configureRow}>
+              <label>
+                <span>Royal tradition</span>
+                <select
+                  value={traditionId}
+                  onChange={(event) => setTraditionId(event.target.value)}
+                  disabled={controlsLocked}
+                >
+                  <option value="">Choose a tradition</option>
+                  {snapshot.traditions.map((tradition) => (
+                    <option key={tradition.id} value={tradition.id}>
+                      {tradition.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <fieldset disabled={controlsLocked}>
+                <legend>Royal</legend>
+                <div className={styles.segmented}>
+                  {(["king", "queen"] as const).map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={leader === option}
+                      onClick={() => setLeader(option)}
+                    >
+                      {option === "king" ? "King" : "Queen"}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+            <section
+              className={styles.boardSection}
+              aria-labelledby="board-title"
+            >
+              <div className={styles.boardHeading}>
+                <div>
+                  <div className={styles.setupHeading}>
+                    <span className={styles.stepNumber}>2</span>
+                    <h2 id="board-title">
+                      {phase === "settled"
+                        ? "Your revealed board"
+                        : "Choose five positions"}
+                    </h2>
+                  </div>
+                  <p>
+                    {phase === "settled"
+                      ? "Your picks and every winning position are shown."
+                      : "Pick your own tiles or use Quick Pick."}
+                  </p>
+                </div>
+                <span className={styles.selectionCount} aria-live="polite">
+                  {selectedPositions.length}/5 <span>selected</span>
+                </span>
+              </div>
+              <div
+                className={styles.prizeChips}
+                aria-label="Heritage prize ladder"
+              >
+                {snapshot.prizeTiers
+                  .filter((tier) => tier.outcomeType !== "none")
+                  .map((tier) => (
+                    <span
+                      key={tier.id}
+                      data-kind={
+                        tier.outcomeType === "draw_entry"
+                          ? "draw"
+                          : (tier.multiplier ?? 0) > 1
+                            ? "jackpot"
+                            : "return"
+                      }
+                    >
+                      <b>
+                        {tier.outcomeType === "draw_entry"
+                          ? "5/90"
+                          : `${tier.multiplier}×`}
+                      </b>
+                      {tier.outcomeType === "draw_entry"
+                        ? "Draw entry"
+                        : (tier.multiplier ?? 0) > 1
+                          ? "Jackpot"
+                          : "Stake returned"}
+                    </span>
+                  ))}
+              </div>
+              <div
+                className={styles.selectionTrack}
+                aria-label={`${selectedPositions.length} of 5 tiles selected`}
+              >
+                <span>YOUR PICKS</span>
+                <div aria-hidden="true">
+                  {Array.from({ length: 5 }, (_, index) => (
+                    <i
+                      key={index}
+                      data-filled={index < selectedPositions.length}
+                    />
+                  ))}
+                </div>
+                <strong>{selectedPositions.length}/5</strong>
+              </div>
+              <ol
+                className={styles.board}
+                id="heritage-board"
+                aria-label={
+                  phase === "settled"
+                    ? "Complete nine-position Heritage result"
+                    : "Nine Heritage board positions"
+                }
+              >
+                {Array.from({ length: 9 }, (_, index) => {
+                  const position = index + 1,
+                    result = settlement?.board[index];
+                  const revealed = Boolean(result && index < visibleCount);
+                  const selected = selectedPositions.includes(position);
+                  return (
+                    <li key={position}>
+                      <button
+                        type="button"
+                        className={styles.tile}
+                        data-selected={selected}
+                        data-revealed={revealed}
+                        data-result={
+                          revealed && result ? resultState(result) : undefined
+                        }
+                        aria-pressed={settlement ? undefined : selected}
+                        aria-label={tileLabel(
+                          position,
+                          selected,
+                          revealed ? result : undefined,
+                        )}
+                        aria-disabled={
+                          (controlsLocked && !revealed) || quickPicking
+                        }
+                        aria-haspopup={revealed ? "dialog" : undefined}
+                        onClick={(event) => {
+                          if (revealed && result)
+                            inspectRegalia(result, event.currentTarget);
+                          else togglePosition(position);
+                        }}
+                      >
+                        {revealed && result ? (
+                          <TileResult result={result} />
+                        ) : (
+                          <>
+                            <span className={styles.tileNumber}>
+                              {position.toString().padStart(2, "0")}
+                            </span>
+                            <span
+                              className={styles.tileMark}
+                              aria-hidden="true"
+                            >
+                              {selected ? (
+                                "✓"
+                              ) : (
+                                <svg viewBox="0 0 80 80">
+                                  <path
+                                    d="m15 26 15 12 10-19 10 19 15-12-8 29H23Z"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                  />
+                                  <path
+                                    d="M24 62h32"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                  />
+                                  <path
+                                    d="m40 6 4 6-4 6-4-6Z"
+                                    fill="currentColor"
+                                  />
+                                </svg>
+                              )}
+                            </span>
+                            <strong>
+                              {selected ? "Selected" : "Pick tile"}
+                            </strong>
+                          </>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+              <div className={styles.boardFoot}>
+                <p role="status">
+                  {phase === "settled"
+                    ? "Select any revealed tile to inspect the regalia."
+                    : selectionMessage || "All positions have the same odds."}
+                </p>
+                {!controlsLocked && (
+                  <div className={styles.boardTools}>
+                    <button
+                      className={styles.quickPick}
+                      type="button"
+                      onClick={quickPick}
+                      disabled={quickPicking}
+                    >
+                      {quickPicking ? "Choosing…" : "Quick Pick five"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPositions([]);
+                        setSelectionMessage("");
+                      }}
+                      disabled={!selectedPositions.length || quickPicking}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
+              {ready && !controlsLocked && (
+                <a className={styles.mobileNext} href="#heritage-stake-step">
+                  Continue to stake <span aria-hidden="true">↓</span>
+                </a>
+              )}
+              {phase === "resolving" && (
+                <div
+                  className={styles.revealStatus}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {settlement
+                    ? `Revealing the board · ${visibleCount} of 9`
+                    : "Submitting your ticket…"}
+                  <span>
+                    {visibleCount > 0 && settlement
+                      ? revealCopy(settlement.board[visibleCount - 1])
+                      : "Please keep this screen open."}
+                  </span>
+                </div>
+              )}
+            </section>
+          </section>
+          <aside
+            className={styles.roundPanel}
+            aria-label="Stake and round details"
+          >
+            {phase === "settled" && settlement ? (
+              <>
+                <Metrics
+                  snapshot={snapshot}
+                  settlement={settlement}
+                  settlementHeadingRef={settlementHeadingRef}
+                />
+                <div className={styles.resultActions}>
+                  <Link className={styles.primaryAction} href="/games">
+                    Back to games
+                  </Link>
+                  <button
+                    className={styles.secondaryAction}
+                    type="button"
+                    onClick={startNewRound}
+                  >
+                    Start another round
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <fieldset
+                  id="heritage-stake-step"
+                  className={styles.stakeSection}
+                  disabled={controlsLocked}
+                >
+                  <legend>
+                    <span className={styles.stepNumber}>3</span> Set your stake
+                  </legend>
+                  <p className={styles.stakeRange}>
+                    {formatKobo(snapshot.minStakeKobo)}–
+                    {formatKobo(snapshot.maxStakeKobo)}
+                  </p>
+                  <label className={styles.stakeLabel} htmlFor="heritage-stake">
+                    Amount in naira
+                  </label>
+                  <div className={styles.stakeInput}>
+                    <span aria-hidden="true">₦</span>
+                    <input
+                      id="heritage-stake"
+                      inputMode="decimal"
+                      aria-label="Stake amount"
+                      aria-invalid={!stakeReady}
+                      aria-describedby="heritage-stake-hint"
+                      value={stakeInput}
+                      onChange={(event) => {
+                        setStakeInput(event.target.value);
+                        setPlayError("");
+                      }}
+                    />
+                  </div>
+                  <p
+                    id="heritage-stake-hint"
+                    className={
+                      !stakeReady ? styles.fieldError : styles.fieldHint
+                    }
+                  >
+                    {stakeReady
+                      ? "This amount is charged when you confirm."
+                      : `Enter a stake from ${formatKobo(snapshot.minStakeKobo)} to ${formatKobo(snapshot.maxStakeKobo)}.`}
+                  </p>
+                  <div className={styles.stakePresets}>
+                    {STAKE_PRESETS_KOBO.filter(
+                      (amount) =>
+                        amount >= snapshot.minStakeKobo &&
+                        amount <= snapshot.maxStakeKobo,
+                    ).map((amount) => (
+                      <button
+                        key={amount}
+                        type="button"
+                        aria-pressed={stakeKobo === amount}
+                        onClick={() => setStakeInput(String(amount / 100))}
+                      >
+                        {formatKobo(amount)}
                       </button>
                     ))}
                   </div>
                 </fieldset>
-              </div>
-
-              <div className={styles.manaChargeBar} aria-label={`Mana charge ${selectedPositions.length} of 5`}>
-                <span className={styles.manaLabel}>⚡ Charge: {selectedPositions.length}/5</span>
-                <div className={styles.manaCells}>
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <div key={i} className={styles.manaCell} data-charged={i < selectedPositions.length} />
-                  ))}
-                </div>
-              </div>
-
-              <section className={styles.boardSection} aria-labelledby="board-title">
-                <div className={styles.boardHeading}>
-                  <div>
-                    <h2 id="board-title">{phase === "settled" ? "Complete board result" : "Choose five positions"}</h2>
-                    <p>{phase === "settled" ? "Every pick and winning position is shown below." : "Tiles are face down until your ticket settles."}</p>
-                  </div>
-                  <div className={styles.selectionCount} aria-live="polite">
-                    <strong>{phase === "settled" && settlement ? `${settlement.matchCount} of 5` : `${selectedPositions.length} of 5`}</strong>
-                    <span>{phase === "settled" ? "matched" : phase === "resolving" ? `${revealedMatches} matched · ${Math.max(0, 5 - revealedSelected)} picks left` : "selected"}</span>
-                  </div>
-                </div>
-
-                <ol className={styles.board} id="heritage-board" aria-label={phase === "settled" ? "Complete nine-position Heritage result" : "Nine Heritage board positions"}>
-                  {Array.from({ length: 9 }, (_, index) => {
-                    const position = index + 1;
-                    const result = settlement?.board[index];
-                    const revealed = Boolean(result && index < visibleCount);
-                    return (
-                      <li key={position}>
-                        <button
-                          className={styles.tile}
-                          type="button"
-                          data-selected={selectedPositions.includes(position)}
-                          data-revealed={revealed}
-                          data-result={revealed && result ? resultState(result) : undefined}
-                          aria-pressed={!controlsLocked ? selectedPositions.includes(position) : undefined}
-                          aria-label={tileLabel(position, selectedPositions.includes(position), revealed ? result : undefined)}
-                          onClick={() => togglePosition(position)}
-                          disabled={phase === "resolving"}
-                          aria-disabled={controlsLocked}
-                        >
-                          <span className={styles.tileInner}>
-                            <span className={styles.tileBack}>
-                              <span>{position}</span>
-                              <strong>{selectedPositions.includes(position) ? "Selected" : "Choose"}</strong>
-                            </span>
-                            <span className={styles.tileFace} aria-hidden={!revealed}>
-                              {result && <TileResult result={result} />}
-                            </span>
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ol>
-
-                <div className={styles.boardFoot}>
-                  <p className={selectionMessage && phase !== "settled" ? styles.selectionMessage : undefined}>{phase === "settled" ? "Your five chosen positions changed placement only, never the predetermined outcome." : selectionMessage || "Your choice changes where items appear, never the predetermined outcome."}</p>
-                  {!controlsLocked && <button className={styles.quickPick} type="button" onClick={quickPick} disabled={quickPicking}>{quickPicking ? "Choosing…" : "Quick Pick five"}</button>}
-                </div>
-
-                {phase === "resolving" && (
-                  <div className={styles.revealStatus} role="status" aria-live="polite" aria-atomic="true">
-                    <strong>{visibleCount === 0 ? "Ticket created. Revealing the board." : `${revealedMatches} of your five picks matched so far.`}</strong>
-                    <span>{lastRevealed ? revealCopy(lastRevealed) : "Outcome was fixed before the first tile turned."}</span>
-                  </div>
-                )}
-              </section>
-            </div>
-
-            <div className={styles.arenaRightCol}>
-              <div className={styles.controlDock}>
-                {!controlsLocked && (
-                  <section className={styles.stakeSection} aria-labelledby="stake-title">
-                    <div className={styles.sectionLabel}>
-                      <h2 id="stake-title">Stake in Coins</h2>
-                      <span>{formatKobo(snapshot.minStakeKobo)}–{formatKobo(snapshot.maxStakeKobo)}</span>
-                    </div>
-                    <div className={styles.stakePresets}>
-                      {STAKE_PRESETS_KOBO.map((amount) => (
-                        <button
-                          key={amount}
-                          className={styles.rpgCoinStakeBtn}
-                          type="button"
-                          aria-pressed={stakeKobo === amount}
-                          onClick={() => setStakeInput(String(amount / 100))}
-                        >
-                          <span className={styles.coinIcon} aria-hidden="true">🪙</span>
-                          <span className={styles.coinAmount}>{formatKobo(amount)}</span>
-                        </button>
-                      ))}
-                    </div>
-                    <label className={styles.stakeInput}>
-                      <span className={styles.customLabel}>Custom</span>
-                      <span className={styles.customCoinIcon} aria-hidden="true">🪙 ₦</span>
-                      <input
-                        aria-label="Stake amount"
-                        inputMode="decimal"
-                        value={stakeInput}
-                        onChange={(event) => {
-                          setStakeInput(event.target.value);
-                          if (playError) setPlayError("");
-                        }}
-                        placeholder="Amount"
-                      />
-                    </label>
-                    {!stakeReady && <p className={styles.fieldError}>Enter a stake from {formatKobo(snapshot.minStakeKobo)} to {formatKobo(snapshot.maxStakeKobo)}.</p>}
-                  </section>
-                )}
-
-                {phase !== "resolving" && (
-                  <div className={styles.actionZone}>
-                    {playError && (
-                      <div className={styles.playErrorBanner} role="alert">
-                        <span className={styles.playErrorIcon} aria-hidden="true">⚠️</span>
-                        <div className={styles.playErrorBody}>
-                          <strong>Notice</strong>
-                          <p>{playError}</p>
-                          {(playError.toLowerCase().includes("balance") || playError.toLowerCase().includes("top up") || playError.toLowerCase().includes("funds")) && (
-                            <a href="/wallet" className={styles.playErrorLink}>Top up Play Balance →</a>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          className={styles.playErrorClose}
-                          onClick={() => setPlayError("")}
-                          aria-label="Dismiss error notification"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    )}
-                    {phase === "confirming" && (
-                      <div id={confirmDialogId} ref={confirmPopoverRef} className={styles.confirmPopover} role="dialog" aria-modal="false" aria-labelledby={confirmTitleId} onKeyDown={handleConfirmationKeyDown}>
-                        <div className={styles.confirmHeader}>
-                          <span className={styles.confirmIcon} aria-hidden="true">⚔️</span>
-                          <strong id={confirmTitleId}>Confirm game</strong>
-                        </div>
-                        <p className={styles.confirmSubtext}>Stake <strong>{stakeKobo ? formatKobo(stakeKobo) : "—"}</strong></p>
-                        <div className={styles.confirmBtnRow}>
-                          <button ref={confirmYesRef} className={styles.confirmYesBtn} type="button" onClick={confirmPlay}>Yes</button>
-                          <button className={styles.confirmNoBtn} type="button" onClick={closeConfirmation}>No</button>
-                        </div>
-                      </div>
-                    )}
-
-                    {(phase === "configuring" || phase === "confirming") && (
-                      <div className={styles.paymentMethodSelector}>
-                        <button
-                          type="button"
-                          className={`${styles.paymentMethodTab} ${paymentOption === "wallet" ? styles.paymentMethodTabActive : ""}`}
-                          onClick={() => setPaymentOption("wallet")}
-                        >
-                          <span className={styles.paymentMethodTabTitle}>👛 Wallet</span>
-                          <span className={styles.paymentMethodTabSub}>Betplus Balance</span>
-                        </button>
-                        <button
-                          type="button"
-                          className={`${styles.paymentMethodTab} ${paymentOption === "opay" ? styles.paymentMethodTabActiveOpay : ""}`}
-                          onClick={() => setPaymentOption("opay")}
-                        >
-                          <span className={styles.paymentMethodTabTitle}>⚡ OPay Direct</span>
-                          <span className={styles.paymentMethodTabSubOpay}>Debit & Auto-Payout</span>
-                        </button>
-                      </div>
-                    )}
-
-                    {phase === "configuring" || phase === "confirming" ? (
+                <fieldset
+                  className={styles.paymentMethods}
+                  disabled={controlsLocked}
+                >
+                  <legend>Pay from</legend>
+                  <div className={styles.segmented}>
+                    {(
+                      [
+                        ["wallet", "Betplus wallet"],
+                        ["opay", "OPay"],
+                      ] as const
+                    ).map(([value, label]) => (
                       <button
-                        ref={playButtonRef}
-                        className={`${styles.primaryAction} ${paymentOption === "opay" ? styles.primaryActionOpay : ""}`}
+                        key={value}
+                        type="button"
+                        aria-pressed={paymentOption === value}
+                        onClick={() => setPaymentOption(value)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+                <div className={styles.actionZone}>
+                  {playError && (
+                    <div className={styles.playErrorBanner} role="alert">
+                      <p>{playError}</p>
+                      {playError.includes("balance") && (
+                        <Link href="/wallet">Open wallet</Link>
+                      )}
+                    </div>
+                  )}
+                  {phase === "confirming" ? (
+                    <div
+                      id={confirmDialogId}
+                      ref={confirmPopoverRef}
+                      className={styles.confirmPopover}
+                      role="dialog"
+                      aria-modal="false"
+                      aria-labelledby={confirmTitleId}
+                      onKeyDown={handleConfirmationKeyDown}
+                    >
+                      <h2 id={confirmTitleId}>Review your round</h2>
+                      <dl>
+                        <div>
+                          <dt>Royal</dt>
+                          <dd>
+                            {selectedTradition?.name} · {leaderTitle}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Positions</dt>
+                          <dd>{selectedPositions.join(" · ")}</dd>
+                        </div>
+                        <div>
+                          <dt>Stake</dt>
+                          <dd>{formatKobo(stakeKobo ?? 0)}</dd>
+                        </div>
+                        <div>
+                          <dt>Payment</dt>
+                          <dd>
+                            {paymentOption === "wallet"
+                              ? "Betplus wallet"
+                              : "OPay"}
+                          </dd>
+                        </div>
+                      </dl>
+                      <p>
+                        Your stake will be charged. Outcomes follow the
+                        published prize table.
+                      </p>
+                      <button
+                        ref={confirmYesRef}
+                        className={styles.primaryAction}
                         type="button"
                         onClick={() => {
                           if (paymentOption === "opay") {
+                            setPhase("configuring");
                             setOpayCheckoutOpen(true);
-                          } else {
-                            setPhase("confirming");
-                          }
+                          } else void confirmPlay();
                         }}
-                        disabled={!ready}
-                        aria-haspopup="dialog"
-                        aria-expanded={phase === "confirming"}
-                        aria-controls={phase === "confirming" ? confirmDialogId : undefined}
                       >
                         {paymentOption === "opay"
-                          ? `⚡ Pay with OPay · ${stakeKobo ? formatKobo(stakeKobo) : ""}`
-                          : `Reveal and dress · ${stakeKobo ? formatKobo(stakeKobo) : ""}`}
+                          ? "Continue to OPay"
+                          : `Confirm stake · ${formatKobo(stakeKobo ?? 0)}`}
                       </button>
-                    ) : (
-                      <div className={styles.resultActions} data-loss={isLoss}>
-                        {isLoss ? <a className={styles.primaryAction} href="/games">Back to games</a> : <button className={styles.primaryAction} type="button" onClick={startNewRound}>Start another round</button>}
-                        {isLoss ? <button className={styles.secondaryAction} type="button" onClick={startNewRound}>Start another round</button> : <a className={styles.secondaryAction} href="/games">Back to games</a>}
-                      </div>
-                    )}
-                    {!ready && phase !== "settled" && <p>Select a tradition, a leader and exactly five positions.</p>}
-                  </div>
-                )}
-              </div>
-
-              <div className={styles.sideHeroCard}>
-                <button
-                  type="button"
-                  className={styles.heroCardToggle}
-                  onClick={() => setIsLoadoutExpanded((prev) => !prev)}
-                  aria-expanded={isLoadoutExpanded}
-                  aria-controls="heritage-hero-loadout"
-                >
-                  <div className={styles.heroAvatarCard}>
-                    <div className={styles.heroAvatarIcon} aria-hidden="true">
-                      {leader === "queen" ? "👑" : "🤴"}
+                      <button
+                        className={styles.secondaryAction}
+                        type="button"
+                        onClick={closeConfirmation}
+                      >
+                        Edit round
+                      </button>
                     </div>
-                    <div className={styles.heroAvatarInfo}>
-                      <h3>{selectedTradition?.name ?? "Royal Realm"}</h3>
-                      <p>{getLeaderTitle(selectedTradition, leader)} · {dressedItems.length}/5 Equipped</p>
-                    </div>
-                  </div>
-                  <div className={styles.heroAccordionHintRow}>
-                    <span className={styles.heroAccordionActionHint}>
-                      {isLoadoutExpanded ? "Collapse" : "Slots"}
-                    </span>
-                    <svg
-                      className={`${styles.accordionChevron} ${isLoadoutExpanded ? styles.accordionChevronOpen : ""} ${styles.heroChevronMobileOnly}`}
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </div>
-                </button>
-
-                <div
-                  id="heritage-hero-loadout"
-                  className={`${styles.heroLoadoutBody} ${isLoadoutExpanded ? styles.heroLoadoutBodyOpen : ""}`}
-                >
-                  <div className={styles.rpgEquipGrid} aria-label="Hero Equipment Slots">
-                    {[
-                      { id: "head", label: "Crown", icon: "👑" },
-                      { id: "neck", label: "Amulet", icon: "📿" },
-                      { id: "torso", label: "Armor", icon: "🛡️" },
-                      { id: "hand", label: "Staff", icon: "🗡️" },
-                      { id: "feet", label: "Boots", icon: "👢" },
-                    ].map((slot) => {
-                      const isEquipped = settlement?.board.slice(0, visibleCount).some(
-                        (position) =>
-                          position.selected &&
-                          position.winning &&
-                          (position.item.slot === slot.id ||
-                            (slot.id === "hand" && position.item.slot === "wrist") ||
-                            (slot.id === "torso" && position.item.slot === "waist"))
-                      );
-                      return (
-                        <div key={slot.id} className={styles.rpgSlotCard} data-equipped={isEquipped}>
-                          <span className={styles.rpgSlotIcon} aria-hidden="true">{slot.icon}</span>
-                          <span className={styles.rpgSlotLabel}>{slot.label}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Round Summary & Settlement Accordion */}
-          <div className={styles.metricsAccordionWrapper}>
-            <button
-              type="button"
-              className={styles.metricsAccordionToggle}
-              onClick={() => setIsMetricsExpanded((prev) => !prev)}
-              aria-expanded={isMetricsExpanded}
-              aria-controls="heritage-metrics-body"
-            >
-              <div className={styles.accordionHeaderLeft}>
-                <span className={styles.accordionIcon}>📊</span>
-                <span className={styles.accordionTitle}>
-                  {phase === "settled" && settlement
-                    ? `Round Settlement (${settlement.matchCount}/5 matched)`
-                    : "Round Summary"}
-                </span>
-              </div>
-              <div className={styles.accordionHeaderRight}>
-                <span className={styles.metricsHeaderBadge}>
-                  {phase === "settled" && settlement
-                    ? formatKobo(settlement.netKobo)
-                    : jackpotGrossKobo > 0
-                    ? `${formatKobo(jackpotGrossKobo)} max`
-                    : "25× Max Win"}
-                </span>
-                <span className={styles.accordionActionHint}>
-                  {isMetricsExpanded ? "Hide" : "Details"}
-                </span>
-                <svg
-                  className={`${styles.accordionChevron} ${isMetricsExpanded ? styles.accordionChevronOpen : ""}`}
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
-            </button>
-            <div
-              id="heritage-metrics-body"
-              className={`${styles.metricsAccordionBody} ${isMetricsExpanded ? styles.metricsAccordionBodyOpen : ""}`}
-            >
-              <Metrics
-                snapshot={snapshot}
-                stakeKobo={stakeKobo ?? 0}
-                selectedCount={selectedPositions.length}
-                tradition={selectedTradition?.name ?? "Not selected"}
-                leader={getLeaderTitle(selectedTradition, leader)}
-                jackpotTier={jackpotTier}
-                jackpotGrossKobo={jackpotGrossKobo}
-                jackpotTaxKobo={jackpotTaxKobo}
-                settlement={phase === "settled" ? settlement : undefined}
-                settlementHeadingRef={settlementHeadingRef}
-              />
-            </div>
-          </div>
-
-          {settlement?.secondChance && phase === "settled" && <SecondChanceSummary entry={settlement.secondChance} reference={settlement.reference} />}
-
-          {phase === "settled" && settlement && (
-            <div className={styles.proofAccordionWrapper}>
-              <button
-                type="button"
-                className={styles.proofAccordionToggle}
-                onClick={() => setIsProofExpanded((prev) => !prev)}
-                aria-expanded={isProofExpanded}
-                aria-controls="heritage-proof-body"
-              >
-                <div className={styles.accordionHeaderLeft}>
-                  <span className={styles.accordionIcon}>🔍</span>
-                  <span className={styles.accordionTitle}>Board Proof & Outcome Integrity</span>
-                </div>
-                <div className={styles.accordionHeaderRight}>
-                  <span className={styles.accordionActionHint}>
-                    {isProofExpanded ? "Collapse" : "Tap to inspect"}
-                  </span>
-                  <svg
-                    className={`${styles.accordionChevron} ${isProofExpanded ? styles.accordionChevronOpen : ""}`}
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
+                  ) : null}
+                  <button
+                    ref={playButtonRef}
+                    hidden={phase === "confirming"}
+                    className={styles.primaryAction}
+                    type="button"
+                    disabled={
+                      !ready ||
+                      phase === "resolving" ||
+                      quickPicking ||
+                      opayCheckoutOpen
+                    }
+                    onClick={() => setPhase("confirming")}
+                    aria-haspopup="dialog"
                   >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
+                    {phase === "resolving"
+                      ? "Revealing…"
+                      : `Review round · ${formatKobo(stakeKobo ?? 0)}`}
+                  </button>
+                  {selectedPositions.length !== 5 && phase !== "resolving" && (
+                    <p className={styles.fieldHint}>
+                      Select {5 - selectedPositions.length} more{" "}
+                      {5 - selectedPositions.length === 1
+                        ? "position"
+                        : "positions"}{" "}
+                      to continue.
+                    </p>
+                  )}
                 </div>
-              </button>
-              <div
-                id="heritage-proof-body"
-                className={`${styles.proofAccordionBody} ${isProofExpanded ? styles.proofAccordionBodyOpen : ""}`}
-              >
-                <ResultEvidence board={settlement.board} />
-              </div>
-            </div>
-          )}
-
-          <section className={styles.rules} id="heritage-rules" aria-labelledby="rules-title">
-            <button
-              type="button"
-              className={styles.rulesAccordionToggle}
-              onClick={() => setIsRulesExpanded((prev) => !prev)}
-              aria-expanded={isRulesExpanded}
-              aria-controls="heritage-rules-body"
-            >
-              <div className={styles.accordionHeaderLeft}>
-                <span className={styles.accordionIcon}>📜</span>
-                <span className={styles.accordionTitle}>Rules & Exact Odds (RTP 81.6%)</span>
-              </div>
-              <div className={styles.accordionHeaderRight}>
-                <span className={styles.accordionActionHint}>
-                  {isRulesExpanded ? "Collapse" : "Tap to view"}
-                </span>
-                <svg
-                  className={`${styles.accordionChevron} ${isRulesExpanded ? styles.accordionChevronOpen : ""}`}
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
-            </button>
-
-            <div
-              id="heritage-rules-body"
-              className={`${styles.rulesAccordionBody} ${isRulesExpanded ? styles.rulesAccordionBodyOpen : ""}`}
-            >
-              <h2 id="rules-title" className={styles.rulesDesktopHeading}>Rules and exact odds</h2>
-              <p>Every ticket has five winning positions. The outcome tier is fixed when your ticket is created; your selection changes presentation, not the tier. All five cash-prize matches must be in your selected positions.</p>
-              <div className={styles.oddsTable} role="table" aria-label="Heritage prize table">
-                {snapshot.prizeTiers.map((tier) => <PrizeRow key={tier.id} tier={tier} stakeKobo={stakeKobo ?? 0} />)}
-              </div>
-              <p>Modelled RTP 81.6%. Withholding tax is estimated at {snapshot.taxRateBasisPoints / 100}% of net winnings and shown before any credited figure.</p>
-            </div>
-          </section>
-
-          {/* Mobile & Tablet Community Hub Accordion */}
-          <div className={styles.mobileCommunityAccordion}>
-            <button
-              type="button"
-              className={styles.accordionToggle}
-              onClick={() => setIsCommunityExpanded((prev) => !prev)}
-              aria-expanded={isCommunityExpanded}
-              aria-controls="heritage-mobile-community"
-            >
-              <div className={styles.accordionHeaderLeft}>
-                <span className={styles.accordionLivePulse} />
-                <span className={styles.accordionTitle}>Live Activity & Hall of Champions</span>
-              </div>
-              <div className={styles.accordionHeaderRight}>
-                <span className={styles.accordionActionHint}>
-                  {isCommunityExpanded ? "Collapse" : "Tap to view"}
-                </span>
-                <svg
-                  className={`${styles.accordionChevron} ${isCommunityExpanded ? styles.accordionChevronOpen : ""}`}
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
-            </button>
-
-            <div
-              id="heritage-mobile-community"
-              className={`${styles.accordionBody} ${isCommunityExpanded ? styles.accordionBodyOpen : ""}`}
-            >
-              <CommunitySidebarWing
-                selectedTradition={selectedTradition}
-                recentActivity={recentActivity}
-                winnersList={hallOfChampions}
-              />
-            </div>
-          </div>
-
-          <p className={styles.culturalNotice}>The fixed 1–90 catalogue keeps unapproved entries withheld. Final names, context and artwork require recorded sign-off from a named cultural advisor before publication. No identifiable living monarch or existing palace regalia is depicted here.</p>
-        </section>
-
-        {/* RIGHT WING: Recent Activity, Winners Area, Attire Lore Deck */}
-        <div className={styles.rightWingWrapper}>
-          <CommunitySidebarWing
-            selectedTradition={selectedTradition}
-            recentActivity={recentActivity}
-            winnersList={hallOfChampions}
-          />
-        </div>
-
-        <aside className={styles.royalRail} aria-labelledby="royal-preview-title">
-          <div className={styles.heroLoadoutSheet}>
-            <div className={styles.heroAvatarCard}>
-              <div className={styles.heroAvatarIcon} aria-hidden="true">
-                {leader === "queen" ? "👑" : "🤴"}
-              </div>
-              <div className={styles.heroAvatarInfo}>
-                <h3 id="royal-preview-title">{selectedTradition?.name ?? "Royal Realm"}</h3>
-                <p>{getLeaderTitle(selectedTradition, leader)} · {dressedItems.length}/5 Equipped</p>
-              </div>
-            </div>
-
-            <div className={styles.rpgEquipGrid} aria-label="Hero Equipment Slots">
-              {[
-                { id: "head", label: "Crown", icon: "👑" },
-                { id: "neck", label: "Amulet", icon: "📿" },
-                { id: "torso", label: "Armor", icon: "🛡️" },
-                { id: "hand", label: "Staff", icon: "🗡️" },
-                { id: "feet", label: "Boots", icon: "👢" },
-              ].map((slot) => {
-                const isEquipped = settlement?.board.slice(0, visibleCount).some(
-                  (position) =>
-                    position.selected &&
-                    position.winning &&
-                    (position.item.slot === slot.id ||
-                      (slot.id === "hand" && position.item.slot === "wrist") ||
-                      (slot.id === "torso" && position.item.slot === "waist"))
-                );
-                return (
-                  <div key={slot.id} className={styles.rpgSlotCard} data-equipped={isEquipped}>
-                    <span className={styles.rpgSlotIcon} aria-hidden="true">{slot.icon}</span>
-                    <span className={styles.rpgSlotLabel}>{slot.label}</span>
+              </>
+            )}
+            {!settlement && (
+              <details className={styles.potential}>
+                <summary>Potential return</summary>
+                <dl>
+                  <div>
+                    <dt>Potential gross</dt>
+                    <dd>{formatKobo(jackpotGrossKobo)}</dd>
                   </div>
-                );
-              })}
+                  <div>
+                    <dt>Estimated tax</dt>
+                    <dd>−{formatKobo(jackpotTaxKobo)}</dd>
+                  </div>
+                  <div>
+                    <dt>Potential net</dt>
+                    <dd>{formatKobo(jackpotGrossKobo - jackpotTaxKobo)}</dd>
+                  </div>
+                  <div>
+                    <dt>Jackpot odds</dt>
+                    <dd>
+                      {jackpotTier
+                        ? formatProbability(jackpotTier.probabilityBasisPoints)
+                        : "—"}
+                    </dd>
+                  </div>
+                </dl>
+                <p>Shown for the jackpot outcome. A prize is not guaranteed.</p>
+              </details>
+            )}
+          </aside>
+        </div>
+        {phase === "settled" && settlement && (
+          <div className={styles.settledContent}>
+            {settlement.secondChance && (
+              <SecondChanceSummary
+                entry={settlement.secondChance}
+                reference={settlement.reference}
+              />
+            )}
+            <details className={styles.details}>
+              <summary>Board details</summary>
+              <ResultEvidence board={settlement.board} />
+            </details>
+          </div>
+        )}
+        <details ref={rulesRef} className={styles.details} id="heritage-rules">
+          <summary>Rules and exact odds</summary>
+          <div className={styles.rules}>
+            <h2>How Heritage works</h2>
+            <p>
+              Select five of the nine positions, choose your stake and review
+              the round before confirming. Each ticket has five winning
+              positions. Your chosen positions, tradition and royal do not
+              change the outcome odds.
+            </p>
+            <div
+              className={styles.oddsTable}
+              role="table"
+              aria-label="Heritage prize table"
+            >
+              <div className={styles.prizeRow} role="row">
+                <strong role="columnheader">Matches</strong>
+                <strong role="columnheader">Probability</strong>
+                <strong role="columnheader">Return at your stake</strong>
+              </div>
+              {snapshot.prizeTiers.map((tier) => (
+                <PrizeRow
+                  key={tier.id}
+                  tier={tier}
+                  stakeKobo={stakeKobo ?? 0}
+                />
+              ))}
             </div>
+            <p>
+              Prizes follow the published table. Tax applies to net winnings. A
+              second-chance draw entry is shown separately when awarded.
+            </p>
           </div>
-
-          <div className={styles.figure} aria-label="Abstract royal figure with five regalia slots">
-            <div className={styles.figureCrown} aria-hidden="true"><i /><i /><i /></div>
-            <div className={styles.figureHead} />
-            <div className={styles.figureBody} />
-            <div className={styles.figureArmLeft} />
-            <div className={styles.figureArmRight} />
-            <div className={styles.figureLegLeft} />
-            <div className={styles.figureLegRight} />
-            {(["head", "neck", "torso", "hand", "feet"] as const).map((slot) => {
-              const filled = settlement?.board.slice(0, visibleCount).some(
-                (position) =>
-                  position.selected &&
-                  position.winning &&
-                  (position.item.slot === slot ||
-                    (slot === "hand" && position.item.slot === "wrist") ||
-                    (slot === "torso" && position.item.slot === "waist"))
-              );
-              return <span key={slot} className={styles[`slot_${slot}`]} data-filled={filled}>{slot}</span>;
-            })}
-          </div>
-          <div className={styles.itemSpotlight}>
-            <span>{latestDressedItem ? `No. ${latestDressedItem.number} · ${latestDressedItem.origin}` : "Regalia reveal"}</span>
-            <strong>{latestDressedItem?.localName ?? latestDressedItem?.canonicalName ?? "Your matched pieces dress the figure"}</strong>
-            <p>{latestDressedItem?.context ?? "Each revealed item includes its name, origin and one line of cultural context."}</p>
-          </div>
-          <div className={styles.railFacts}>
-            <div><span>Selection</span><strong>{selectedPositions.length}/5 positions</strong></div>
-            <div><span>Visual choice</span><strong>Does not affect odds</strong></div>
-            <div><span>Deposit turnover</span><strong>{formatKobo(snapshot.depositStakedKobo)} of {formatKobo(snapshot.depositRequiredKobo)} staked</strong></div>
-          </div>
-          <a className={styles.responsibleLink} href="/account">Limits and responsible play</a>
-        </aside>
-      </main>
-
-      {currentSession && (
-        <footer className={styles.sessionStrip} aria-label="Current play session">
-          <div><span>Rounds</span><strong>{currentSession.rounds}</strong></div>
-          <div><span>Total staked</span><strong>{formatKobo(currentSession.totalStakedKobo)}</strong></div>
-          <div><span>Total won</span><strong>{formatKobo(currentSession.totalWonKobo)}</strong></div>
-          <div><span>Net position</span><strong>{signedMoney(currentSession.netPositionKobo)}</strong></div>
-          <div><span>Session time</span><strong>{formatDuration(currentSession.elapsedSeconds)}</strong></div>
-          <div><span>Daily stake limit</span><strong>{formatKobo(currentSession.activeLimitKobo)}</strong></div>
+        </details>
+        {session && (
+          <details className={styles.details}>
+            <summary>Your session & limits</summary>
+            <dl
+              className={styles.sessionStrip}
+              aria-label="Current play session"
+            >
+              <div>
+                <dt>Rounds</dt>
+                <dd>{session.rounds}</dd>
+              </div>
+              <div>
+                <dt>Total staked</dt>
+                <dd>{formatKobo(session.totalStakedKobo)}</dd>
+              </div>
+              <div>
+                <dt>Total won</dt>
+                <dd>{formatKobo(session.totalWonKobo)}</dd>
+              </div>
+              <div>
+                <dt>Net position</dt>
+                <dd>{signedMoney(session.netPositionKobo)}</dd>
+              </div>
+              <div>
+                <dt>Session time</dt>
+                <dd>{formatDuration(session.elapsedSeconds)}</dd>
+              </div>
+              <div>
+                <dt>Daily stake limit</dt>
+                <dd>{formatKobo(session.activeLimitKobo)}</dd>
+              </div>
+            </dl>
+          </details>
+        )}
+        <footer className={styles.footer}>
+          <p>18+ only. Play within your limits.</p>
+          <Link href="/account">
+            Limits and responsible play <span aria-hidden="true">↗</span>
+          </Link>
         </footer>
+      </main>
+      {inspectedPosition && (
+        <RegaliaReview
+          position={inspectedPosition}
+          returnFocus={reviewTrigger}
+          onClose={closeRegaliaReview}
+        />
       )}
-
-      <HeritageArenaModal
-        isOpen={isArenaModalOpen}
-        onClose={() => {
-          setIsArenaModalOpen(false);
-          setPhase("settled");
-          setVisibleCount(9);
-          setBannerPhase("settled");
-        }}
-        settlement={settlement ?? null}
-        traditionName={selectedTradition?.name ?? "Royal Tradition"}
-        leaderTitle={getLeaderTitle(selectedTradition, leader)}
-        isMuted={isMuted}
-        toggleMute={() => {
-          const next = sounds.toggleMute();
-          setIsMuted(next);
-        }}
-        onPlayAgain={() => {
-          setIsArenaModalOpen(false);
-          startNewRound();
-        }}
-        prizeTiers={snapshot?.prizeTiers ?? []}
-      />
-
-      {/* OPay Direct Checkout Modal */}
       <OpayDirectCheckoutModal
         isOpen={opayCheckoutOpen}
         onClose={() => setOpayCheckoutOpen(false)}
         stakeKobo={stakeKobo ?? 0}
-        potentialWinKobo={(stakeKobo ?? 0) * 25}
-        gameName="Heritage Quest"
+        potentialWinKobo={jackpotGrossKobo}
+        gameName="Heritage"
         onPaymentSuccess={confirmPlay}
       />
     </div>
@@ -1108,23 +1135,32 @@ export function HeritageGameFlow({ gateway = mockHeritageGateway }: HeritageGame
 function TileResult({ result }: { result: HeritageBoardPosition }) {
   return (
     <>
-      <span className={styles.itemNumber}>{result.item.number}</span>
+      <span className={styles.itemNumber}>No. {result.item.number}</span>
+      <RegaliaArtwork item={result.item} className={styles.tileArtwork} />
       <strong>{result.item.localName ?? result.item.canonicalName}</strong>
-      {result.item.localName && <small>{result.item.canonicalName}</small>}
       <span className={styles.origin}>{result.item.origin}</span>
-      <p>{result.item.context}</p>
-      <b>{result.selected ? "Picked" : "Not picked"} · {result.winning ? "Winning" : "Not winning"}</b>
+      <span className={styles.inspectHint}>Inspect regalia ↗</span>
+      <b>
+        {result.selected ? "Picked" : "Not picked"} ·{" "}
+        {result.winning ? "Winning" : "Not winning"}
+      </b>
     </>
   );
 }
 
 function ResultEvidence({ board }: { board: HeritageBoardPosition[] }) {
   return (
-    <section className={styles.resultEvidence} aria-labelledby="result-evidence-title">
+    <section
+      className={styles.resultEvidence}
+      aria-labelledby="result-evidence-title"
+    >
       <div className={styles.resultEvidenceHeading}>
         <div>
           <h2 id="result-evidence-title">Board proof</h2>
-          <p>Every position is shown. Unpicked winning tiles appear only as factual outcome evidence.</p>
+          <p>
+            Every position is shown. Unpicked winning tiles appear only as
+            factual outcome evidence.
+          </p>
         </div>
         <div className={styles.resultLegend} aria-label="Result state key">
           <span data-result="picked-winning">Picked · winning</span>
@@ -1133,11 +1169,22 @@ function ResultEvidence({ board }: { board: HeritageBoardPosition[] }) {
           <span data-result="unpicked-not">Not picked · not winning</span>
         </div>
       </div>
-      <ol className={styles.resultTranscript} aria-label="Nine revealed catalogue items">
+      <ol
+        className={styles.resultTranscript}
+        aria-label="Nine revealed catalogue items"
+      >
         {board.map((position) => (
-          <li key={position.position} data-result={resultState(position)} tabIndex={0}>
-            <span>Position {position.position} · No. {position.item.number}</span>
-            <strong>{position.item.localName ?? position.item.canonicalName}</strong>
+          <li
+            key={position.position}
+            data-result={resultState(position)}
+            tabIndex={0}
+          >
+            <span>
+              Position {position.position} · No. {position.item.number}
+            </span>
+            <strong>
+              {position.item.localName ?? position.item.canonicalName}
+            </strong>
             <small>{position.item.origin}</small>
             <p>{position.item.context}</p>
             <b>{resultStateLabel(position)}</b>
@@ -1148,113 +1195,215 @@ function ResultEvidence({ board }: { board: HeritageBoardPosition[] }) {
   );
 }
 
-function Metrics({ snapshot, stakeKobo, selectedCount, tradition, leader, jackpotTier, jackpotGrossKobo, jackpotTaxKobo, settlement, settlementHeadingRef }: {
+function Metrics({
+  snapshot,
+  settlement,
+  settlementHeadingRef,
+}: {
   snapshot: HeritageSnapshot;
-  stakeKobo: number;
-  selectedCount: number;
-  tradition: string;
-  leader: string;
-  jackpotTier?: HeritagePrizeTier;
-  jackpotGrossKobo: number;
-  jackpotTaxKobo: number;
-  settlement?: HeritageSettlement;
+  settlement: HeritageSettlement;
   settlementHeadingRef: RefObject<HTMLHeadingElement | null>;
 }) {
-  if (settlement) {
-    const heading = settlement.tier === "jackpot" || settlement.matchCount === 5
+  const heading =
+    settlement.matchCount === 5
       ? "Jackpot settled"
-      : settlement.tier === "high" || settlement.matchCount === 4
-      ? "You tried — half stake returned"
-      : settlement.tier === "second-chance"
-      ? "Second-chance entry earned"
-      : "Round settled — no prize";
-    return (
-      <section className={styles.metrics} data-result={settlement.tier} aria-labelledby="settlement-title" role="status">
-        <div className={styles.metricsHeading}>
-          <div><span>Settlement</span><h2 id="settlement-title" ref={settlementHeadingRef} tabIndex={-1}>{heading}</h2></div>
-          <strong>{settlement.matchCount} of 5 matched</strong>
-        </div>
-        <dl className={styles.metricGrid}>
-          <div><dt>Stake</dt><dd>{formatKobo(settlement.stakeKobo)}</dd></div>
-          <div><dt>Outcome odds</dt><dd>{tierOdds(snapshot.prizeTiers, settlement.tier)}</dd></div>
-          <div><dt>Gross prize</dt><dd>{formatKobo(settlement.grossKobo)}</dd></div>
-          <div><dt>Tax ({snapshot.taxRateBasisPoints / 100}% net winnings)</dt><dd>−{formatKobo(settlement.taxKobo)}</dd></div>
-          <div className={styles.netMetric}><dt>Net credited</dt><dd>{formatKobo(settlement.netKobo)}</dd></div>
-          <div><dt>Ticket reference</dt><dd>{settlement.reference}</dd></div>
-        </dl>
-      </section>
-    );
-  }
-
+      : settlement.matchCount === 4 && settlement.netKobo > 0
+        ? "Half stake returned"
+        : settlement.secondChance
+          ? "Second-chance entry earned"
+          : "Round settled — no prize";
   return (
-    <section className={styles.metrics} aria-labelledby="summary-title">
+    <section className={styles.metrics} aria-labelledby="settlement-title">
       <div className={styles.metricsHeading}>
-        <div><span>Round summary</span><h2 id="summary-title">What this game can return</h2></div>
-        <strong>{selectedCount}/5 selected</strong>
+        <div>
+          <p className={styles.eyebrow}>Round result</p>
+          <h2 id="settlement-title" ref={settlementHeadingRef} tabIndex={-1}>
+            {heading}
+          </h2>
+        </div>
+        <strong>{settlement.matchCount} of 5 matched</strong>
       </div>
       <dl className={styles.metricGrid}>
-        <div><dt>Tradition</dt><dd>{tradition}</dd></div>
-        <div><dt>Leader</dt><dd>{leader}</dd></div>
-        <div><dt>Stake</dt><dd>{formatKobo(stakeKobo)}</dd></div>
-        <div><dt>Jackpot odds</dt><dd>{jackpotTier ? formatProbability(jackpotTier.probabilityBasisPoints) : "—"}</dd></div>
-        <div><dt>Potential gross</dt><dd>{formatKobo(jackpotGrossKobo)} · 25×</dd></div>
-        <div><dt>Estimated tax</dt><dd>−{formatKobo(jackpotTaxKobo)}</dd></div>
-        <div className={styles.netMetric}><dt>Potential net</dt><dd>{formatKobo(jackpotGrossKobo - jackpotTaxKobo)}</dd></div>
+        <div>
+          <dt>Stake</dt>
+          <dd>{formatKobo(settlement.stakeKobo)}</dd>
+        </div>
+        <div>
+          <dt>Outcome odds</dt>
+          <dd>{tierOdds(snapshot.prizeTiers, settlement.tier)}</dd>
+        </div>
+        <div>
+          <dt>Gross prize</dt>
+          <dd>{formatKobo(settlement.grossKobo)}</dd>
+        </div>
+        <div>
+          <dt>Tax ({snapshot.taxRateBasisPoints / 100}% net winnings)</dt>
+          <dd>−{formatKobo(settlement.taxKobo)}</dd>
+        </div>
+        <div className={styles.netMetric}>
+          <dt>Net credited</dt>
+          <dd>{formatKobo(settlement.netKobo)}</dd>
+        </div>
+        <div>
+          <dt>Ticket reference</dt>
+          <dd>{settlement.reference}</dd>
+        </div>
       </dl>
     </section>
   );
 }
 
-function SecondChanceSummary({ entry, reference }: { entry: NonNullable<HeritageSettlement["secondChance"]>; reference: string }) {
-  const statusCopy = entry.status === "lodged"
-    ? `Lodged for ${formatWat(entry.drawAt)}. An SMS receipt is due by ${formatWat(entry.receiptDueAt ?? entry.drawAt)}.`
-    : entry.status === "pending"
-      ? "Queued with Betplus. It has not been lodged with the draw partner yet, so no partner reference exists. Play is not blocked."
-      : entry.status === "delayed"
-        ? "The draw partner has not acknowledged the entry. It remains queued and will move to the next eligible draw if necessary."
-        : `Three eligible draws passed without a successful lodge. ${formatKobo(entry.compensationKobo ?? entry.entryStakeKobo)} was credited instead.`;
-  const heading = entry.status === "lodged" ? "Entry confirmed" : entry.status === "compensated" ? "Compensation credited" : entry.status === "delayed" ? "Partner delay" : "Entry queued";
+function SecondChanceSummary({
+  entry,
+  reference,
+}: {
+  entry: NonNullable<HeritageSettlement["secondChance"]>;
+  reference: string;
+}) {
+  const statusCopy =
+    entry.status === "lodged"
+      ? `Lodged for ${formatWat(entry.drawAt)}. An SMS receipt is due by ${formatWat(entry.receiptDueAt ?? entry.drawAt)}.`
+      : entry.status === "pending"
+        ? "Queued with Betplus. It has not been lodged with the draw partner yet, so no partner reference exists. Play is not blocked."
+        : entry.status === "delayed"
+          ? "The draw partner has not acknowledged the entry. It remains queued and will move to the next eligible draw if necessary."
+          : `Three eligible draws passed without a successful lodge. ${formatKobo(entry.compensationKobo ?? entry.entryStakeKobo)} was credited instead.`;
+  const heading =
+    entry.status === "lodged"
+      ? "Entry confirmed"
+      : entry.status === "compensated"
+        ? "Compensation credited"
+        : entry.status === "delayed"
+          ? "Partner delay"
+          : "Entry queued";
   return (
-    <section className={styles.secondChance} data-status={entry.status} aria-labelledby="draw-entry-title" aria-live="polite">
-      <div><span>Automatic 5/90 entry</span><h2 id="draw-entry-title">{heading}</h2></div>
+    <section
+      className={styles.secondChance}
+      data-status={entry.status}
+      aria-labelledby="draw-entry-title"
+      aria-live="polite"
+    >
+      <div>
+        <span>Automatic 5/90 entry</span>
+        <h2 id="draw-entry-title">{heading}</h2>
+      </div>
       <p>{statusCopy}</p>
       {entry.rolloverReason && <p>{entry.rolloverReason}</p>}
-      <p>Result SMS: {entry.resultNotification === "sent" ? "sent" : entry.resultNotification === "scheduled" ? "scheduled" : "pending"}. Betplus sends it whether the entry wins or not.</p>
+      <p>
+        Result SMS:{" "}
+        {entry.resultNotification === "sent"
+          ? "sent"
+          : entry.resultNotification === "scheduled"
+            ? "scheduled"
+            : "pending"}
+        . Betplus sends it whether the entry wins or not.
+      </p>
       <dl>
-        <div><dt>Your five numbers</dt><dd>{entry.numbers.join(" · ")}</dd></div>
-        <div><dt>Entry value</dt><dd>{formatKobo(entry.entryStakeKobo)}</dd></div>
-        <div><dt>Draw</dt><dd>{entry.drawName} · {formatWat(entry.drawAt)}</dd></div>
-        <div><dt>Partner reference</dt><dd>{entry.partnerReference ?? "Not lodged yet"}</dd></div>
-        <div><dt>Betplus ticket</dt><dd>{reference}</dd></div>
-        {entry.drawsMissed > 0 && <div><dt>Eligible draws missed</dt><dd>{entry.drawsMissed}</dd></div>}
+        <div>
+          <dt>Your five numbers</dt>
+          <dd>
+            {entry.numbers.length
+              ? entry.numbers.join(" · ")
+              : "Assigned when lodged"}
+          </dd>
+        </div>
+        <div>
+          <dt>Entry value</dt>
+          <dd>{formatKobo(entry.entryStakeKobo)}</dd>
+        </div>
+        <div>
+          <dt>Draw</dt>
+          <dd>
+            {entry.drawName} · {formatWat(entry.drawAt)}
+          </dd>
+        </div>
+        <div>
+          <dt>Partner reference</dt>
+          <dd>{entry.partnerReference ?? "Not lodged yet"}</dd>
+        </div>
+        <div>
+          <dt>Betplus ticket</dt>
+          <dd>{reference}</dd>
+        </div>
+        {entry.drawsMissed > 0 && (
+          <div>
+            <dt>Eligible draws missed</dt>
+            <dd>{entry.drawsMissed}</dd>
+          </div>
+        )}
       </dl>
     </section>
   );
 }
 
-function PrizeRow({ tier, stakeKobo }: { tier: HeritagePrizeTier; stakeKobo: number }) {
-  const outcome = tier.multiplier === 25
-    ? `${formatKobo(stakeKobo * 25)} · 25× stake`
-    : tier.multiplier === 0.5
-      ? `${formatKobo(Math.round(stakeKobo * 0.5))} · 0.5× stake (half back)`
+function PrizeRow({
+  tier,
+  stakeKobo,
+}: {
+  tier: HeritagePrizeTier;
+  stakeKobo: number;
+}) {
+  const label =
+    tier.outcomeType === "cash"
+      ? tier.multiplier === 0.5
+        ? "Half stake back"
+        : "Jackpot"
+      : tier.outcomeType === "draw_entry"
+        ? "5/90 draw entry"
+        : "No prize";
+  const matches = tier.matches.startsWith("TIER_")
+    ? tier.outcomeType === "cash"
+      ? tier.multiplier === 0.5
+        ? "4 of 5"
+        : "5 of 5"
+      : tier.outcomeType === "draw_entry"
+        ? "3–4 matches"
+        : "1–2 matches"
+    : tier.matches;
+  const outcome =
+    tier.outcomeType === "cash" && tier.multiplier !== undefined
+      ? `${formatKobo(Math.round(stakeKobo * tier.multiplier))} · ${tier.multiplier}× stake${tier.multiplier === 0.5 ? " (half back)" : ""}`
       : tier.outcomeType === "draw_entry"
         ? `${formatKobo(Math.round(stakeKobo * 0.1))} 5/90 entry`
         : "No prize";
   return (
     <div className={styles.prizeRow} role="row">
-      <span role="cell"><strong>{tier.matches}</strong>{tier.label}</span>
+      <span role="cell">
+        <strong>{matches}</strong>
+        {label}
+      </span>
       <span role="cell">{formatProbability(tier.probabilityBasisPoints)}</span>
       <strong role="cell">{outcome}</strong>
     </div>
   );
 }
 
-function SystemState({ title, message, loading = false }: { title: string; message: string; loading?: boolean }) {
-  return <main className={styles.systemState}><span aria-hidden="true">{loading ? "…" : "!"}</span><h1>{title}</h1><p>{message}</p>{!loading && <a href="/games">Back to games</a>}</main>;
+function SystemState({
+  title,
+  message,
+  loading = false,
+}: {
+  title: string;
+  message: string;
+  loading?: boolean;
+}) {
+  return (
+    <main className={styles.systemState}>
+      <span aria-hidden="true">{loading ? "…" : "!"}</span>
+      <h1>{title}</h1>
+      <p>{message}</p>
+      {!loading && <a href="/games">Back to games</a>}
+    </main>
+  );
 }
 
-function tileLabel(position: number, selected: boolean, result?: HeritageBoardPosition) {
-  if (!result) return `Position ${position}: ${selected ? "selected" : "not selected"}`;
+function tileLabel(
+  position: number,
+  selected: boolean,
+  result?: HeritageBoardPosition,
+) {
+  if (!result)
+    return `Position ${position}: ${selected ? "selected" : "not selected"}`;
   return `Position ${position}, ${result.selected ? "picked" : "not picked"}, ${result.winning ? "winning" : "not winning"}, number ${result.item.number}, ${result.item.localName ? `${result.item.localName}, ` : ""}${result.item.canonicalName}, ${result.item.origin}. ${result.item.context}`;
 }
 
@@ -1273,20 +1422,24 @@ function revealCopy(result: HeritageBoardPosition) {
   return `Position ${result.position}: ${resultStateLabel(result)}. Number ${result.item.number}, ${result.item.localName ?? result.item.canonicalName}, ${result.item.origin}. ${result.item.context}`;
 }
 
-function phaseCopy(phase: GamePhase, settlement?: HeritageSettlement) {
-  if (phase === "configuring") return "Configure your round";
-  if (phase === "confirming") return "Ready to place";
-  if (phase === "resolving") return "Board revealing";
-  return settlement ? `${settlement.matchCount} of 5 matched` : "Round settled";
-}
-
 function tierOdds(tiers: HeritagePrizeTier[], tierId: HeritagePrizeTier["id"]) {
-  const tier = tiers.find((item) => item.id === tierId);
+  const normalize = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/^tier_/, "")
+      .replaceAll("-", "_");
+  const tier = tiers.find((item) => normalize(item.id) === normalize(tierId));
   return tier ? formatProbability(tier.probabilityBasisPoints) : "—";
 }
 
 function formatWat(value: string) {
-  return new Intl.DateTimeFormat("en-NG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Lagos" }).format(new Date(value));
+  if (!value || Number.isNaN(new Date(value).getTime()))
+    return "Awaiting draw confirmation";
+  return new Intl.DateTimeFormat("en-NG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Africa/Lagos",
+  }).format(new Date(value));
 }
 
 function signedMoney(value: number) {

@@ -86,6 +86,7 @@ class HeritageController extends Controller
         $items = HeritageCatalogueItem::orderBy('itemNumber')->get()->map(fn (HeritageCatalogueItem $item) => [
             'number' => $item->itemNumber,
             'canonical_name' => $item->canonicalName,
+            'image_url' => $item->assetRef,
             'local_name' => $item->localName,
             'origin' => $item->traditionOfOrigin,
             'context' => $item->culturalDescription,

@@ -10,6 +10,7 @@ use App\Models\GameRegistry;
 use App\Models\HeritageCatalogueItem;
 use App\Models\PrizeTable;
 use App\Models\StateLicence;
+use Database\Seeders\Data\HeritageRegaliaCatalogueData;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
@@ -18,14 +19,15 @@ use RuntimeException;
  * staging, mirroring BlackRedGameSeeder's shape exactly (same Lagos exclusion
  * registry / licence, same "write the shape the gate would accept" approach).
  *
- * The 90 catalogue items seeded here are NOT real content. REQ-HG-064 requires a
- * named cultural advisor's sign-off before any item may publish, and no such review
- * has happened — inventing 90 culturally-labelled items and pretending they're
- * vetted would risk the exact harm that requirement exists to prevent (PRD §9.7's
- * point about sacred regalia). Every item here is a numbered placeholder with no
- * signOffRef, generic naming, and 'Unreviewed' tradition of origin — genuinely
- * unpublishable through HeritageCatalogueService::publish() until real cultural
- * research and advisor sign-off exists.
+ * Catalogue items 1-20 remain numbered, unreviewed placeholders exactly as
+ * before — generic naming, no signOffRef, 'Unreviewed' tradition of origin,
+ * genuinely unpublishable through HeritageCatalogueService::publish().
+ *
+ * Items 21-90 are the 70-piece Heritage regalia set (7 tribes x king/queen x
+ * 5 slots, see HeritageRegaliaCatalogueData) confirmed reviewed by the Betplus
+ * product team (2026-10-20): real names, real artwork (assetRef), and a
+ * recorded signOffRef so they publish through the REQ-HG-064 gate honestly —
+ * as a team review, not a fabricated named cultural-advisor citation.
  */
 class HeritageGameSeeder extends Seeder
 {
@@ -94,11 +96,15 @@ class HeritageGameSeeder extends Seeder
         $table->update(['status' => 'published', 'publishedAt' => now()]);
     }
 
+    private const REAL_REGALIA_START_NUMBER = 21;
+    private const REAL_REGALIA_SIGN_OFF_REF = 'BETPLUS-PRODUCT-REVIEW-2026-10-20';
+    private const SLOT_PRIORITY = ['head' => 1, 'neck' => 2, 'torso' => 3, 'hand' => 4, 'feet' => 5];
+
     private function seedCatalogue(): void
     {
         $slots = ['head', 'neck', 'torso', 'waist', 'wrist', 'hand', 'feet'];
 
-        for ($number = 1; $number <= 90; $number++) {
+        for ($number = 1; $number < self::REAL_REGALIA_START_NUMBER; $number++) {
             HeritageCatalogueItem::updateOrCreate(
                 ['itemNumber' => $number],
                 [
@@ -115,6 +121,28 @@ class HeritageGameSeeder extends Seeder
                     'publishedAt' => null,
                 ],
             );
+        }
+
+        $number = self::REAL_REGALIA_START_NUMBER;
+        foreach (HeritageRegaliaCatalogueData::items() as $piece) {
+            $leaderLabel = $piece['leader'] === 'king' ? 'King' : 'Queen';
+            HeritageCatalogueItem::updateOrCreate(
+                ['itemNumber' => $number],
+                [
+                    'canonicalName' => "{$piece['label']} {$leaderLabel} — {$piece['english']}",
+                    'localName' => $piece['localName'],
+                    'traditionOfOrigin' => $piece['label'],
+                    'leaderApplicability' => $piece['leader'],
+                    'bodySlot' => $piece['slot'],
+                    'layerPriority' => self::SLOT_PRIORITY[$piece['slot']],
+                    'culturalDescription' => $piece['description'],
+                    'signOffRef' => self::REAL_REGALIA_SIGN_OFF_REF,
+                    'depictionConstraint' => 'none',
+                    'assetRef' => $piece['src'],
+                    'publishedAt' => now(),
+                ],
+            );
+            $number++;
         }
     }
 }

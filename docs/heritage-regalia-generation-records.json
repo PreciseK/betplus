@@ -1,0 +1,338 @@
+{
+  "mode": "Built-in image_gen",
+  "records": [
+    {
+      "set": "igbo_queen",
+      "id": "okpu-aka",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-20eab8e7-c7f4-4647-9c02-d866f571d53b.png",
+      "status": "saved"
+    },
+    {
+      "set": "igbo_queen",
+      "id": "aka",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-4343617c-e7e2-450b-bc5c-50609595f4d5.png",
+      "status": "saved"
+    },
+    {
+      "set": "igbo_queen",
+      "id": "akwa",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-4b56a791-8d48-4978-8234-d56ad0c14333.png",
+      "status": "saved"
+    },
+    {
+      "set": "igbo_queen",
+      "id": "akupe",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-9a0ad153-e66b-49b0-84b2-f0708fde5327.png",
+      "status": "saved"
+    },
+    {
+      "set": "igbo_queen",
+      "id": "akpukpo-ukwu",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-399dd4cb-a4dc-4fb1-9e8b-d73e8efd5b4e.png",
+      "status": "saved"
+    },
+    {
+      "set": "hausa-fulani_king",
+      "id": "rawani",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-73d6b81f-3ea7-40c9-ac4e-31739f897cc5.png",
+      "status": "saved"
+    },
+    {
+      "set": "hausa-fulani_king",
+      "id": "abin-wuya",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-f6ce169b-ff91-4c85-9a7d-2dbcfb6cfea3.png",
+      "status": "saved",
+      "detail": "The emir's ornate ivory and gold embroidered neckline and collar panel, shown as a single separate game inventory garment detail, preserving the exact reference embroidery. No invented necklace, coral beads or pendant; no person or green prayer beads.",
+      "prompt": "Use case: stylized-concept. Create ONE standalone collectible regalia inventory asset for Heritage, derived directly from the supplied portrait REFERENCE. Reference is for the exact object design, colours, texture, embroidery and material; output only the requested object, not the person. Retain the identity of this specific outfit's item rather than inventing a different generic costume. High-detail semi-realistic painted 3D game prop, rich tactile materials, crisp readable silhouette, soft warm studio lighting matching reference. Square composition, whole object centred, fills about 78 percent with generous transparent margin on every side. True transparent background. No person, face, skin, body part, mannequin, hanger, stand, scenery, frame, card, text, labels, logo or watermark. No unrelated items. Disconnected matching shoes count as one paired inventory asset. Garments shown as a wearable naturally shaped empty garment with clear sleeves and hem, not a flat texture or pile. Extract ONLY: The emir's ornate ivory and gold embroidered neckline and collar panel, shown as a single separate game inventory garment detail, preserving the exact reference embroidery. No invented necklace, coral beads or pendant; no person or green prayer beads.",
+      "english": "Embroidered neck panel"
+    },
+    {
+      "set": "hausa-fulani_king",
+      "id": "babbar-riga",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-56810692-8882-4959-aa52-6ccdbfa3edd6.png",
+      "status": "saved"
+    },
+    {
+      "set": "hausa-fulani_king",
+      "id": "sanda",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-a0217697-c6c6-4db5-8548-c5d033ea98bb.png",
+      "status": "saved"
+    },
+    {
+      "set": "hausa-fulani_king",
+      "id": "takalmi",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-9ab957eb-c6e9-4963-938f-d64f40677183.png",
+      "status": "saved"
+    },
+    {
+      "set": "hausa-fulani_queen",
+      "id": "dankwali",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-b0ceee7a-9b3c-4612-b0df-6bec3e5873cf.png",
+      "status": "saved"
+    },
+    {
+      "set": "hausa-fulani_queen",
+      "id": "abin-wuya",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-b3e3acf6-3aff-4ca5-a2f3-366fb23f84d4.png",
+      "status": "saved"
+    },
+    {
+      "set": "hausa-fulani_queen",
+      "id": "riga",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-822cee0b-45b9-4823-997b-beacf1ef1338.png",
+      "status": "saved"
+    },
+    {
+      "set": "hausa-fulani_queen",
+      "id": "mafici",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-99cb8d20-75e7-43db-b99f-f528a909114d.png",
+      "status": "saved"
+    },
+    {
+      "set": "hausa-fulani_queen",
+      "id": "takalmi",
+      "sourcePath": "C:/Users/PRECISE/.codex/generated_images/01a13e24-7e92-7d50-82b0-24432641d165/exec-80b8d266-7371-41a4-9148-51982ede9562.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_king",
+      "id": "erhu-ivie",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-a30df225-8aab-4b72-a873-4558903985e6.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_king",
+      "id": "odigba",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-d7a2c7b4-677d-4624-a03b-d6c4ad3c5231.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_king",
+      "id": "ewu-ivie",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-edf26634-d565-4125-bae5-4e79ae36d96b.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_king",
+      "id": "staff",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-b5ec6f9c-1edd-4a44-950a-8c92f7cb488b.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_king",
+      "id": "slippers",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-d73c2b29-45d8-4112-9bad-f9ef06c8a240.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_queen",
+      "id": "ukpe-okhue",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-48f070ee-65ff-4e5b-a23e-0b3d6b473d35.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_queen",
+      "id": "odigba",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-4c62417a-c450-47cc-9956-52ee64ea9780.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_queen",
+      "id": "ceremonial-attire",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-c7e2c7d9-637c-4d6a-8fa9-2f866b6c55d1.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_queen",
+      "id": "fan",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-d3956f47-baa5-4679-8ba5-fa9556eb00d6.png",
+      "status": "saved"
+    },
+    {
+      "set": "edo_queen",
+      "id": "slippers",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-d438feb2-4bc4-472d-98e1-bb7b42cc3b43.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_king",
+      "id": "cap",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-6bcd658e-bab0-4749-89a7-ae96a9cfc103.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_king",
+      "id": "neck-beads",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-97a29244-8f4d-4896-a2d2-e0b42b80b064.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_king",
+      "id": "ceremonial-attire",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-1aaf62d1-896a-405f-b3d2-d7cb05c1a559.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_king",
+      "id": "staff",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-83a51f67-2f65-431f-abce-4779e84cf780.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_king",
+      "id": "shoes",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-59de813f-e8fe-4944-bbd9-fdcbfb1f0d1f.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_queen",
+      "id": "headpiece",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-95dd5b91-d938-427b-a4df-3ec8fe0a605d.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_queen",
+      "id": "neck-beads",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-e1e12ea5-0ed5-45d1-bcab-9975ef1b89e2.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_queen",
+      "id": "onyonyo",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-0ca22e5c-4505-41e3-8891-26e1f1e875a7.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_queen",
+      "id": "fan",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-4acac209-84e9-4ab0-a18d-d1f5b177c358.png",
+      "status": "saved"
+    },
+    {
+      "set": "efik-ibibio_queen",
+      "id": "shoes",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-c895a840-58b0-455f-8b04-7ea3d6ecc2f2.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_king",
+      "id": "hat",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-fbdc96e3-1513-41f9-851d-6a61b6540346.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_king",
+      "id": "neck-beads",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-f8977a6e-f374-4014-8e6d-7cf8b1a518ac.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_king",
+      "id": "etibo-george",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-c932d591-30d8-4e23-ac47-8abc7cf4b083.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_king",
+      "id": "staff",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-3fc918b8-8901-4da3-a771-f3cf570c8fbc.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_king",
+      "id": "shoes",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-85843ff2-86bb-478b-8bd7-7f329f575445.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_queen",
+      "id": "headtie",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-69e34486-1eb5-4f98-aa31-0a18253db675.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_queen",
+      "id": "neck-beads",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-3698310a-12d2-4ffe-b9e4-21e81eae4328.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_queen",
+      "id": "george-attire",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-2a9e2f47-96b9-42ef-bc06-660a1fb2c792.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_queen",
+      "id": "fan",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-fa054bc0-8c27-4c57-a7f8-31df42cedfdd.png",
+      "status": "saved"
+    },
+    {
+      "set": "ijaw_queen",
+      "id": "shoes",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-70652d99-4068-41c8-9b92-26ead82e4443.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_king",
+      "id": "anger-cap",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-9a870c40-36ce-4ae1-8b37-edee3df806a8.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_king",
+      "id": "neck-beads",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-5cf36df2-f7d8-4fb2-9f73-aec214401979.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_king",
+      "id": "anger-attire",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-efe89d7b-9679-44fd-8208-8b5c74d40026.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_king",
+      "id": "staff",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-026d4a76-2001-47da-8610-426bd80a22b1.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_king",
+      "id": "slippers",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-92ea37b2-fec3-4137-b1db-b96a9768fa12.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_queen",
+      "id": "anger-headwrap",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-d19389ac-4a85-4df1-9235-4869ac787ea4.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_queen",
+      "id": "neck-beads",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-fe2cf09d-d9d8-4dd0-9e78-22375055f4aa.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_queen",
+      "id": "anger-attire",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-6ecd39ed-2913-421b-acc3-288ee540195b.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_queen",
+      "id": "fan",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-1d6ac640-aa63-4315-ab68-ef0963e38c84.png",
+      "status": "saved"
+    },
+    {
+      "set": "middle-belt_queen",
+      "id": "slippers",
+      "sourcePath": "C:\\Users\\PRECISE\\.codex\\generated_images\\01a13e24-7e92-7d50-82b0-24432641d165\\exec-bdcfd3b5-7038-432c-9df5-23add670a17d.png",
+      "status": "saved"
+    }
+  ]
+}

@@ -19,7 +19,7 @@ export const MonarchSilhouetteWing: React.FC<MonarchSilhouetteWingProps> = ({
 }) => {
   const leaderTitle = leader === "queen" ? tradition?.queenTitle ?? "Queen" : tradition?.kingTitle ?? "King";
   const tribeId = tradition?.id ?? "yoruba";
-  const artworkPath = customImagePath || (leader ? MONARCH_ARTWORK_MAP[tribeId]?.[leader] : undefined);
+  const artworkPath = customImagePath || (leader ? MONARCH_ARTWORK_MAP[tribeId.replaceAll("_", "-")]?.[leader] : undefined);
 
   return (
     <aside className={styles.monarchStandee} aria-label={`${tradition?.name ?? "Monarch"} Royal Silhouette`}>

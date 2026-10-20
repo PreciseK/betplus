@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heritage — Regalia pieces</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101225;color:#faf0d6;font:16px system-ui,sans-serif}main{max-width:1480px;margin:auto;padding:40px 24px}h1{font:44px Georgia,serif;margin:12px 0}header p{color:#b8b6d0;max-width:760px;line-height:1.6}a{color:#ebc477}nav{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}nav a{padding:8px 12px;border:1px solid #4c4165;border-radius:6px;text-decoration:none}h2{font:30px Georgia,serif;color:#ebc477;margin:44px 0 20px}.collection{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px}.portrait img{display:block;width:100%;height:330px;object-fit:contain}.portrait{margin:0;background:radial-gradient(ellipse,#3b2a4d,#17192d 75%);border-radius:12px}.pieces{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}figure{margin:0;min-width:0}.piece{background:radial-gradient(ellipse at 50% 35%,#302744,#17192d 75%);border:1px solid #4c4165;border-radius:12px;overflow:hidden}.piece img{display:block;width:100%;aspect-ratio:1;object-fit:contain;padding:14px}.piece a{display:block}.piece figcaption{padding:14px;border-top:1px solid #4c4165}.piece strong{display:block;color:#ebc477;font-size:18px;overflow-wrap:anywhere}.piece span{display:block;color:#b8b6d0;font-size:13px;margin-top:7px;line-height:1.5}section{scroll-margin-top:20px}.note{color:#b8b6d0;font-size:13px;line-height:1.6}.error{color:#f4a6a6}@media(max-width:1150px){.pieces{grid-template-columns:repeat(3,minmax(0,1fr))}.collection{grid-template-columns:160px minmax(0,1fr)}}@media(max-width:650px){main{padding:24px 12px}h1{font-size:34px}.collection{grid-template-columns:1fr}.portrait img{height:280px}.pieces{grid-template-columns:repeat(2,minmax(0,1fr))}.piece strong{font-size:17px}}
+</style>
+<main><header><small>BETPLUS · HERITAGE</small><h1>Regalia, piece by piece</h1><p>Five pieces for each royal: headwear, neckwear, clothing, a hand-held accessory and footwear. Each set is derived from its portrait.</p><p class="note">Game concept artwork for regalia review. Local-language labels are shown where identified; English descriptions remain where translation is awaiting review. Middle Belt concepts use the Tiv-inspired direction of their original portraits.</p><p id="count" role="status">Loading saved pieces…</p><a href="../monarchs/review.html">View the full portraits →</a></header><nav aria-label="Traditions" id="navigation"></nav><div id="collections"></div></main>
+<script>
+const names={yoruba:'Yoruba',igbo:'Igbo','hausa-fulani':'Hausa–Fulani',edo:'Edo (Benin)','efik-ibibio':'Efik–Ibibio',ijaw:'Ijaw','middle-belt':'Middle Belt'};
+const collection=document.getElementById('collections');
+fetch('catalogue.json').then(response=>{if(!response.ok)throw Error('Could not load catalogue');return response.json()}).then(data=>{
+document.getElementById('count').textContent=`${data.saved} of ${data.total} pieces saved · Select any piece to view the full image.`;
+for(const [culture,label] of Object.entries(names)){
+const sets=['king','queen'].map(leader=>({leader,items:data.items.filter(item=>item.set===culture+'_'+leader)}));
+if(!sets.some(set=>set.items.length))continue;
+const link=document.createElement('a');link.href='#'+culture;link.textContent=label;document.getElementById('navigation').append(link);
+for(const [index,set] of sets.entries()){
+if(!set.items.length)continue;
+const section=document.createElement('section');if(index===0)section.id=culture;
+const heading=document.createElement('h2');heading.textContent=label+' · '+(set.leader==='king'?'King':'Queen')+' · '+set.items.length+'/5';section.append(heading);
+const layout=document.createElement('div');layout.className='collection';
+const portrait=document.createElement('figure');portrait.className='portrait';const image=document.createElement('img');image.src=set.items[0].reference;image.alt=label+' '+set.leader+' source portrait';image.loading='lazy';portrait.append(image);layout.append(portrait);
+const pieces=document.createElement('div');pieces.className='pieces';
+for(const item of set.items){const figure=document.createElement('figure');figure.className='piece';const anchor=document.createElement('a');anchor.href=item.src;anchor.target='_blank';anchor.rel='noopener';anchor.setAttribute('aria-label','View '+(item.localName||item.english));const image=document.createElement('img');image.src=item.src;image.alt=item.localName?item.localName+' — '+item.english:item.english;image.loading='lazy';image.width=400;image.height=400;anchor.append(image);figure.append(anchor);const caption=document.createElement('figcaption');const title=document.createElement('strong');title.textContent=item.localName||item.english;caption.append(title);const description=document.createElement('span');description.textContent=item.localName?item.english:'Local name awaiting review';caption.append(description);figure.append(caption);pieces.append(figure)}
+layout.append(pieces);section.append(layout);collection.append(section);
+}}
+}).catch(error=>{const status=document.getElementById('count');status.className='error';status.textContent=error.message});
+</script>
+</html>
