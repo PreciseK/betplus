@@ -1,0 +1,7 @@
+# Runtime-only dependencies for production, mirroring pyproject.toml's [project]
+# dependencies exactly (not the [dependency-groups] dev tools: pytest, ruff, httpx).
+# Installed via plain pip on the production server (tools/cpanel-deploy.sh) rather
+# than `uv sync`, so the deploy has no dependency on `uv` being present server-side.
+fastapi>=0.141,<0.142
+pydantic>=2.13.4
+uvicorn[standard]>=0.52.1

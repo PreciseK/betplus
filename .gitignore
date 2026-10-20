@@ -16,6 +16,7 @@ node_modules/
 .venv/
 __pycache__/
 *.pyc
+.coverage
 
 # Build output
 out/

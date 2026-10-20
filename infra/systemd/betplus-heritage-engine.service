@@ -1,0 +1,23 @@
+[Unit]
+Description=Betplus Heritage game engine (FastAPI/Uvicorn, apps/engine-heritage)
+After=network.target
+
+[Service]
+Type=simple
+# Adjust user/group and paths for the real deploy target — these are placeholders,
+# same convention as betplus-horizon.service. In production this exact file is
+# generated and installed automatically by tools/cpanel-deploy.sh on every deploy,
+# with the real deploy user and paths substituted in — this checked-in copy is the
+# reference/documentation version, not what's actually running on the server.
+User=betplus
+Group=betplus
+WorkingDirectory=/var/www/betplus/current/apps/engine-heritage
+Environment=PYTHONPATH=src
+ExecStart=/var/www/betplus/shared/engine-heritage-venv/bin/uvicorn engine_heritage.app:app --workers 2 --host 127.0.0.1 --port 8100
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/www/betplus/shared/storage/logs/engine-heritage.log
+StandardError=append:/var/www/betplus/shared/storage/logs/engine-heritage.log
+
+[Install]
+WantedBy=multi-user.target
