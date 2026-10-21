@@ -22,3 +22,9 @@ Route::middleware('ussd.gateway')->group(function () {
     Route::post('/internal/ussd/register/complete', [UssdGatewayController::class, 'registerComplete']);
     Route::post('/internal/ussd/session', [UssdGatewayController::class, 'sessionSync']);
 });
+
+// Engine Contract endpoints (PRD §6.2) — native PHP implementation of the Heritage engine
+Route::post('/engine/v1/resolve', [\App\Http\Controllers\Api\V1\EngineHeritageController::class, 'resolve']);
+Route::post('/engine/v1/replay', [\App\Http\Controllers\Api\V1\EngineHeritageController::class, 'replay']);
+Route::post('/engine/v1/draw-pool', [\App\Http\Controllers\Api\V1\EngineHeritageController::class, 'drawPool']);
+Route::get('/engine/v1/describe', [\App\Http\Controllers\Api\V1\EngineHeritageController::class, 'describe']);

@@ -3,9 +3,8 @@
 declare(strict_types=1);
 
 return [
-    // REQ-SEC-011/REQ-HOST-003 — loopback only in every real environment; the default
-    // matches apps/engine-heritage/README.md's run command exactly.
-    'engine_base_url' => env('HERITAGE_ENGINE_BASE_URL', 'http://127.0.0.1:8100'),
+    // REQ-SEC-011/REQ-HOST-003 — native PHP in-process by default; external URL supported if specified.
+    'engine_base_url' => env('HERITAGE_ENGINE_BASE_URL', 'in_process'),
     'engine_timeout_seconds' => (int) env('HERITAGE_ENGINE_TIMEOUT_SECONDS', 5),
 
     // REQ-HG-054 — enumerated in configuration, not hardcoded. PRD §9.6's launch set.

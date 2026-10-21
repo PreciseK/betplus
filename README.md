@@ -55,8 +55,7 @@ backoffice.betplus.com.ng (Restricted Operations Console — Isolated & Protecte
 | **`betplus.com.ng`** | Player portal, interactive game clients, and landing page | Next.js (Static Export) |
 | **`backoffice.betplus.com.ng`** | Restricted back-office operations console (MFA, IP allowlist, Cloudflare Access) | Next.js (Static Export) |
 | **`api.betplus.com.ng`** | Core platform API: identity, double-entry wallet, ticket lifecycle, taxes & OPay orchestrator | Laravel 11 / PHP 8.4 |
-| **`ussd.betplus.com.ng`** | Telco aggregator gateway (Africa's Talking / Hubtel webhook receiver) | Lightweight PHP 8.4 |
-| **`heritage-api.betplus.com.ng`** | Heritage game math engine (binds to loopback `http://127.0.0.1:8100` in production) | Python / FastAPI / Uvicorn |
+| **`heritage-api.betplus.com.ng`** | Heritage game math engine (native PHP engine in `apps/platform`, `/engine/v1` routes) | Native PHP 8.4 / Pure Function |
 
 ---
 
@@ -87,7 +86,7 @@ backoffice.betplus.com.ng (Restricted Operations Console — Isolated & Protecte
 │   ├── web/                 # Next.js frontend (Tailwind/Vanilla CSS, Static HTML5)
 │   ├── ussd/                # USSD state machine & telco adapter
 │   ├── engine-blackred/     # BlackRed pure-function PHP math engine
-│   └── engine-heritage/     # Heritage culture & prize-table Python engine
+│   └── engine-heritage/     # Heritage reference engine specification
 ├── docs/                    # Architecture blueprints, specifications & DDL
 ├── infra/                   # Nginx reverse proxy configs, systemd services, deployment scripts
 ├── .github/

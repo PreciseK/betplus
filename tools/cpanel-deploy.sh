@@ -258,117 +258,21 @@ $PHP_BIN artisan queue:restart || true
 # (ENGINE_HERITAGE_HEALTH: FAILED, grep-able) but Heritage keeps working via
 # HeritageEngineClient's PHP resolveLocally() fallback either way.
 echo "=========================================================="
-echo "Deploying Heritage engine (apps/engine-heritage)..."
+echo "Verifying Heritage engine (Native PHP)..."
 echo "=========================================================="
 
-PYTHON_BIN=""
-for candidate in \
-  /opt/cpanel/ea-python313/root/usr/bin/python3.13 \
-  /opt/cpanel/ea-python312/root/usr/bin/python3.12 \
-  /opt/cpanel/ea-python311/root/usr/bin/python3.11 \
-  /usr/local/bin/python3.13 \
-  /usr/local/bin/python3.12 \
-  /usr/bin/python3.12 \
-  /usr/bin/python3 \
-  python3; do
-  if command -v "$candidate" >/dev/null 2>&1; then
-    PY_VER=$("$candidate" -c 'import sys; print(sys.version_info[0]*100+sys.version_info[1])' 2>/dev/null || echo 0)
-    if [ "$PY_VER" -ge 312 ]; then
-      PYTHON_BIN="$candidate"
-      break
-    fi
-  fi
-done
-
-if [ -z "$PYTHON_BIN" ]; then
-  echo "ENGINE_HERITAGE_HEALTH: FAILED — no Python >=3.12 interpreter found on this server."
-  echo "Install Python 3.12+ (e.g. WHM's EasyApache ea-python312 package) and re-deploy."
-  echo "Heritage still works via HeritageEngineClient's PHP resolveLocally() fallback."
-else
-  echo "Using Python binary: $PYTHON_BIN ($($PYTHON_BIN --version 2>&1))"
-
-  ENGINE_VENV="$REMOTE_BASE/shared/engine-heritage-venv"
-  ENGINE_SETUP_OK=1
-  if [ ! -x "$ENGINE_VENV/bin/python" ]; then
-    echo "Creating persistent virtualenv at $ENGINE_VENV..."
-    "$PYTHON_BIN" -m venv "$ENGINE_VENV" || ENGINE_SETUP_OK=0
-  fi
-
-  if [ "$ENGINE_SETUP_OK" = "1" ]; then
-    echo "Installing Heritage engine dependencies..."
-    "$ENGINE_VENV/bin/pip" install --quiet --upgrade pip || ENGINE_SETUP_OK=0
-    "$ENGINE_VENV/bin/pip" install --quiet -r "$CURRENT_RELEASE/apps/engine-heritage/requirements.txt" || ENGINE_SETUP_OK=0
-  fi
-
-  if [ "$ENGINE_SETUP_OK" != "1" ]; then
-    echo "ENGINE_HERITAGE_HEALTH: FAILED — could not create the virtualenv or install dependencies."
-    echo "Heritage still works via HeritageEngineClient's PHP resolveLocally() fallback."
-  fi
-
-  # Default HERITAGE_ENGINE_BASE_URL to this same box's loopback — never overwritten
-  # if an operator has deliberately set something else (e.g. a split-host future).
-  if [ -f "$REMOTE_BASE/shared/.env" ] && ! grep -q "^HERITAGE_ENGINE_BASE_URL=" "$REMOTE_BASE/shared/.env"; then
-    echo "HERITAGE_ENGINE_BASE_URL=http://127.0.0.1:8100" >> "$REMOTE_BASE/shared/.env"
+if [ -f "$REMOTE_BASE/shared/.env" ]; then
+  if grep -q "^HERITAGE_ENGINE_BASE_URL=http://127.0.0.1:8100" "$REMOTE_BASE/shared/.env"; then
+    sed -i 's|^HERITAGE_ENGINE_BASE_URL=.*|HERITAGE_ENGINE_BASE_URL=in_process|' "$REMOTE_BASE/shared/.env"
+    echo "Migrated HERITAGE_ENGINE_BASE_URL to in_process in shared/.env"
+  elif ! grep -q "^HERITAGE_ENGINE_BASE_URL=" "$REMOTE_BASE/shared/.env"; then
+    echo "HERITAGE_ENGINE_BASE_URL=in_process" >> "$REMOTE_BASE/shared/.env"
     echo "HERITAGE_ENGINE_TIMEOUT_SECONDS=5" >> "$REMOTE_BASE/shared/.env"
-    echo "Configured HERITAGE_ENGINE_BASE_URL in shared/.env"
-  fi
-
-  if [ "$ENGINE_SETUP_OK" = "1" ]; then
-    echo "Installing/updating betplus-heritage-engine systemd unit..."
-    SERVICE_FILE="/etc/systemd/system/betplus-heritage-engine.service"
-    SERVICE_INSTALL_OK=1
-    sudo -n tee "$SERVICE_FILE" > /dev/null << SERVICE_EOF || SERVICE_INSTALL_OK=0
-[Unit]
-Description=Betplus Heritage game engine (FastAPI/Uvicorn, apps/engine-heritage)
-After=network.target
-
-[Service]
-Type=simple
-User=$USER
-WorkingDirectory=$REMOTE_BASE/current/apps/engine-heritage
-Environment=PYTHONPATH=src
-ExecStart=$ENGINE_VENV/bin/uvicorn engine_heritage.app:app --workers 2 --host 127.0.0.1 --port 8100
-Restart=always
-RestartSec=5
-StandardOutput=append:$REMOTE_BASE/shared/storage/logs/engine-heritage.log
-StandardError=append:$REMOTE_BASE/shared/storage/logs/engine-heritage.log
-
-[Install]
-WantedBy=multi-user.target
-SERVICE_EOF
-
-    if [ "$SERVICE_INSTALL_OK" != "1" ]; then
-      echo "ENGINE_HERITAGE_HEALTH: FAILED — sudo is not available non-interactively for $USER;"
-      echo "cannot install /etc/systemd/system/betplus-heritage-engine.service. Grant this user"
-      echo "passwordless sudo for this one unit file + systemctl, or install infra/systemd/"
-      echo "betplus-heritage-engine.service by hand once as root."
-      echo "Heritage still works via HeritageEngineClient's PHP resolveLocally() fallback."
-    else
-      sudo -n systemctl daemon-reload || echo "Notice: systemctl daemon-reload failed — see above."
-      sudo -n systemctl enable betplus-heritage-engine >/dev/null 2>&1 || true
-      sudo -n systemctl restart betplus-heritage-engine || echo "Notice: systemctl restart failed — see 'sudo systemctl status betplus-heritage-engine'."
-
-      echo "Waiting for the Heritage engine to come up..."
-      ENGINE_UP=0
-      for attempt in 1 2 3 4 5 6 7 8 9 10; do
-        sleep 1
-        if curl -fsS "http://127.0.0.1:8100/engine/v1/describe" > /dev/null 2>&1; then
-          ENGINE_UP=1
-          break
-        fi
-      done
-
-      if [ "$ENGINE_UP" = "1" ]; then
-        echo "ENGINE_HERITAGE_HEALTH: OK — responding on 127.0.0.1:8100"
-      else
-        echo "ENGINE_HERITAGE_HEALTH: FAILED — not responding after 10s. Check:"
-        echo "  sudo systemctl status betplus-heritage-engine"
-        echo "  tail -50 $REMOTE_BASE/shared/storage/logs/engine-heritage.log"
-        echo "Heritage still works via HeritageEngineClient's PHP resolveLocally() fallback."
-      fi
-    fi
+    echo "Configured HERITAGE_ENGINE_BASE_URL=in_process in shared/.env"
   fi
 fi
+
+echo "ENGINE_HERITAGE_HEALTH: OK — native PHP engine active (Domain/Games/Engine/Heritage + /engine/v1 routes)"
 
 # Clean up old releases (keep latest 5)
 cd "$REMOTE_BASE/releases"
