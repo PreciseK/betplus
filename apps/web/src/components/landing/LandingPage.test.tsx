@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import Home from "../../app/page";
+import InformationPage from "./InformationPage";
 import { GamesSection } from "./GamesSection";
 import { Hero } from "./Hero";
 import { SiteHeader } from "./SiteHeader";
@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-describe("Public homepage", () => {
+describe("Public information page", () => {
   it("introduces Betplus and provides account creation and game navigation", () => {
     render(<Hero />);
     expect(screen.getByRole("heading", { level: 1, name: "Your Move. Your Moment. Your Win." })).toBeInTheDocument();
@@ -29,7 +29,7 @@ describe("Public homepage", () => {
   });
 
   it("keeps homepage section links connected to real sections", () => {
-    const { container } = render(<Home />);
+    const { container } = render(<InformationPage />);
     const anchors = container.querySelectorAll<HTMLAnchorElement>('a[href^="#"]');
     for (const anchor of anchors) {
       expect(document.getElementById(anchor.hash.slice(1)), anchor.href).not.toBeNull();

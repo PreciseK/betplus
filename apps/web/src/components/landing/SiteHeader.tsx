@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { href: "#safe-play", label: "Play responsibly" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ homeLinks = false }: { homeLinks?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -41,7 +41,7 @@ export function SiteHeader() {
     <header className="site-header" ref={headerRef}>
       <Logo href="/" height={38} />
       <nav className="site-nav" id="site-nav" aria-label="Main navigation" data-open={menuOpen} onClick={() => setMenuOpen(false)}>
-        {NAV_LINKS.map((link) => <a key={link.href} href={link.href}>{link.label}</a>)}
+        {NAV_LINKS.map((link) => <a key={link.href} href={homeLinks ? `/about${link.href}` : link.href}>{link.label}</a>)}
         <a className="mobile-sign-in" href="/login">Sign in</a>
       </nav>
       <div className="header-actions">

@@ -132,6 +132,10 @@
 }
 
 /* Danger zone */
+.legalLinks { display: grid; margin-bottom: 16px; }
+.legalLinks a { display: flex; align-items: center; min-height: 44px; color: var(--text-secondary); font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
+.legalLinks a:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+
 .dangerZone {
   margin-top: 20px;
   padding-top: 16px;

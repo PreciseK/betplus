@@ -16,7 +16,7 @@ export function GamesSection() {
       </div>
       <div className="game-choice-grid">
         {GAMES.map((game, index) => (
-          <article className={`game-feature game-feature-${game.id}`} key={game.id}>
+          <article className={`game-feature game-feature-${game.id}`} key={game.id} id={game.id}>
             <a href={`/games/${game.id}`} className="game-art" aria-label={`Open ${game.name}`}>
               <Image src={game.image} alt={game.alt} width={600} height={400} unoptimized />
             </a>

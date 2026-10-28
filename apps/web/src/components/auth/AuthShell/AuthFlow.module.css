@@ -68,6 +68,7 @@
 .footerLink { border-top: 1px solid #303037; margin: 32px 0 0; padding-top: 24px; color: #b0b0b9; font-size: 14px; line-height: 1.6; }
 .footerLink a { color: #f5f5f7; margin-left: 4px; text-decoration: underline; text-underline-offset: 4px; }
 .finePrint, .terms, .privacy { color: #a4a4ae; font-size: 12px; line-height: 1.65; margin: 20px 0 0; }
+.terms a { color: #e4e4e8; text-decoration: underline; text-underline-offset: 3px; }
 .progressWrap { margin-bottom: 32px; }
 .progressLabel { color: #b0b0b9; font-size: 12px; margin-bottom: 12px; }
 .progressBar { display: flex; gap: 6px; }

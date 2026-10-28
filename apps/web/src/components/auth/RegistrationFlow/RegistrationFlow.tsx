@@ -442,6 +442,7 @@ export function RegistrationFlow({ gateway = mockRegistrationGateway }: { gatewa
 
         <p className={styles.terms}>
           You must be 18 or older to use Betplus. An OPay wallet and identity verification are required.
+          {" "}Read our <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions (opens in a new tab)</a> and <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy (opens in a new tab)</a> before creating an account.
         </p>
       </div>
     </AuthShell>

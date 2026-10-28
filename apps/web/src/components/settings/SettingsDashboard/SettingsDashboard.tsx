@@ -118,6 +118,10 @@ export function SettingsDashboard() {
         </ul>
 
         <div className={styles.dangerZone}>
+          <nav className={styles.legalLinks} aria-label="Legal documents">
+            <Link href="/privacy-policy">Privacy Policy</Link>
+            <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
+          </nav>
           <button type="button" className={styles.dangerBtn}>
             <span>🚪</span>
             <span>Sign out</span>
