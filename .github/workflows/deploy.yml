@@ -98,20 +98,36 @@ jobs:
           # 1. Ensure remote directories exist (establishes multiplexed master connection)
           ssh cpanel-target "mkdir -p $REMOTE_BASE/releases $REMOTE_BASE/shared/storage $REMOTE_BASE/shared/storage/framework/{sessions,views,cache} $REMOTE_BASE/shared/storage/logs"
 
+          # Copy existing frontend media locally on the server into the NEW release.
+          # These are independent copies, so syncing cannot modify the active release.
+          ssh cpanel-target "
+            set -e
+            mkdir -p '$REMOTE_RELEASE/apps/web'
+            if [ -d '$REMOTE_BASE/current/apps/web/public' ]; then
+              cp -a '$REMOTE_BASE/current/apps/web/public' '$REMOTE_RELEASE/apps/web/'
+            fi
+            if [ -d '$REMOTE_BASE/current/apps/web/out' ]; then
+              cp -a '$REMOTE_BASE/current/apps/web/out' '$REMOTE_RELEASE/apps/web/'
+            fi
+          "
+
           # 2. Rsync repository files (including pre-built vendor) excluding build caches
-          rsync -avz --delete \
+          # Checksums avoid retransmitting identical media with fresh checkout mtimes.
+          rsync -avz --checksum --delete --timeout=180 \
             -e ssh \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'node_modules' \
             --exclude 'apps/*/node_modules' \
+            --exclude 'apps/web/.next' \
+            --exclude 'apps/web/out' \
             --exclude 'apps/platform/storage' \
             --exclude '.env' \
             --exclude 'apps/*/.env' \
             ./ cpanel-target:$REMOTE_RELEASE/
 
           # 3. Rsync pre-built frontend static export into the release
-          rsync -avz \
+          rsync -avz --checksum --delete --timeout=180 \
             -e ssh \
             ./apps/web/out/ cpanel-target:$REMOTE_RELEASE/apps/web/out/
 
