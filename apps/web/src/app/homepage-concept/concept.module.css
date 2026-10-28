@@ -115,6 +115,7 @@
 .dialog h2 { font-family: 'Outfit', sans-serif; font-size: 36px; letter-spacing: -.04em; line-height: 1.15; margin: 18px 0; }
 .dialog p { color: #bdbbad; font-size: 14px; line-height: 1.85; margin-bottom: 24px; }
 .dialog .dialogNote { font-size: 12px; color: #97978b; }
+.dialogNote a { text-decoration: underline; text-underline-offset: 4px; }
 .dialogEyebrow { font-size: 10px; color: #d4b681; letter-spacing: .15em; }
 .close { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; border: 0; background: transparent; color: #d5d2c3; font-size: 28px !important; }
 @keyframes sceneEnter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -122,7 +123,7 @@
 @keyframes diamondFloat { 0%,100% { transform: translateY(0) rotate(18deg); } 50% { transform: translateY(-14px) rotate(24deg); } }
 @media (min-width: 1550px) { .stage { padding-inline: max(7%, calc((100vw - 1300px) / 2)); } }
 @media (max-width: 1050px) {
-  .nav { gap: 20px; } .nav > :last-child { display: none; }
+  .nav { gap: 20px; }
   .stage { padding: 55px 5% 76px; min-height: 600px; }
   .copy h1 { font-size: clamp(42px, 6vw, 64px); }
   .cards { left: -3%; transform: scale(.85); transform-origin: center left; }
@@ -132,13 +133,15 @@
   .monarch { right: -25%; } .tileBoard { left: -5%; width: 220px; top: 160px; }
   .utility > div { gap: 14px; } .footerTag { display: none; }
 }
-@media (max-width: 900px) { .nav { display: none; } .aboutLink { margin-left: auto; } }
 @media (max-width: 700px) {
   .previewBar { font-size: 8px; min-height: 28px; padding-inline: 20px; }
-  .header { height: 72px; padding-inline: 20px; gap: 12px; }
-  .logo img { width: 114px; } .nav { display: none; }
-  .accountActions { gap: 16px; } .join { padding-inline: 13px; gap: 14px; font-size: 10px !important; } .signIn { display: none; }
-  .aboutLink { font-size: 10px; margin-left: auto; }
+  .header { height: auto; min-height: 72px; flex-wrap: wrap; padding: 12px 20px 6px; gap: 6px 16px; }
+  .logo img { width: 114px; }
+  .nav { display: flex; order: 3; flex-basis: 100%; justify-content: center; gap: 32px; height: auto; }
+  .nav a { font-size: 11px; }
+  .navActive::after { bottom: -6px; }
+  .accountActions { gap: 16px; margin-left: auto; } .join { padding-inline: 13px; gap: 14px; font-size: 10px !important; } .signIn { display: none; }
+  .aboutLink { font-size: 11px; }
   .stage { display: flex; flex-direction: column; min-height: 745px; padding: 34px 24px 60px; }
   .copy { align-self: stretch; } .gameLabel { font-size: 8px; margin-bottom: 14px; }
   .gameName { font-size: 17px; margin-bottom: 8px; }
@@ -154,7 +157,8 @@
   .interactionHint { bottom: -4px; left: 30%; font-size: 10px; }
   .interactionHint > span { font-size: 18px; margin-bottom: 3px; } .interactionHint small { font-size: 8px; margin-top: 5px; }
   .sceneWord { font-size: 32vw; left: 5%; bottom: 10%; }
-  .stageBottom { left: 24px; right: 24px; bottom: 8px; font-size: 6px; letter-spacing: .1em; }
+  .stageBottom { left: 24px; right: 24px; bottom: 8px; justify-content: center; font-size: 6px; letter-spacing: .1em; }
+  .stageBottom > span:first-child { display: none; }
   .stageBottom > div { gap: 12px; } .stageBottom button { width: 44px; height: 44px; }
   .exploreLabel { display: none; }
   .monarch { width: 230px; height: 390px; right: -15px; bottom: -22px; }

@@ -15,7 +15,7 @@ export function LegalPage({ title, intro, sections, kind }: {
   return (
     <div className={`landing-page ${styles.page}`} id="top">
       <a className="skip-link" href="#main">Skip to main content</a>
-      <SiteHeader homeLinks />
+      <SiteHeader />
       <main id="main" className={styles.main}>
         <header className={styles.intro}>
           <Link href="/" className={styles.back}>← Back to Betplus</Link>

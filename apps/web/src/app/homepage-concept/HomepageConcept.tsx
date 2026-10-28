@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type CSSProperties, type TouchEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type TouchEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -21,11 +21,34 @@ export function HomepageConcept({ preview = true }: { preview?: boolean }) {
   const [flipped, setFlipped] = useState(false);
   const [tiles, setTiles] = useState<number[]>([]);
   const [flying, setFlying] = useState(false);
-  const [dialogMode, setDialogMode] = useState<"play" | "guide" | "account" | "responsible">("play");
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<"play" | "guide" | "account" | "responsible">("guide");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLElement>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const game = GAMES[selected];
+
+  useEffect(() => {
+    if (!autoRotate || dialogOpen) return;
+    let timer: number | undefined;
+    const schedule = () => {
+      window.clearTimeout(timer);
+      if (document.hidden) return;
+      timer = window.setTimeout(() => {
+        setSelected((current) => (current + 1) % GAMES.length);
+        setFlipped(false);
+        setTiles([]);
+        setFlying(false);
+      }, 12_000);
+    };
+    schedule();
+    document.addEventListener("visibilitychange", schedule);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", schedule);
+    };
+  }, [autoRotate, dialogOpen, selected, flipped, tiles.length, flying]);
 
   function choose(index: number) {
     setSelected((index + GAMES.length) % GAMES.length);
@@ -36,6 +59,7 @@ export function HomepageConcept({ preview = true }: { preview?: boolean }) {
 
   function openDialog(mode: typeof dialogMode) {
     setDialogMode(mode);
+    setDialogOpen(true);
     dialogRef.current?.showModal();
   }
 
@@ -55,11 +79,9 @@ export function HomepageConcept({ preview = true }: { preview?: boolean }) {
       <header className={styles.header}>
         <Link href={preview ? "/homepage-concept" : "/"} aria-label="Betplus home" className={styles.logo}><Image src="/assets/betplus-logo-white.png" alt="Betplus" width={167} height={60} priority unoptimized /></Link>
         <nav className={styles.nav} aria-label="Main navigation">
-          <a href="#choose-game" className={styles.navActive}>The games</a>
-          {preview ? <button onClick={() => openDialog("guide")}>How to play</button> : <Link href="/about#how-it-works">How to play</Link>}
-          {preview ? <button onClick={() => openDialog("responsible")}>Responsible play</button> : <Link href="/about#safe-play">Responsible play</Link>}
+          <a href="#choose-game" className={styles.navActive}>Games</a>
+          <Link href="/about" className={styles.aboutLink}>About Betplus</Link>
         </nav>
-        <Link href="/about" className={styles.aboutLink}>About Betplus</Link>
         <div className={styles.accountActions}>{preview ? <><button className={styles.signIn} onClick={() => openDialog("account")}>Sign in</button><button className={styles.join} onClick={() => openDialog("account")}>Join Betplus <span>↗</span></button></> : <><Link className={styles.signIn} href="/login">Sign in</Link><Link className={styles.join} href="/register">Join Betplus <span>↗</span></Link></>}</div>
       </header>
 
@@ -73,7 +95,7 @@ export function HomepageConcept({ preview = true }: { preview?: boolean }) {
             <p className={styles.gameName}>{game.name}</p>
             <h1>{game.line}<br /><em>{game.emphasis}</em></h1>
             <p className={styles.description}>{game.description}</p>
-            <div className={styles.actions}>{preview ? <button className={styles.play} onClick={() => openDialog("play")}>Play {game.name}<span aria-hidden="true">↗</span></button> : <Link className={styles.play} href={`/games/${game.id}`}>Play {game.name}<span aria-hidden="true">↗</span></Link>}{preview ? <button className={styles.rules} onClick={() => openDialog("guide")}>How to play <span aria-hidden="true">↗</span></button> : <Link className={styles.rules} href={`/about#${game.id}`}>How to play <span aria-hidden="true">↗</span></Link>}</div>
+            <div className={styles.actions}>{preview ? <button className={styles.play} onClick={() => openDialog("play")}>Play {game.name}<span aria-hidden="true">↗</span></button> : <Link className={styles.play} href={`/games/${game.id}`}>Play {game.name}<span aria-hidden="true">↗</span></Link>}<button className={styles.rules} onClick={() => openDialog("guide")}>How to play <span aria-hidden="true">↗</span></button></div>
             <p className={styles.age}>18+ only. Play for fun. Play within your limits.</p>
           </div>
 
@@ -110,7 +132,7 @@ export function HomepageConcept({ preview = true }: { preview?: boolean }) {
               <p className={styles.cageHint}>A moment changes everything.<small>Interactive artwork · no live round</small></p>
             </>}
           </div>
-          <div className={styles.stageBottom}><span>THREE GAMES. YOUR CALL.</span><div><button aria-label="Previous game" onClick={() => choose(selected - 1)}>←</button><span>{game.number}<i> / 03</i></span><button aria-label="Next game" onClick={() => choose(selected + 1)}>→</button></div><span className={styles.exploreLabel}>EXPLORE BELOW ↓</span></div>
+          <div className={styles.stageBottom}><span>THREE GAMES. YOUR CALL.</span><div><button aria-label="Previous game" onClick={() => choose(selected - 1)}>←</button><button aria-label={autoRotate ? "Pause automatic game switching" : "Resume automatic game switching"} aria-pressed={!autoRotate} title={autoRotate ? "Games switch every 12 seconds. Pause switching." : "Resume switching every 12 seconds."} onClick={() => setAutoRotate((current) => !current)}>{autoRotate ? "Ⅱ" : "▶"}</button><span>{game.number}<i> / 03</i></span><button aria-label="Next game" onClick={() => choose(selected + 1)}>→</button></div><span className={styles.exploreLabel}>EXPLORE BELOW ↓</span></div>
         </section>
 
         <section className={styles.gamePicker} id="choose-game" aria-labelledby="picker-heading">
@@ -126,18 +148,18 @@ export function HomepageConcept({ preview = true }: { preview?: boolean }) {
             </button>)}
           </div>
         </section>
-        <div className={styles.utility}><p>One Betplus account. Three ways to play.</p><div><span>Payments with <b>OPay</b></span><span className={styles.utilityDivider} /><span>On USSD <b>*7006#</b></span>{preview ? <button onClick={() => openDialog("guide")}>Get the game guide ↗</button> : <Link className={styles.guideLink} href="/about#games">Get the game guide ↗</Link>}</div></div>
+        <div className={styles.utility}><p>One Betplus account. Three ways to play.</p><div><span>Payments with <b>OPay</b></span><span className={styles.utilityDivider} /><span>On USSD <b>*7006#</b></span><button onClick={() => openDialog("guide")}>Get the game guide ↗</button></div></div>
       </main>
       <footer className={styles.footer}><span>© {new Date().getFullYear()} Betplus.</span><div>{!preview && <Link href="/login">Sign in</Link>}<Link href="/privacy-policy">Privacy</Link><Link href="/terms-and-conditions">Terms</Link>{preview ? <button onClick={() => openDialog("responsible")}>18+ · Play responsibly</button> : <Link href="/about#safe-play">18+ · Play responsibly</Link>}</div><span className={styles.footerTag}>YOUR MOVE. YOUR MOMENT.</span></footer>
 
-      {preview && <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="concept-dialog-title">
-        <button className={styles.close} aria-label="Close preview dialog" onClick={() => dialogRef.current?.close()}>×</button>
+      <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="concept-dialog-title" onClose={() => setDialogOpen(false)}>
+        <button className={styles.close} aria-label="Close dialog" onClick={() => dialogRef.current?.close()}>×</button>
         <span className={styles.dialogEyebrow}>{dialogMode === "guide" ? "GAME GUIDE" : "CONCEPT PREVIEW"}</span>
         <h2 id="concept-dialog-title">{dialogMode === "play" ? `Your move: ${game.name}.` : dialogMode === "guide" ? `How ${game.name} works.` : dialogMode === "responsible" ? "Keep play in perspective." : "Welcome to Betplus."}</h2>
         <p>{dialogMode === "play" ? "This is where the selected game would open. For this preview, you can explore the design without signing in or placing a stake." : dialogMode === "guide" ? game.detail : dialogMode === "responsible" ? "For adults aged 18 and over. Set limits you can afford, take breaks and never chase losses. In the finished homepage, this link will open the responsible-play information page." : "Sign-in and registration will connect to the existing account flows after this concept is approved."}</p>
-        {dialogMode === "guide" && <p className={styles.dialogNote}>The full guide will have rules, payout explanations and FAQs on a dedicated information page. The stage interactions are visual demonstrations.</p>}
+        {dialogMode === "guide" && <p className={styles.dialogNote}>The stage interactions are visual demonstrations. <Link href={`/about#${game.id}`}>Read more about {game.name}</Link>.</p>}
         <button className={styles.play} onClick={() => dialogRef.current?.close()}>Back to exploring <span>↗</span></button>
-      </dialog>}
+      </dialog>
     </div>
   );
 }
