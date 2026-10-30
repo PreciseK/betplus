@@ -14,6 +14,7 @@ declare(strict_types=1);
 const GATE_SKIP_DIRS = [
     'vendor', 'node_modules', '.venv', '.git', 'storage', 'bootstrap',
     '.next', 'dist', 'out', '__pycache__', '.pytest_cache', 'coverage',
+    '.gstack', '.claude', '.kilo', '.next-doors-local', 'output', 'build',
 ];
 
 /**

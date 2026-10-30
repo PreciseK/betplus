@@ -10,6 +10,8 @@ use App\Domain\Games\PrizeTable\PrizeTableResolver;
 use App\Http\Controllers\Controller;
 use App\Models\FairnessSeed;
 use App\Models\Ticket;
+use App\Models\DoorsRound;
+use App\Domain\Games\Doors\DoorsEngine;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -32,6 +34,7 @@ class TicketAuditController extends Controller
     {
         $ticket = Ticket::with('outcome')->where('reference', $reference)->firstOrFail();
         $seed = FairnessSeed::findOrFail($ticket->rngSeedRef);
+        if ($ticket->gameCode === 'DOORS') { return $this->doorsReplay($ticket, $seed); }
 
         $prizeTable = $this->prizeTableResolver->resolveFor($ticket->gameCode, $ticket->stateCode, $ticket->createdAt);
         $tiers = $prizeTable?->tiers->map(fn ($t) => new EngineTier((int) $t->positions, (int) $t->multiplierHundredths))->all() ?? [];
@@ -56,6 +59,36 @@ class TicketAuditController extends Controller
             ],
             'matches' => $ticket->outcome !== null
                 && $ticket->outcome->digest === $replayed->digest,
+        ]);
+    }
+
+    private function doorsReplay(Ticket $ticket, FairnessSeed $seed): JsonResponse
+    {
+        $round = DoorsRound::where('ticketId', $ticket->id)->firstOrFail();
+        if ($round->status === 'IN_PLAY') {
+            return response()->json(['message' => 'Active Doors rounds cannot be replayed before settlement.'], 409);
+        }
+        $replayed = (new DoorsEngine())->board($seed->seedHex, $ticket->reference, $round->configJson['rules']);
+        $opened = []; $multiplier = 0; $valid = true; $seen = [];
+        foreach ($round->openedJson as $pick) {
+            $index = $pick['index'];
+            if ($multiplier > 0 || isset($seen[$index]) || !array_key_exists($index, $replayed['board'])) { $valid = false; break; }
+            $seen[$index] = true;
+            $multiplier = $replayed['board'][$index];
+            $opened[] = ['index' => $index, 'multiplier' => $multiplier];
+        }
+        $valid = $valid && count($opened) <= $round->configJson['rules']['max_attempts'];
+        $result = ['opened' => $opened, 'multiplier' => $multiplier];
+        $digest = hash('sha256', json_encode($result, JSON_THROW_ON_ERROR));
+        $outcome = $ticket->outcome;
+        return response()->json([
+            'reference' => $ticket->reference, 'seed_hex' => $seed->seedHex, 'seed_algorithm' => $seed->algorithm,
+            'engine_version' => $ticket->engineVersion, 'prediction' => [],
+            'stored' => ['result' => $outcome->resultJson ?? null, 'won' => $outcome->won ?? null, 'digest' => $outcome->digest ?? null],
+            'replayed' => ['result' => $result, 'won' => $multiplier > 0, 'digest' => $digest],
+            'matches' => $valid && $outcome !== null && $outcome->digest === $digest
+                && $outcome->grossPrizeKobo === $ticket->stakeKobo * $multiplier
+                && $round->boardEncrypted === $replayed['board'] && hash_equals($round->commitment, $replayed['commitment']),
         ]);
     }
 }

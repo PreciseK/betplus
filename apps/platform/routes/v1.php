@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\CagedCrashController;
+use App\Http\Controllers\Api\V1\DoorsController;
 use App\Http\Controllers\Api\V1\BlackRedController;
 use App\Http\Controllers\Api\V1\CagedController;
 use App\Http\Controllers\Api\V1\HeritageController;
@@ -26,6 +27,10 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/sign-out', [SessionController::class, 'signOut']);
 
     Route::middleware('auth.token')->group(function () {
+        Route::get('/games/doors', [DoorsController::class, 'show']);
+        Route::post('/doors/rounds', [DoorsController::class, 'start'])->middleware('idempotent');
+        Route::get('/doors/rounds/{reference}', [DoorsController::class, 'read']);
+        Route::post('/doors/rounds/{reference}/open', [DoorsController::class, 'open'])->middleware('idempotent');
         Route::get('/me', [PlayerProfileController::class, 'show']);
         Route::post('/account/deactivate', [PlayerProfileController::class, 'deactivate']);
 

@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Games\Economics;
 
+use App\Domain\Games\Doors\DoorsConfigGate;
 use App\Models\GameEconomicsConfig;
 
 /**
  * The structural half of GameEconomicsConfig's publication gate, same spirit as
  * PrizeTablePublicationGate/CrashConfigPublicationGate. This config doesn't carry
- * odds itself (the RTP ceiling is enforced where odds actually live — the four
- * PrizeTable/CrashConfig gates), so this only validates that the chosen model's
- * param shape is sane.
+ * odds for legacy games (their PrizeTable/CrashConfig gates do that). Doors keeps
+ * its versioned board distribution here, so its additional gate checks the exact
+ * multipliers, configuration shape, certification reference and mathematical RTP.
  */
 final class GameEconomicsModelGate
 {
@@ -34,6 +35,10 @@ final class GameEconomicsModelGate
     /** @return list<string> validation errors; empty means the config may publish */
     public function validate(GameEconomicsConfig $config): array
     {
+        if ($config->gameCode === 'DOORS') {
+            $errors = (new DoorsConfigGate())->validate($config);
+            if ($errors !== []) { return $errors; }
+        }
         if (!in_array($config->activeModel, self::VALID_MODELS, true)) {
             return ["activeModel '{$config->activeModel}' is not one of: " . implode(', ', self::VALID_MODELS) . '.'];
         }

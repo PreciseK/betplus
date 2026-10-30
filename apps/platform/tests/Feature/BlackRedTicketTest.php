@@ -123,7 +123,7 @@ final class BlackRedTicketTest extends TestCase
         for ($i = 0; $i < 30 && $won === null; $i++) {
             $purchase = $this->withToken($token)->postJson('/v1/tickets', [
                 'prediction' => ['B'],
-                'stake_kobo' => 10_000,
+                'stake_kobo' => 20_000,
                 'idempotency_key' => "win-search-$i",
             ])->json();
             $reveal = $this->withToken($token)->getJson("/v1/tickets/{$purchase['reference']}/reveal")->json();
@@ -133,10 +133,34 @@ final class BlackRedTicketTest extends TestCase
         }
 
         $this->assertNotNull($won, 'No win in 30 single-position tickets — engine bias is suspect.');
-        $this->assertSame(17_000, $won['gross_prize_kobo']); // 10_000 * 1.70 (recalibrated 2026-09-14 for the 8800bp ceiling)
-        $this->assertSame(850, $won['tax_withheld_kobo']); // 5% of gross
-        $this->assertSame(16_150, $won['net_credit_kobo']);
+        $this->assertSame(34_000, $won['gross_prize_kobo']); // 20_000 * 1.70 (recalibrated 2026-09-14 for the 8800bp ceiling)
+        $this->assertSame(1_700, $won['tax_withheld_kobo']); // 5% of gross
+        $this->assertSame(32_300, $won['net_credit_kobo']);
         $this->assertSame($won['winnings_balance_after_kobo'], $won['net_credit_kobo']);
+    }
+
+    public function test_a_bonus_funded_win_records_only_the_net_actually_credited(): void
+    {
+        [$player, $token] = $this->signedInPlayer();
+        $wallet = app(WalletService::class);
+
+        $won = null;
+        for ($i = 0; $i < 30 && $won === null; $i++) {
+            $wallet->creditBonusPlayBalance($player, 20_000, 'test_bonus', $i);
+            $purchase = $this->withToken($token)->postJson('/v1/tickets', [
+                'prediction' => ['B'], 'stake_kobo' => 20_000, 'idempotency_key' => "bonus-win-$i",
+            ])->json();
+            $reveal = $this->withToken($token)->getJson("/v1/tickets/{$purchase['reference']}/reveal")->json();
+            if ($reveal['won']) {
+                $won = $reveal;
+            }
+        }
+
+        $this->assertNotNull($won);
+        // 32,300 net minus the 20,000 bonus principal reclaimed: payouts send this amount to OPay.
+        $this->assertSame(12_300, $won['net_credit_kobo']);
+        $this->assertSame(12_300, $won['winnings_balance_after_kobo']);
+        $this->assertSame(12_300, Ticket::where('reference', $won['reference'])->firstOrFail()->outcome->netCreditKobo);
     }
 
     public function test_a_repeated_idempotency_key_returns_the_same_ticket_without_double_charging(): void

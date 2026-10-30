@@ -17,6 +17,7 @@ Schedule::command('ledger:reconcile')->dailyAt('01:00');
 // Story 4.7/4.8 — REQ-FLOAT-002 wants 60s polling from a supervised worker; this is
 // the scheduler-granularity approximation (see SnapshotFloatCommand's doc comment).
 Schedule::command('payout:snapshot-float')->everyMinute();
+Schedule::command('doors:expire-rounds')->everyMinute();
 
 // Story 6.10 (REQ-ANL-006) — rolls up the prior UTC day once it's fully closed, ahead
 // of anyone opening a back-office dashboard for it.

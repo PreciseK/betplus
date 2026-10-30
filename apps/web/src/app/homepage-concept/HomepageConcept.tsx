@@ -12,6 +12,7 @@ const GAMES = [
   { id: "blackred", name: "BlackRed", category: "CARD PREDICTION", line: "Make your", emphasis: "colour call.", description: "Black or red? A little instinct. A turn of the cards.", accent: "#ff5547", number: "01", symbol: "♦", detail: "Predict the colours of one to five cards. Review your selections, stake and possible return before confirming a ticket." },
   { id: "heritage", name: "Heritage", category: "ROYAL REGALIA · INSTANT WIN", line: "A little culture.", emphasis: "A royal reveal.", description: "Nine tiles. Five choices. Discover the regalia within.", accent: "#e8b969", number: "02", symbol: "♛", detail: "Choose five positions on a nine-tile board. Reveal the regalia and check the game's rules for qualifying matches and payouts." },
   { id: "caged", name: "Caged", category: "LIVE CRASH", line: "Catch the", emphasis: "right moment.", description: "Watch it rise. Make your move before the cage drops.", accent: "#b7e2ca", number: "03", symbol: "↗", detail: "Place up to two bets in a round. The multiplier rises until the cage drops. A cash-out must be accepted before the round ends; otherwise the stake is lost." },
+  { id: "doors", name: "Doors", category: "TREASURE HUNT", line: "Five chances.", emphasis: "One discovery.", description: "Enter Big Man’s vault. Your first treasure ends the round.", accent: "#e5c176", number: "04", symbol: "⚿", detail: "Choose a stake, then open up to five of twenty vault doors before your 5- or 10-second timer ends. Your first treasure ends the round: gold bars pay 3×, a chest 5×, and a multiplier card 2× your stake. Five empty doors or time running out means no prize. Payout multipliers are gross; applicable deductions and net winnings appear on settlement. Doors is available on the web; play is subject to game availability." },
 ] as const;
 
 const REGALIA = ["ade", "ileke", "irukere", "agbada", "bata", "ileke", "irukere", "bata", "ade"];
@@ -131,14 +132,32 @@ export function HomepageConcept({ preview = true }: { preview?: boolean }) {
               <button className={styles.release} onClick={() => setFlying(!flying)}>{flying ? "↺ Reset the scene" : "↗ Open the cage"}</button>
               <p className={styles.cageHint}>A moment changes everything.<small>Interactive artwork · no live round</small></p>
             </>}
+            {game.id === "doors" && <>
+              <div className={styles.vaultGlow} aria-hidden="true" />
+              <Image className={styles.doorsHost} src="/assets/doors/big-man-thumbs-up.png" alt="Big Man, the host of Doors, wearing his black and gold suit" width={1107} height={1421} loading="eager" unoptimized />
+              <div className={styles.vaultPreview}>
+                <div className={styles.vaultPreviewTitle}><span>BIG MAN’S VAULT</span><span>{Math.max(0, 5 - tiles.length)} KEYS</span></div>
+                <div className={styles.previewDoors} role="group" aria-label="Doors demonstration board">
+                  {Array.from({ length: 20 }, (_, index) => {
+                    const opened = tiles.includes(index);
+                    const won = tiles.includes(6);
+                    return <button key={index} disabled={opened || won || tiles.length >= 5} className={opened ? styles.previewDoorOpen : ""} aria-label={opened ? `Preview door ${index + 1}: ${index === 6 ? "gold bars, 3 times stake" : "empty"}` : `Open preview door ${index + 1}`} onClick={() => setTiles(current => current.length < 5 && !current.includes(6) ? [...current, index] : current)}>
+                      <span>{opened ? index === 6 ? "3×" : "—" : String(index + 1).padStart(2, "0")}</span>
+                    </button>;
+                  })}
+                </div>
+                <div className={styles.previewPaytable}><span>GOLD <b>3×</b></span><span>CHEST <b>5×</b></span><span>CARD <b>2×</b></span></div>
+              </div>
+              <div className={styles.doorsHint}><p role="status">{tiles.includes(6) ? "Gold bars. That’s a 3× discovery." : tiles.length >= 5 ? "Five doors explored. Preview complete." : "A treasure is waiting behind a door."}</p><small>Tap to explore · demonstration only · no stake</small>{(tiles.includes(6) || tiles.length >= 5) && <button onClick={() => setTiles([])}>Reset vault preview ↺</button>}</div>
+            </>}
           </div>
-          <div className={styles.stageBottom}><span>THREE GAMES. YOUR CALL.</span><div><button aria-label="Previous game" onClick={() => choose(selected - 1)}>←</button><button aria-label={autoRotate ? "Pause automatic game switching" : "Resume automatic game switching"} aria-pressed={!autoRotate} title={autoRotate ? "Games switch every 12 seconds. Pause switching." : "Resume switching every 12 seconds."} onClick={() => setAutoRotate((current) => !current)}>{autoRotate ? "Ⅱ" : "▶"}</button><span>{game.number}<i> / 03</i></span><button aria-label="Next game" onClick={() => choose(selected + 1)}>→</button></div><span className={styles.exploreLabel}>EXPLORE BELOW ↓</span></div>
+          <div className={styles.stageBottom}><span>FOUR GAMES. YOUR CALL.</span><div><button aria-label="Previous game" onClick={() => choose(selected - 1)}>←</button><button aria-label={autoRotate ? "Pause automatic game switching" : "Resume automatic game switching"} aria-pressed={!autoRotate} title={autoRotate ? "Games switch every 12 seconds. Pause switching." : "Resume switching every 12 seconds."} onClick={() => setAutoRotate((current) => !current)}>{autoRotate ? "Ⅱ" : "▶"}</button><span>{game.number}<i> / {String(GAMES.length).padStart(2, "0")}</i></span><button aria-label="Next game" onClick={() => choose(selected + 1)}>→</button></div><span className={styles.exploreLabel}>EXPLORE BELOW ↓</span></div>
         </section>
 
         <section className={styles.gamePicker} id="choose-game" aria-labelledby="picker-heading">
           <div className={styles.pickerIntro} id="games"><span>THE LINE-UP</span><h2 id="picker-heading">What’s your move?</h2></div>
           <div className={styles.choices} role="group" aria-label="Choose a featured game">
-            {GAMES.map((item, index) => <button key={item.id} className={`${styles.choice} ${index === selected ? styles.chosen : ""}`} aria-pressed={index === selected} onClick={(event) => {
+            {GAMES.map((item, index) => <button key={item.id} className={`${styles.choice} ${index === selected ? styles.chosen : ""}`} aria-label={`${item.name} ${item.category.split(" · ").at(-1)?.toLowerCase()}`} aria-pressed={index === selected} onClick={(event) => {
               choose(index);
               if (event.detail > 0 && window.matchMedia("(max-width: 700px)").matches) {
                 stageRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
@@ -148,7 +167,7 @@ export function HomepageConcept({ preview = true }: { preview?: boolean }) {
             </button>)}
           </div>
         </section>
-        <div className={styles.utility}><p>One Betplus account. Three ways to play.</p><div><span>Payments with <b>OPay</b></span><span className={styles.utilityDivider} /><span>On USSD <b>*7006#</b></span><button onClick={() => openDialog("guide")}>Get the game guide ↗</button></div></div>
+        <div className={styles.utility}><p>One Betplus account. Four games to explore.</p><div><span>Payments with <b>OPay</b></span><span className={styles.utilityDivider} /><span>Selected games on USSD <b>*7006#</b></span><button onClick={() => openDialog("guide")}>Get the game guide ↗</button></div></div>
       </main>
       <footer className={styles.footer}><span>© {new Date().getFullYear()} Betplus.</span><div>{!preview && <Link href="/login">Sign in</Link>}<Link href="/privacy-policy">Privacy</Link><Link href="/terms-and-conditions">Terms</Link>{preview ? <button onClick={() => openDialog("responsible")}>18+ · Play responsibly</button> : <Link href="/about#safe-play">18+ · Play responsibly</Link>}</div><span className={styles.footerTag}>YOUR MOVE. YOUR MOMENT.</span></footer>
 

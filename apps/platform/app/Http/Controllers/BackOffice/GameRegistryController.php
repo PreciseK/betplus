@@ -55,6 +55,11 @@ class GameRegistryController extends Controller
     public function update(Request $request, string $gameCode): JsonResponse
     {
         $game = GameRegistry::where('gameCode', $gameCode)->firstOrFail();
+        $floor = GameRegistry::MIN_STAKE_FLOOR_KOBO;
+        $request->validate([
+            'minStakeKobo' => ['sometimes', 'integer', "min:{$floor}", 'max:' . $request->input('maxStakeKobo', $game->maxStakeKobo)],
+            'maxStakeKobo' => ['sometimes', 'integer', 'min:' . max($floor, (int) $request->input('minStakeKobo', $game->minStakeKobo))],
+        ]);
         $before = $game->getAttributes();
         $game->update($request->only(['status', 'enabledChannels', 'enabledStates', 'minStakeKobo', 'maxStakeKobo']));
 

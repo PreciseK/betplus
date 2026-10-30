@@ -30,9 +30,10 @@ final class BackOfficeGameEconomicsConfigTest extends TestCase
             'email' => strtolower($role) . random_int(1000, 9999) . '@betplus.test',
             'displayName' => 'Operator', 'passwordHash' => password_hash('x', PASSWORD_BCRYPT),
             'role' => $role, 'status' => 'active',
+            'ipAllowlist' => '127.0.0.1',
             'mfaSecretEncrypted' => app(MfaSecretCipher::class)->encrypt($secret),
         ]);
-        $signIn = $this->postJson('/backoffice/v1/auth/sign-in', ['email' => $user->email, 'password' => 'x'])->json();
+        $signIn = $this->postJson('/backoffice/v1/auth/sign-in', ['email' => $user->email, 'password' => 'x'])->assertOk()->json();
         $mfa = $this->postJson('/backoffice/v1/auth/mfa', ['challenge_id' => $signIn['challenge_id'], 'code' => app(TotpService::class)->currentCode($secret)])->json();
 
         return $mfa['access_token'];
@@ -88,6 +89,27 @@ final class BackOfficeGameEconomicsConfigTest extends TestCase
 
         $this->withToken($token)->patchJson("/backoffice/v1/game-economics-configs/{$config->id}", $this->draftPayload('PUBLISHED-1'))->assertStatus(409);
         $this->withToken($token)->deleteJson("/backoffice/v1/game-economics-configs/{$config->id}")->assertStatus(409);
+    }
+
+    public function test_doors_draft_is_gated_and_published_through_the_same_maker_checker_workflow(): void
+    {
+        $this->seed(\Database\Seeders\DoorsGameSeeder::class);
+        $source = GameEconomicsConfig::where('gameCode', 'DOORS')->firstOrFail();
+        $maker = $this->institutionToken('game_ops');
+        $draft = $this->withToken($maker)->postJson('/backoffice/v1/game-economics-configs', [
+            'game_code' => 'DOORS', 'version' => 'DOORS-TEST-2', 'active_model' => 'BALANCED_HYBRID',
+            'params' => $source->paramsJson, 'effective_at' => now()->toDateString(),
+        ])->assertOk()->json();
+        $this->assertSame([], $draft['gate_errors']);
+        $proposal = $this->withToken($maker)->postJson('/backoffice/v1/changes', [
+            'change_type' => 'game_economics_config_publish', 'payload' => ['game_economics_config_id' => $draft['id']],
+            'justification' => 'Review the test Doors Model 1 configuration.',
+        ])->assertCreated();
+        $checker = $this->institutionToken('finance');
+        $this->withToken($checker)->postJson('/backoffice/v1/changes/' . $proposal->json('id') . '/approve')->assertOk();
+        $this->assertDatabaseHas('gameEconomicsConfig', ['id' => $draft['id'], 'status' => 'published']);
+        // Publication does not silently enable real wagers.
+        $this->assertDatabaseHas('gameRegistry', ['gameCode' => 'DOORS', 'status' => 'MAINTENANCE']);
     }
 
     public function test_draft_create_and_delete_each_write_a_real_audit_log_entry(): void

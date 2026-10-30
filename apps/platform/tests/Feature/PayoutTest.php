@@ -92,7 +92,7 @@ final class PayoutTest extends TestCase
     {
         $create = app(\App\Domain\Ticket\CreateTicket::class);
         for ($i = 0; $i < 40; $i++) {
-            $ticket = $create->create($player, ['B'], 10_000, "payout-test-win-$i");
+            $ticket = $create->create($player, ['B'], 20_000, "payout-test-win-$i");
             if ($ticket->outcome->won) {
                 return $ticket;
             }
@@ -116,7 +116,7 @@ final class PayoutTest extends TestCase
         for ($i = 0; $i < 5; $i++) {
             $this->withToken($token)->postJson('/v1/tickets', [
                 'prediction' => ['B', 'B', 'B'],
-                'stake_kobo' => 10_000,
+                'stake_kobo' => 20_000,
                 'idempotency_key' => "no-payout-search-$i",
             ]);
         }

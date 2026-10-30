@@ -216,6 +216,16 @@ final class WalletService
     }
 
     /**
+     * What a win actually pays the player after the 1x-playthrough bonus reclaim. Every
+     * game records this on its outcome, because it is the amount payouts send to OPay.
+     * The reclaim never exceeds the net, so a small win on a bonus stake credits nothing.
+     */
+    public function netAfterBonusReclaim(int $netCreditKobo, int $bonusStakeKobo): int
+    {
+        return max(0, $netCreditKobo - $bonusStakeKobo);
+    }
+
+    /**
      * REQ-WAL-020 / REQ-TAX-005 — a win clears reserved stake from SUSPENSE, funds
      * excess from HOUSE_REVENUE, reclaims bonus principal to BONUS_EXPENSE (1x playthrough rule),
      * and credits net profit won + real cash stake to Winnings Balance.
@@ -236,7 +246,8 @@ final class WalletService
 
         // Under 1x playthrough rule: bonus principal ($bonusUsedKobo) is reclaimed by house to BONUS_EXPENSE.
         // Net profit won + real cash stake returns to winnings.
-        $actualNetCreditKobo = $netCreditKobo - $bonusUsedKobo;
+        $actualNetCreditKobo = $this->netAfterBonusReclaim($netCreditKobo, $bonusUsedKobo);
+        $bonusUsedKobo = $netCreditKobo - $actualNetCreditKobo;
 
         $lines = [];
         if ($excessKobo > 0) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Promotions;
 
 use App\Domain\Wallet\WalletService;
+use App\Models\GameRegistry;
 use App\Models\Player;
 use App\Models\PlayerPromotionalMilestone;
 use App\Models\PromotionalBoostClaim;
@@ -74,8 +75,8 @@ final class PromotionManagerService
             return null;
         }
 
-        // Stake cap: default max ₦100 (10,000 kobo)
-        $maxStakeKobo = (int) ($rules['maxStakeKobo'] ?? 100_00);
+        // Stake cap: defaults to the platform minimum stake (₦200), the smallest playable bet.
+        $maxStakeKobo = (int) ($rules['maxStakeKobo'] ?? GameRegistry::MIN_STAKE_FLOOR_KOBO);
         if ($stakeKobo > $maxStakeKobo) {
             return null;
         }

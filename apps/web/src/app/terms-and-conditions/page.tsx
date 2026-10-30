@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 const sections: LegalSection[] = [
   { id: "agreement", title: "About these terms", content: <>
-    <p>These terms describe the rules for using Betplus, including BlackRed, Heritage and Caged, your account and your wallet. Read them alongside the <a href="/privacy-policy">Privacy Policy</a> and the rules shown for each game.</p>
+    <p>These terms describe the rules for using Betplus, including BlackRed, Heritage, Caged and Doors, your account and your wallet. Read them alongside the <a href="/privacy-policy">Privacy Policy</a> and the rules shown for each game.</p>
     <p>The service is operated by <strong>Betplus Integrated Services Limited</strong>, 27th Amore Street, Toyin, Allen, Lagos, Nigeria. Contact us at <a href="mailto:support@betplus.com.ng">support@betplus.com.ng</a>. By creating an account or using the service, you agree to these terms. If you do not agree, do not register or place a stake.</p>
   </> },
   { id: "eligibility", title: "Who can use Betplus", content: <>
@@ -25,7 +25,7 @@ const sections: LegalSection[] = [
     <p>Check the wallet’s eligibility and turnover information before depositing. Do not deposit money you need for essential expenses or borrow to play. Payment-provider limits and processing delays may apply.</p>
   </> },
   { id: "games", title: "Tickets, game rules and outcomes", content: <>
-    <p>Before confirming a ticket, check your stake, selections, game rules and the displayed payout or multiplier. Rules differ between BlackRed, Heritage and Caged. An accepted ticket and its reference are the record of your entry; a screen animation alone is not proof that a ticket was accepted or won.</p>
+    <p>Before confirming a ticket, check your stake, selections, game rules and the displayed payout or multiplier. Rules differ between BlackRed, Heritage, Caged and Doors. An accepted ticket and its reference are the record of your entry; a screen animation alone is not proof that a ticket was accepted or won.</p>
     <p>Accepted stakes are committed to the ticket. There is no general right to cancel an accepted ticket unless the game rules or applicable law provide otherwise. Where a game offers cash-out, a request must be received and accepted within the game’s rules; a click or network request does not by itself confirm acceptance.</p>
     <p>Participation involves a risk of losing your stake. Outcomes and previous wins do not guarantee future winnings. Promotions, where offered, must state their separate eligibility, expiry and reward conditions before entry.</p>
   </> },

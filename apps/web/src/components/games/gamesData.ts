@@ -20,6 +20,13 @@ export interface GameItem {
 
 export const GAMES: GameItem[] = [
   {
+    id: "doors", title: "Doors", category: "Treasure hunt", badge: "Vault",
+    description: "Five attempts. Your first treasure wins.", multiplier: "2× – 5×", compactMultiplier: "5×",
+    stakeRange: "₦200 – ₦500", route: "/games/doors", accentColor: "#58e6e9",
+    themeGradient: "radial-gradient(circle at 50% 40%, #1c626b 0%, #0a171b 75%)",
+    statsSummary: "Gold 3× · Chest 5× · Card 2×", emblemText: "DOORS",
+  },
+  {
     id: "caged",
     title: "Caged",
     category: "Live crash",
@@ -27,7 +34,7 @@ export const GAMES: GameItem[] = [
     description: "Cash out before the cage drops. Place up to two bets per round.",
     multiplier: "1.00× – 100×+",
     compactMultiplier: "100×+",
-    stakeRange: "₦10 – ₦10,000",
+    stakeRange: "₦200 – ₦10,000",
     route: "/games/caged",
     logoSrc: "/assets/caged-mark.svg",
     accentColor: "#f5b731",
@@ -44,7 +51,7 @@ export const GAMES: GameItem[] = [
     description: "Predict the colours of one to five cards.",
     multiplier: "2× – 100×",
     compactMultiplier: "100×",
-    stakeRange: "₦100 – ₦5,000",
+    stakeRange: "₦200 – ₦5,000",
     route: "/games/blackred",
     logoSrc: "/assets/blackred-logo.png",
     accentColor: "#ef4444",
@@ -60,7 +67,7 @@ export const GAMES: GameItem[] = [
     description: "Choose five positions and reveal matching royal regalia.",
     multiplier: "Up to 2,000×",
     compactMultiplier: "2,000×",
-    stakeRange: "₦100 – ₦5,000",
+    stakeRange: "₦200 – ₦5,000",
     route: "/games/heritage",
     isCrown: true,
     accentColor: "#d97706",

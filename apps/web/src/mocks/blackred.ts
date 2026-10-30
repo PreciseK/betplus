@@ -93,7 +93,7 @@ export const MOCK_BLACKRED_DESCRIPTOR: BlackRedDescriptor = {
   turnoverRequiredKobo: 1_000_000,
   dailyLimitKobo: 5_000_000,
   dailyLimitRemainingKobo: 4_250_000,
-  minStakeKobo: 10_000,
+  minStakeKobo: 20_000,
   maxStakeKobo: 2_000_000,
   currency: "NGN",
   stateName: "Lagos",

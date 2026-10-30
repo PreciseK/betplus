@@ -127,7 +127,7 @@ describe("HeritageGameFlow", () => {
     expect(screen.getAllByText("Winnings Balance").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/1 in 50 · 2.00%/).length).toBeGreaterThan(0);
     expect(screen.getByText("₦25,000 · 25× stake")).toBeInTheDocument();
-    expect(screen.getByText("₦100–₦20,000")).toBeInTheDocument();
+    expect(screen.getByText("₦200–₦20,000")).toBeInTheDocument();
     expect(screen.getByText("Net position")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Review round/ })).toBeDisabled();
     expect(

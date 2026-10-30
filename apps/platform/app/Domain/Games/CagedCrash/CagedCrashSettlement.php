@@ -50,11 +50,12 @@ final class CagedCrashSettlement
 
             $grossPrizeKobo = intdiv($bet->stakeKobo * $multiplierHundredths, 100);
             $withholding = $this->tax->withhold($grossPrizeKobo, $bet->player);
+            $bonusStakeKobo = $this->wallet->bonusStakeFor('crash_bet', $bet->id);
 
             CrashBet::where('id', $bet->id)->update([
                 'grossPrizeKobo' => $grossPrizeKobo,
                 'taxWithheldKobo' => $withholding->taxWithheldKobo,
-                'netCreditKobo' => $withholding->netCreditKobo,
+                'netCreditKobo' => $this->wallet->netAfterBonusReclaim($withholding->netCreditKobo, $bonusStakeKobo),
             ]);
 
             $this->wallet->settleWin(
@@ -66,6 +67,7 @@ final class CagedCrashSettlement
                 'crash_bet',
                 $bet->id,
                 $bet->stateCode,
+                $bonusStakeKobo,
             );
 
             $this->dailyLedger->recordSettlement(self::GAME_CODE, $bet->stakeKobo, $grossPrizeKobo);

@@ -13,6 +13,9 @@ class GameRegistry extends Model
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
 
+    /** Platform-wide minimum stake (₦200). Operators may raise a game's minimum, never lower it below this. */
+    public const MIN_STAKE_FLOOR_KOBO = 20_000;
+
     protected $guarded = ['id'];
 
     protected $casts = [

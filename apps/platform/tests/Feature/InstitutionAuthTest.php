@@ -78,7 +78,7 @@ final class InstitutionAuthTest extends TestCase
 
     public function test_a_valid_token_authenticates_a_protected_backoffice_request(): void
     {
-        [$user, $secret] = $this->makeUser('compliance');
+        [$user, $secret] = $this->makeUser('compliance', ipAllowlist: '127.0.0.1');
         $signIn = $this->postJson('/backoffice/v1/auth/sign-in', ['email' => $user->email, 'password' => 'correct-horse-battery-staple'])->json();
         $mfa = $this->postJson('/backoffice/v1/auth/mfa', ['challenge_id' => $signIn['challenge_id'], 'code' => app(TotpService::class)->currentCode($secret)])->json();
 

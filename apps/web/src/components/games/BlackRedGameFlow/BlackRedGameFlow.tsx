@@ -18,7 +18,7 @@ import { OpayDirectCheckoutModal } from "@/components/wallet/OpayDirectCheckoutM
 import { blackRedPlayErrorMessage } from "../blackRedErrors";
 import styles from "./BlackRedGameFlow.module.css";
 
-const QUICK_STAKES_KOBO = [10_000, 20_000, 50_000, 100_000, 200_000, 500_000] as const;
+const QUICK_STAKES_KOBO = [20_000, 50_000, 100_000, 200_000, 500_000, 1_000_000] as const;
 
 const GAME_TIER_SUBTITLES: Record<number, string> = {
   1: "EASIEST",

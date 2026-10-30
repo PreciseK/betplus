@@ -48,7 +48,7 @@ final class DispatchPayout
             'kind' => 'automatic-prize',
             'payoutType' => 'OpayWalletNg',
             'amountKobo' => $outcome->netCreditKobo,
-            'sourceLabel' => 'BlackRed net prize',
+            'sourceLabel' => $ticket->gameCode . ' net prize',
             'destinationPhone' => $player->msisdn,
             'destinationLabel' => 'OPay wallet ending ' . substr($player->msisdn, -4),
             'providerStatus' => 'QUEUED',

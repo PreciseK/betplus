@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { HeritageCrownLogo } from "@/components/ui/HeritageCrownLogo/HeritageCrownLogo";
 import type { GameItem } from "../gamesData";
+import { DoorsLogo } from "../DoorsLogo";
 import styles from "./GamePosterTile.module.css";
 
 interface GamePosterTileProps {
@@ -38,7 +39,7 @@ export function GamePosterTile({ game }: GamePosterTileProps) {
 
       {/* Center Artwork Emblem */}
       <div className={styles.emblemWrapper}>
-        {game.isCrown ? (
+        {game.id === "doors" ? <DoorsLogo /> : game.isCrown ? (
           <div className={styles.crownContainer}>
             <HeritageCrownLogo size={46} />
           </div>

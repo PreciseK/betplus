@@ -29,7 +29,7 @@ class CagedCrashGameSeeder extends Seeder
             [
                 'engineVersion' => 'birdescape-1.0.0',
                 'status' => 'ACTIVE',
-                'minStakeKobo' => 10_000,
+                'minStakeKobo' => 20_000,
                 'maxStakeKobo' => 1_000_000,
                 'enabledChannels' => ['web', 'app'],
                 'enabledStates' => ['LAG'],

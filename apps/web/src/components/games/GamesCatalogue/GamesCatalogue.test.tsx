@@ -15,7 +15,8 @@ describe("GamesCatalogue Component", () => {
     expect(screen.getByRole("link", { name: /Play Caged/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Play BlackRed/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Play Heritage/i })).toBeInTheDocument();
-    expect(screen.getByText("3 games")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Play Doors/i })).toHaveAttribute("href", "/games/doors");
+    expect(screen.getByText("4 games")).toBeInTheDocument();
   });
 
   it("switches to list view when list toggle button is clicked", () => {

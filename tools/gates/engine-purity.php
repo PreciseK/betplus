@@ -31,7 +31,7 @@ const ROOT = __DIR__ . '/../..';
 // Resolved once — see prohibited-randomness.php for why this matters on Windows.
 $GLOBALS['__ROOT_REAL'] = realpath(ROOT);
 
-const ENGINE_PATHS = ['apps/engine-blackred', 'apps/engine-heritage'];
+const ENGINE_PATHS = ['apps/engine-blackred', 'apps/engine-heritage', 'apps/platform/app/Domain/Games/Doors/DoorsEngine.php'];
 
 /** Impurity in any engine. Substring match against stripped code. */
 const IMPURE_PHP = [

@@ -50,9 +50,10 @@ final class BackOfficeOperationsTest extends TestCase
             'email' => strtolower($role) . random_int(1000, 9999) . '@betplus.test',
             'displayName' => 'Operator', 'passwordHash' => password_hash('x', PASSWORD_BCRYPT),
             'role' => $role, 'status' => 'active',
+            'ipAllowlist' => '127.0.0.1',
             'mfaSecretEncrypted' => app(MfaSecretCipher::class)->encrypt($secret),
         ]);
-        $signIn = $this->postJson('/backoffice/v1/auth/sign-in', ['email' => $user->email, 'password' => 'x'])->json();
+        $signIn = $this->postJson('/backoffice/v1/auth/sign-in', ['email' => $user->email, 'password' => 'x'])->assertOk()->json();
         $mfa = $this->postJson('/backoffice/v1/auth/mfa', ['challenge_id' => $signIn['challenge_id'], 'code' => app(TotpService::class)->currentCode($secret)])->json();
 
         return $mfa['access_token'];
@@ -170,6 +171,16 @@ final class BackOfficeOperationsTest extends TestCase
 
         $response->assertOk();
         $this->assertSame('SUSPENDED', $response->json('status'));
+    }
+
+    public function test_no_game_minimum_stake_can_be_set_below_200_naira(): void
+    {
+        $token = $this->institutionToken('game_ops');
+
+        $this->withToken($token)->patchJson('/backoffice/v1/games/BLACKRED', ['minStakeKobo' => 19_999])->assertStatus(422);
+        $this->withToken($token)->patchJson('/backoffice/v1/games/BLACKRED', ['maxStakeKobo' => 10_000])->assertStatus(422);
+        $this->withToken($token)->patchJson('/backoffice/v1/games/BLACKRED', ['minStakeKobo' => 30_000])->assertOk();
+        $this->assertDatabaseHas('gameRegistry', ['gameCode' => 'BLACKRED', 'minStakeKobo' => 30_000]);
     }
 
     public function test_a_non_game_ops_role_cannot_suspend_a_game(): void

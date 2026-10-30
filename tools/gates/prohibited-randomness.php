@@ -38,7 +38,7 @@ const ENGINE_BANNED_PHP = ['random_int', 'random_bytes', 'openssl_random_pseudo_
 const ENGINE_BANNED_PY = ['import random', 'from random import', 'random.', 'secrets.', 'os.urandom'];
 
 /** Paths that are engines — the stricter rule applies. */
-const ENGINE_PATHS = ['apps/engine-blackred', 'apps/engine-heritage'];
+const ENGINE_PATHS = ['apps/engine-blackred', 'apps/engine-heritage', 'apps/platform/app/Domain/Games/Doors/DoorsEngine.php'];
 
 /** Never scanned. */
 $violations = [];

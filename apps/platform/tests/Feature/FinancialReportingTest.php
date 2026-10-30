@@ -136,7 +136,7 @@ final class FinancialReportingTest extends TestCase
         $user = InstitutionUser::create([
             'email' => strtolower($role) . random_int(1000, 9999) . '@betplus.test',
             'displayName' => 'Operator', 'passwordHash' => password_hash('x', PASSWORD_BCRYPT),
-            'role' => $role, 'status' => 'active',
+            'role' => $role, 'status' => 'active', 'ipAllowlist' => '127.0.0.1',
             'mfaSecretEncrypted' => app(MfaSecretCipher::class)->encrypt($secret),
         ]);
         $signIn = $this->postJson('/backoffice/v1/auth/sign-in', ['email' => $user->email, 'password' => 'x'])->json();

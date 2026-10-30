@@ -83,10 +83,10 @@ final class HeritagePoolSettlementTest extends TestCase
         // (pigeonhole: 5 winning + 5 non-winning needs 10 slots, the board has 9),
         // same structural floor Heritage's instant-ticket engine already documents.
         // 1 isn't a configured tier (2-5 only), so D wins nothing either way.
-        $this->withToken($tokenA)->postJson('/v1/heritage/tickets', ['selected_positions' => [0, 1, 2, 3, 4], 'stake_kobo' => 10_000, 'idempotency_key' => 'hg-settle-a'])->assertOk();
-        $this->withToken($tokenB)->postJson('/v1/heritage/tickets', ['selected_positions' => [0, 1, 2, 3, 4], 'stake_kobo' => 30_000, 'idempotency_key' => 'hg-settle-b'])->assertOk();
-        $this->withToken($tokenC)->postJson('/v1/heritage/tickets', ['selected_positions' => [0, 1, 2, 5, 6], 'stake_kobo' => 20_000, 'idempotency_key' => 'hg-settle-c'])->assertOk();
-        $this->withToken($tokenD)->postJson('/v1/heritage/tickets', ['selected_positions' => [5, 6, 7, 8, 0], 'stake_kobo' => 15_000, 'idempotency_key' => 'hg-settle-d'])->assertOk();
+        $this->withToken($tokenA)->postJson('/v1/heritage/tickets', ['selected_positions' => [0, 1, 2, 3, 4], 'stake_kobo' => 20_000, 'idempotency_key' => 'hg-settle-a'])->assertOk();
+        $this->withToken($tokenB)->postJson('/v1/heritage/tickets', ['selected_positions' => [0, 1, 2, 3, 4], 'stake_kobo' => 60_000, 'idempotency_key' => 'hg-settle-b'])->assertOk();
+        $this->withToken($tokenC)->postJson('/v1/heritage/tickets', ['selected_positions' => [0, 1, 2, 5, 6], 'stake_kobo' => 40_000, 'idempotency_key' => 'hg-settle-c'])->assertOk();
+        $this->withToken($tokenD)->postJson('/v1/heritage/tickets', ['selected_positions' => [5, 6, 7, 8, 0], 'stake_kobo' => 30_000, 'idempotency_key' => 'hg-settle-d'])->assertOk();
 
         $pool = PoolDraw::where('gameCode', 'HERITAGE')->sole();
         Http::fake(['*/engine/v1/draw-pool' => Http::response([
@@ -118,17 +118,17 @@ final class HeritagePoolSettlementTest extends TestCase
         $this->assertFalse($entryD->won);
         $this->assertSame(0, $entryD->payoutKobo);
 
-        // Net pool = (10,000+30,000+20,000+15,000) * 0.85 = 63,750.
-        // 5-tier budget = 63,750 * 0.50 = 31,875 -> A:B = 10,000:30,000 = 25%:75%.
-        $totalStake5Tier = 10_000 + 30_000;
-        $expectedShareA = 10_000 / $totalStake5Tier;
+        // Net pool = (20,000+60,000+40,000+30,000) * 0.85 = 127,500.
+        // 5-tier budget = 127,500 * 0.50 = 63,750 -> A:B = 20,000:60,000 = 25%:75%.
+        $totalStake5Tier = 20_000 + 60_000;
+        $expectedShareA = 20_000 / $totalStake5Tier;
         $this->assertEqualsWithDelta($expectedShareA, $entryA->payoutKobo / ($entryA->payoutKobo + $entryB->payoutKobo), 0.01);
         $this->assertGreaterThan(0, $entryA->payoutKobo);
         $this->assertGreaterThan($entryA->payoutKobo, $entryB->payoutKobo);
 
         // C is the pool's sole 3-tier entrant, so it takes the entire 3-tier budget:
-        // 63,750 * 0.15 = 9,562 (intdiv truncation).
-        $this->assertSame(intdiv(63_750 * 1_500, 10_000), $entryC->payoutKobo);
+        // 127,500 * 0.15 = 19,125.
+        $this->assertSame(intdiv(127_500 * 1_500, 10_000), $entryC->payoutKobo);
 
         foreach ([$ticketA, $ticketB, $ticketC, $ticketD] as $ticket) {
             $this->assertSame('SETTLED', $ticket->fresh()->status);
@@ -149,7 +149,7 @@ final class HeritagePoolSettlementTest extends TestCase
         [, $token] = $this->signedInPlayer('+2348030003005');
 
         // Only a 2-tier entrant this draw — the 5/4/3 tiers all go unwon.
-        $this->withToken($token)->postJson('/v1/heritage/tickets', ['selected_positions' => [0, 1, 5, 6, 7], 'stake_kobo' => 10_000, 'idempotency_key' => 'hg-settle-e'])->assertOk();
+        $this->withToken($token)->postJson('/v1/heritage/tickets', ['selected_positions' => [0, 1, 5, 6, 7], 'stake_kobo' => 20_000, 'idempotency_key' => 'hg-settle-e'])->assertOk();
 
         $pool = PoolDraw::where('gameCode', 'HERITAGE')->sole();
         Http::fake(['*/engine/v1/draw-pool' => Http::response([
@@ -163,12 +163,12 @@ final class HeritagePoolSettlementTest extends TestCase
         $this->assertSame('settled', $settledPool->status);
 
         $nextPool = PoolDraw::where('gameCode', 'HERITAGE')->where('id', '!=', $pool->id)->sole();
-        // Net pool = 10,000 * 0.85 = 8,500. 5-tier budget = 4,250, 4-tier = 2,550,
-        // 3-tier = 1,275, all unwon -> all roll forward; 2-tier (500bp) budget = 425,
+        // Net pool = 20,000 * 0.85 = 17,000. 5-tier budget = 8,500, 4-tier = 5,100,
+        // 3-tier = 2,550, all unwon -> all roll forward; 2-tier (500bp) budget = 850,
         // won by the sole entrant -> tier 2 rollover is 0.
-        $this->assertSame(4_250, $nextPool->tierRolloverJson['5']);
-        $this->assertSame(2_550, $nextPool->tierRolloverJson['4']);
-        $this->assertSame(1_275, $nextPool->tierRolloverJson['3']);
+        $this->assertSame(8_500, $nextPool->tierRolloverJson['5']);
+        $this->assertSame(5_100, $nextPool->tierRolloverJson['4']);
+        $this->assertSame(2_550, $nextPool->tierRolloverJson['3']);
         $this->assertSame(0, $nextPool->tierRolloverJson['2']);
     }
 

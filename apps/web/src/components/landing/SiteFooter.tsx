@@ -1,7 +1,7 @@
 import { Logo } from "@/components/ui/Logo/Logo";
 
 const LINK_GROUPS = [
-  ["Games", [["/games/blackred", "BlackRed"], ["/games/heritage", "Heritage"], ["/games/caged", "Caged"]]],
+  ["Games", [["/games/blackred", "BlackRed"], ["/games/heritage", "Heritage"], ["/games/caged", "Caged"], ["/games/doors", "Doors"]]],
   ["Account", [["/login", "Sign in"], ["/register", "Create account"], ["/wallet", "Wallet"]]],
   ["Getting started", [["#how-it-works", "How it works"], ["#access", "Ways to play"], ["#safe-play", "Play responsibly"]]],
   ["Legal", [["/privacy-policy", "Privacy Policy"], ["/terms-and-conditions", "Terms & Conditions"]]],
@@ -10,7 +10,7 @@ const LINK_GROUPS = [
 export function SiteFooter({ homeLinks = false }: { homeLinks?: boolean }) {
   return (
     <footer className="site-footer" id="help">
-      <div className="footer-brand"><Logo href={homeLinks ? "/" : "#top"} height={40} /><p>BlackRed, Heritage and Caged.</p></div>
+      <div className="footer-brand"><Logo href={homeLinks ? "/" : "#top"} height={40} /><p>BlackRed, Heritage, Caged and Doors.</p></div>
       <nav className="footer-links" aria-label="Footer navigation">
         {LINK_GROUPS.map(([title, links]) => <div key={title}><h2>{title}</h2>{links.map(([href, label]) => <a href={homeLinks && href.startsWith("#") ? `/about${href}` : href} key={href}>{label}</a>)}</div>)}
       </nav>

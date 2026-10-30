@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 const sections: LegalSection[] = [
   { id: "about", title: "About this policy", content: <>
-    <p>This policy explains how Betplus handles personal information when you browse our website, create an account, use a wallet or play BlackRed, Heritage and Caged. It also covers related mobile and USSD services where offered.</p>
+    <p>This policy explains how Betplus handles personal information when you browse our website, create an account, use a wallet or play BlackRed, Heritage, Caged and Doors. It also covers related mobile and USSD services where offered.</p>
     <p>Betplus is operated by <strong>Betplus Integrated Services Limited</strong>, 27th Amore Street, Toyin, Allen, Lagos, Nigeria. We are the data controller for account and gameplay information. Contact us at <a href="mailto:support@betplus.com.ng">support@betplus.com.ng</a>. Payment providers and telecommunications providers may also handle information under their own privacy notices.</p>
   </> },
   { id: "information", title: "Information we handle", content: <>

@@ -23,6 +23,7 @@ export { payoutGateway } from "./payoutGateway";
 export { responsiblePlayGateway } from "./responsiblePlayGateway";
 export { profileGateway } from "./profileGateway";
 export { ApiError } from "./http";
+export { doorsGateway, type DoorsGateway, type DoorsContext, type DoorsRoundResponse, type DoorsWallet } from "./doorsGateway";
 export {
   backOfficeGateway,
   BackOfficeApiError,

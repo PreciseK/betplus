@@ -57,7 +57,7 @@ final class CagedPoolPurchaseTest extends TestCase
 
         $response = $this->withToken($token)->postJson('/v1/caged/tickets', [
             'target_birds' => 2,
-            'stake_kobo' => 10_000,
+            'stake_kobo' => 20_000,
             'idempotency_key' => 'cg-pool-1',
         ]);
 
@@ -68,7 +68,7 @@ final class CagedPoolPurchaseTest extends TestCase
         $this->assertSame('PENDING_DRAW', $ticket->status);
 
         $entry = PoolEntry::where('ticketId', $ticket->id)->first();
-        $this->assertSame(10_000, $entry->stakeKobo);
+        $this->assertSame(20_000, $entry->stakeKobo);
         $this->assertSame([2], $entry->predictionJson);
     }
 
@@ -77,7 +77,7 @@ final class CagedPoolPurchaseTest extends TestCase
         [, $token] = $this->signedInPlayer();
         $purchase = $this->withToken($token)->postJson('/v1/caged/tickets', [
             'target_birds' => 1,
-            'stake_kobo' => 10_000,
+            'stake_kobo' => 20_000,
             'idempotency_key' => 'cg-pool-2',
         ]);
 
@@ -90,8 +90,8 @@ final class CagedPoolPurchaseTest extends TestCase
     {
         [, $token] = $this->signedInPlayer();
 
-        $this->withToken($token)->postJson('/v1/caged/tickets', ['target_birds' => 1, 'stake_kobo' => 10_000, 'idempotency_key' => 'cg-pool-3']);
-        $this->withToken($token)->postJson('/v1/caged/tickets', ['target_birds' => 5, 'stake_kobo' => 10_000, 'idempotency_key' => 'cg-pool-4']);
+        $this->withToken($token)->postJson('/v1/caged/tickets', ['target_birds' => 1, 'stake_kobo' => 20_000, 'idempotency_key' => 'cg-pool-3']);
+        $this->withToken($token)->postJson('/v1/caged/tickets', ['target_birds' => 5, 'stake_kobo' => 20_000, 'idempotency_key' => 'cg-pool-4']);
 
         $entries = PoolEntry::all();
         $this->assertCount(2, $entries);

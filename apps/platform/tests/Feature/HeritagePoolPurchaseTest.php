@@ -60,7 +60,7 @@ final class HeritagePoolPurchaseTest extends TestCase
 
         $response = $this->withToken($token)->postJson('/v1/heritage/tickets', [
             'selected_positions' => [0, 1, 2, 3, 4],
-            'stake_kobo' => 10_000,
+            'stake_kobo' => 20_000,
             'idempotency_key' => 'hg-pool-1',
         ]);
 
@@ -71,7 +71,7 @@ final class HeritagePoolPurchaseTest extends TestCase
         $this->assertSame('PENDING_DRAW', $ticket->status);
 
         $entry = PoolEntry::where('ticketId', $ticket->id)->first();
-        $this->assertSame(10_000, $entry->stakeKobo);
+        $this->assertSame(20_000, $entry->stakeKobo);
         $this->assertSame([0, 1, 2, 3, 4], $entry->predictionJson);
     }
 
@@ -80,7 +80,7 @@ final class HeritagePoolPurchaseTest extends TestCase
         [, $token] = $this->signedInPlayer();
         $purchase = $this->withToken($token)->postJson('/v1/heritage/tickets', [
             'selected_positions' => [0, 1, 2, 3, 4],
-            'stake_kobo' => 10_000,
+            'stake_kobo' => 20_000,
             'idempotency_key' => 'hg-pool-2',
         ]);
 

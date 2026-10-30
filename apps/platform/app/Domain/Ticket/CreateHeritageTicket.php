@@ -168,6 +168,7 @@ final class CreateHeritageTicket
             ]);
 
             $this->wallet->reserveStake($player, $stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
+            $bonusStakeKobo = $this->wallet->bonusStakeFor('ticket', $ticket->id);
 
             if ($withholding !== null) {
                 $taxWithheldKobo = $withholding->taxWithheldKobo;
@@ -198,7 +199,7 @@ final class CreateHeritageTicket
                 'won' => $engineResult->won(),
                 'grossPrizeKobo' => $engineResult->grossPrizeKobo,
                 'taxWithheldKobo' => $taxWithheldKobo,
-                'netCreditKobo' => $netCreditKobo,
+                'netCreditKobo' => $this->wallet->netAfterBonusReclaim($netCreditKobo, $bonusStakeKobo),
                 'taxRateBasisPoints' => $taxRateBasisPoints,
                 'taxBasisLabel' => $taxBasisLabel,
                 'taxRulesetVersion' => $taxRulesetVersion,
@@ -208,7 +209,7 @@ final class CreateHeritageTicket
             if ($engineResult->won()) {
                 $this->wallet->settleWin(
                     $player, $stakeKobo, $engineResult->grossPrizeKobo,
-                    $taxWithheldKobo, $netCreditKobo, 'ticket', $ticket->id, $attribution['stateCode'],
+                    $taxWithheldKobo, $netCreditKobo, 'ticket', $ticket->id, $attribution['stateCode'], $bonusStakeKobo,
                 );
 
                 // Offer 1: Weekend Double Win Boost (Marketing Subvention)
@@ -216,7 +217,7 @@ final class CreateHeritageTicket
                     $player, $stakeKobo, $engineResult->grossPrizeKobo, self::GAME_CODE, $ticket->id,
                 );
             } else {
-                $this->wallet->settleLoss($stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
+                $this->wallet->settleLoss($stakeKobo, 'ticket', $ticket->id, $attribution['stateCode'], $bonusStakeKobo);
 
                 if ($engineResult->outcomeTier === 'TIER_SECOND_CHANCE' && $engineResult->secondChanceStakeKobo > 0) {
                     $this->wallet->recordDrawEntryCost($engineResult->secondChanceStakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);

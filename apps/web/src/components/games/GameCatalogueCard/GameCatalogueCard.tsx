@@ -3,6 +3,7 @@
 import { HeritageCrownLogo } from "@/components/ui/HeritageCrownLogo/HeritageCrownLogo";
 import { Button } from "@/components/ui/Button/Button";
 import type { GameItem } from "../gamesData";
+import { DoorsLogo } from "../DoorsLogo";
 import styles from "./GameCatalogueCard.module.css";
 
 interface GameCatalogueCardProps {
@@ -29,7 +30,7 @@ export function GameCatalogueCard({ game, onQuickPlay }: GameCatalogueCardProps)
           </span>
         )}
 
-        {game.isCrown ? (
+        {game.id === "doors" ? <DoorsLogo /> : game.isCrown ? (
           <HeritageCrownLogo size={82} />
         ) : game.logoSrc ? (
           <img

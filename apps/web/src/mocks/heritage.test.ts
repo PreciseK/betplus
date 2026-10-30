@@ -38,9 +38,11 @@ describe("createHeritageSettlement board regalia placement", () => {
   });
 
   it("never repeats a piece among the 4 non-winning decoy tiles either", () => {
-    const settlement = createHeritageSettlement(BASE_INPUT, "loss");
-    const unmatched = settlement.board.filter((tile) => !(tile.selected && tile.winning));
-    const names = unmatched.map((tile) => tile.item.canonicalName);
-    expect(new Set(names).size).toBe(names.length);
+    // The board is random, so check many boards; a single one passed by luck before.
+    for (let round = 0; round < 200; round += 1) {
+      const settlement = createHeritageSettlement(BASE_INPUT, "loss");
+      const names = settlement.board.map((tile) => tile.item.canonicalName);
+      expect(new Set(names).size).toBe(names.length);
+    }
   });
 });

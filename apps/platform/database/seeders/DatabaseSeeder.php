@@ -22,5 +22,6 @@ class DatabaseSeeder extends Seeder
         $this->call(HeritageGameSeeder::class);
         $this->call(CagedCrashGameSeeder::class);
         $this->call(CagedGameSeeder::class);
+        $this->call(DoorsGameSeeder::class);
     }
 }

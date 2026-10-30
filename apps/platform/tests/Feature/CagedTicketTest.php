@@ -129,7 +129,7 @@ final class CagedTicketTest extends TestCase
         for ($i = 0; $i < 20 && $won === null; $i++) {
             $purchase = $this->withToken($token)->postJson('/v1/caged/tickets', [
                 'target_birds' => 1,
-                'stake_kobo' => 10_000,
+                'stake_kobo' => 20_000,
                 'idempotency_key' => "caged-win-search-$i",
             ])->json();
             $reveal = $this->withToken($token)->getJson("/v1/caged/tickets/{$purchase['reference']}/reveal")->json();
@@ -139,9 +139,9 @@ final class CagedTicketTest extends TestCase
         }
 
         $this->assertNotNull($won, 'No win in 20 target=1 tickets — engine bias is suspect.');
-        $this->assertSame(12_000, $won['gross_prize_kobo']); // 10_000 * 1.20 (recalibrated 2026-09-14 for the 8800bp ceiling)
-        $this->assertSame(600, $won['tax_withheld_kobo']); // 5% of gross
-        $this->assertSame(11_400, $won['net_credit_kobo']);
+        $this->assertSame(24_000, $won['gross_prize_kobo']); // 20_000 * 1.20 (recalibrated 2026-09-14 for the 8800bp ceiling)
+        $this->assertSame(1_200, $won['tax_withheld_kobo']); // 5% of gross
+        $this->assertSame(22_800, $won['net_credit_kobo']);
         $this->assertSame($won['winnings_balance_after_kobo'], $won['net_credit_kobo']);
     }
 

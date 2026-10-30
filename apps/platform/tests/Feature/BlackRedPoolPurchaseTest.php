@@ -92,8 +92,8 @@ final class BlackRedPoolPurchaseTest extends TestCase
     {
         [, $token] = $this->signedInPlayer();
 
-        $this->withToken($token)->postJson('/v1/tickets', ['prediction' => ['B'], 'stake_kobo' => 10_000, 'idempotency_key' => 'pool-len-1']);
-        $this->withToken($token)->postJson('/v1/tickets', ['prediction' => ['B', 'R'], 'stake_kobo' => 10_000, 'idempotency_key' => 'pool-len-2']);
+        $this->withToken($token)->postJson('/v1/tickets', ['prediction' => ['B'], 'stake_kobo' => 20_000, 'idempotency_key' => 'pool-len-1']);
+        $this->withToken($token)->postJson('/v1/tickets', ['prediction' => ['B', 'R'], 'stake_kobo' => 20_000, 'idempotency_key' => 'pool-len-2']);
 
         $entries = PoolEntry::with('poolDraw')->get();
         $this->assertCount(2, $entries);

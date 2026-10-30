@@ -24,6 +24,7 @@ dist/
 build/
 output/
 .next/
+.next-doors-local/
 .expo/
 *.tsbuildinfo
 

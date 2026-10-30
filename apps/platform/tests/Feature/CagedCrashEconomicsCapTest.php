@@ -51,10 +51,10 @@ final class CagedCrashEconomicsCapTest extends TestCase
         $round = app(RoundLifecycleService::class)->startRound('BIRDESCAPE');
         $player = $this->fundedPlayer();
 
-        // Worst case for 10,000 kobo = 150,000 kobo (15.00x max multiplier), well under the 5,000,000 cap.
-        app(PlaceCrashBet::class)->place($player, $round, 10_000, null, 'idem-be-accept-1');
+        // Worst case for 20,000 kobo = 300,000 kobo (15.00x max multiplier), well under the 5,000,000 cap.
+        app(PlaceCrashBet::class)->place($player, $round, 20_000, null, 'idem-be-accept-1');
 
-        $this->assertSame(150_000, $round->refresh()->exposureKobo);
+        $this->assertSame(300_000, $round->refresh()->exposureKobo);
     }
 
     public function test_a_bet_over_the_exposure_cap_is_rejected(): void

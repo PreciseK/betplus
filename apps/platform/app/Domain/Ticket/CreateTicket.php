@@ -164,6 +164,7 @@ final class CreateTicket
             // Reserve the stake — this is where insufficient balance actually fails
             // (REQ-TKT-012's balance re-assertion), rolling back the ticket insert too.
             $this->wallet->reserveStake($player, $stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
+            $bonusStakeKobo = $this->wallet->bonusStakeFor('ticket', $ticket->id);
 
             if ($withholding !== null) {
                 $taxWithheldKobo = $withholding->taxWithheldKobo;
@@ -185,7 +186,7 @@ final class CreateTicket
                 'won' => $engineResult->won,
                 'grossPrizeKobo' => $engineResult->grossPrizeKobo,
                 'taxWithheldKobo' => $taxWithheldKobo,
-                'netCreditKobo' => $netCreditKobo,
+                'netCreditKobo' => $this->wallet->netAfterBonusReclaim($netCreditKobo, $bonusStakeKobo),
                 'taxRateBasisPoints' => $taxRateBasisPoints,
                 'taxBasisLabel' => $taxBasisLabel,
                 'taxRulesetVersion' => $taxRulesetVersion,
@@ -202,6 +203,7 @@ final class CreateTicket
                     'ticket',
                     $ticket->id,
                     $attribution['stateCode'],
+                    $bonusStakeKobo,
                 );
 
                 // Offer 1: Weekend Double Win Boost (Marketing Subvention)
@@ -213,7 +215,7 @@ final class CreateTicket
                     $ticket->id
                 );
             } else {
-                $this->wallet->settleLoss($stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
+                $this->wallet->settleLoss($stakeKobo, 'ticket', $ticket->id, $attribution['stateCode'], $bonusStakeKobo);
             }
 
             $this->dailyLedger->recordSettlement('BLACKRED', $stakeKobo, $engineResult->won ? $engineResult->grossPrizeKobo : 0);

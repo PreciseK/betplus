@@ -43,6 +43,7 @@ export function GameEconomicsConfigConsole() {
   const [draftTier2Bps, setDraftTier2Bps] = useState("500");
   const [draftEffectiveAt, setDraftEffectiveAt] = useState("");
   const [draftResult, setDraftResult] = useState<DraftResult>();
+  const [draftDoorsParams, setDraftDoorsParams] = useState("{}");
   const [draftError, setDraftError] = useState("");
 
   const [deleteTarget, setDeleteTarget] = useState<BackOfficeGameEconomicsConfig>();
@@ -75,7 +76,12 @@ export function GameEconomicsConfigConsole() {
   function startCreateDraft() {
     setDraftId(null);
     setDraftVersion("");
-    setDraftModel("FIXED_RTP");
+    setDraftModel(selectedGameCode === "DOORS" ? "BALANCED_HYBRID" : "FIXED_RTP");
+    setDraftDoorsParams(JSON.stringify({
+      kelly_factor_basis_points: 100, reserve_siphon_bps: 2000, float_max_age_seconds: 120, reserve_floor_kobo: 1000000,
+      doors: { board_size: 20, max_attempts: 5, durations_seconds: [10], certification_ref: "PENDING-DRAFT-ONLY",
+        treasures: [{ code: "GOLD", multiplier: 3, weight_bps: 5600 }, { code: "CHEST", multiplier: 5, weight_bps: 2800 }, { code: "CARD", multiplier: 2, weight_bps: 1600 }] },
+    }, null, 2));
     setDraftKellyFactor("300");
     setDraftDailyLossCap("50000000");
     setDraftRakeBps("1500");
@@ -90,6 +96,7 @@ export function GameEconomicsConfigConsole() {
   }
 
   function startEditDraft(config: BackOfficeGameEconomicsConfig) {
+    setDraftDoorsParams(JSON.stringify(config.params, null, 2));
     setDraftId(config.id);
     setDraftVersion(config.version);
     setDraftModel(config.active_model);
@@ -112,7 +119,7 @@ export function GameEconomicsConfigConsole() {
       setDraftError("Choose a game, version and effective date.");
       return;
     }
-    const params: Record<string, unknown> =
+    let params: Record<string, unknown> =
       draftModel === "BALANCED_HYBRID" ? { kelly_factor_basis_points: Number.parseInt(draftKellyFactor, 10) || 0 } :
       draftModel === "DAILY_LOSS_STOP" ? { daily_loss_cap_kobo: Number.parseInt(draftDailyLossCap, 10) || 0 } :
       draftModel === "PARI_MUTUEL_POOL" ? {
@@ -128,6 +135,13 @@ export function GameEconomicsConfigConsole() {
         } : {}),
       } : {};
     setDraftError("");
+    if (selectedGameCode === "DOORS") {
+      try {
+        const parsed = JSON.parse(draftDoorsParams);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
+        params = { ...parsed, kelly_factor_basis_points: Number.parseInt(draftKellyFactor, 10) || 0 };
+      } catch { setDraftError("Doors settings must be a JSON object. No changes were saved."); return; }
+    }
     try {
       const result = draftId === null
         ? await backOfficeGateway.createGameEconomicsConfig({
@@ -307,6 +321,7 @@ export function GameEconomicsConfigConsole() {
               )}
             </>
           )}
+          {selectedGameCode === "DOORS" && <label className={styles.formField} htmlFor="draft-doors-settings">Doors odds and bankroll settings (JSON)<textarea id="draft-doors-settings" rows={18} value={draftDoorsParams} onChange={event => setDraftDoorsParams(event.target.value)} /><span>Draft only. Publication checks the RTP ceiling, exact treasure multipliers, funding limits, and certification reference. A second operator must approve publication.</span></label>}
           <label className={styles.formField} htmlFor="draft-effective">Effective at <span aria-hidden="true">*</span><input id="draft-effective" type="datetime-local" value={draftEffectiveAt} onChange={(event) => setDraftEffectiveAt(event.target.value)} /></label>
         </div>
 

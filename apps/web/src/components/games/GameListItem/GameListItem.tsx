@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { HeritageCrownLogo } from "@/components/ui/HeritageCrownLogo/HeritageCrownLogo";
 import type { GameItem } from "../gamesData";
+import { DoorsLogo } from "../DoorsLogo";
 import styles from "./GameListItem.module.css";
 
 interface GameListItemProps {
@@ -23,7 +24,7 @@ export function GameListItem({ game, onQuickPlay }: GameListItemProps) {
     >
       {/* Thumbnail */}
       <div className={styles.thumbWrapper}>
-        {game.isCrown ? (
+        {game.id === "doors" ? <DoorsLogo /> : game.isCrown ? (
           <HeritageCrownLogo size={32} />
         ) : game.logoSrc ? (
           <img

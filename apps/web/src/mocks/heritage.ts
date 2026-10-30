@@ -177,7 +177,7 @@ const INITIAL_SNAPSHOT: HeritageSnapshot = {
   winningsBalanceKobo: 875_000,
   depositStakedKobo: 420_000,
   depositRequiredKobo: 1_000_000,
-  minStakeKobo: 10_000,
+  minStakeKobo: 20_000,
   maxStakeKobo: 2_000_000,
   taxRateBasisPoints: 500,
   traditions: TRADITIONS,

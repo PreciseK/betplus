@@ -28,7 +28,7 @@ class CagedGameSeeder extends Seeder
             [
                 'engineVersion' => 'caged-1.0.0',
                 'status' => 'ACTIVE',
-                'minStakeKobo' => 10_000,
+                'minStakeKobo' => 20_000,
                 'maxStakeKobo' => 2_000_000,
                 'enabledChannels' => ['web', 'app', 'ussd'],
                 'enabledStates' => ['LAG'],

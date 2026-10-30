@@ -4,6 +4,7 @@ const GAMES = [
   { id: "blackred", name: "BlackRed", type: "Card prediction", description: "Predict the colours of one to five cards. Review the possible return before confirming your stake.", image: "/assets/blackred-arena-cards.png", alt: "Black and red playing cards" },
   { id: "heritage", name: "Heritage", type: "Instant win", description: "Choose five positions on a nine-tile board and reveal matching Nigerian royal regalia.", image: "/games/heritage/monarchs/yoruba_king.png", alt: "A Yoruba king in royal attire" },
   { id: "caged", name: "Caged", type: "Live crash", description: "Watch the multiplier rise and cash out before the cage drops. Place up to two bets per round.", image: "/assets/caged-mark.svg", alt: "The golden Caged birdcage" },
+  { id: "doors", name: "Doors", type: "Treasure hunt · Web", description: "Open up to five of twenty vault doors before time runs out. Your first treasure ends the round: gold bars pay 3×, a chest 5×, and a card 2× your stake. Multipliers are gross; applicable deductions are shown on settlement.", image: "/assets/doors/big-man-thumbs-up.png", alt: "Big Man giving a thumbs up in his black and gold suit" },
 ];
 
 export function GamesSection() {

@@ -52,7 +52,7 @@ final class ResponsibleGamingTest extends TestCase
     {
         $limits = app(LimitsService::class)->limitsFor($this->player());
         $this->assertCount(6, $limits);
-        $this->assertSame(1_500_000, collect($limits)->firstWhere('limitKey', 'stake-daily')->currentValue);
+        $this->assertSame(250_000_000, collect($limits)->firstWhere('limitKey', 'stake-daily')->currentValue);
     }
 
     public function test_reducing_a_limit_applies_immediately(): void
@@ -67,10 +67,10 @@ final class ResponsibleGamingTest extends TestCase
     public function test_increasing_a_limit_is_held_for_24_hours(): void
     {
         $player = $this->player();
-        $updated = app(LimitsService::class)->updateLimit($player, 'stake-daily', 3_000_000);
+        $updated = app(LimitsService::class)->updateLimit($player, 'stake-daily', 300_000_000);
 
-        $this->assertSame(1_500_000, $updated->currentValue); // unchanged
-        $this->assertSame(3_000_000, $updated->pendingValue);
+        $this->assertSame(250_000_000, $updated->currentValue); // unchanged
+        $this->assertSame(300_000_000, $updated->pendingValue);
         $this->assertTrue($updated->pendingEffectiveAt->isFuture());
     }
 
@@ -171,6 +171,8 @@ final class ResponsibleGamingTest extends TestCase
 
     public function test_a_player_with_no_verified_nin_is_refused_registry_status_as_unavailable(): void
     {
+        // The stub driver deliberately lets unverified players through; any real vendor fails closed.
+        config(['responsibleGaming.registry_driver' => 'vendor']);
         $service = app(RegistryCheckService::class);
         $this->assertSame('unavailable', $service->statusFor($this->player(verified: false)));
     }

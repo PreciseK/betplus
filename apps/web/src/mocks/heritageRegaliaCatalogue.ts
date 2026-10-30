@@ -172,8 +172,11 @@ export function pickRegaliaBoardAssignment(
   const authentic = REGALIA_SETS[setKey] ?? [];
   const decoyPool = ALL_REGALIA_PIECES.filter((piece) => piece.setKey !== setKey);
   const decoyCount = Math.max(0, 9 - authentic.length);
+  // Sets share piece names, so skip any name already on the board: no piece appears twice.
+  const usedNames = new Set(authentic.map((piece) => piece.canonicalName));
+  const decoys = shuffle(decoyPool, rng).filter((piece) => !usedNames.has(piece.canonicalName) && usedNames.add(piece.canonicalName));
   return {
     authentic: shuffle(authentic, rng),
-    decoys: shuffle(decoyPool, rng).slice(0, decoyCount),
+    decoys: decoys.slice(0, decoyCount),
   };
 }

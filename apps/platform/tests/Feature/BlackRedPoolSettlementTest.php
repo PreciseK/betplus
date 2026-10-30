@@ -64,11 +64,11 @@ final class BlackRedPoolSettlementTest extends TestCase
         [, $tokenB] = $this->signedInPlayer('+2348030000002');
         [, $tokenC] = $this->signedInPlayer('+2348030000003');
 
-        // BlackRedGameSeeder's minStakeKobo is 10,000 — stay above it. A and B both
+        // BlackRedGameSeeder's minStakeKobo is 20,000 — stay above it. A and B both
         // pick BR (winners, stakes 10,000:30,000 -> 25%:75%); C picks RB (loses).
-        $this->withToken($tokenA)->postJson('/v1/tickets', ['prediction' => ['B', 'R'], 'stake_kobo' => 10_000, 'idempotency_key' => 'settle-a'])->assertOk();
-        $this->withToken($tokenB)->postJson('/v1/tickets', ['prediction' => ['B', 'R'], 'stake_kobo' => 30_000, 'idempotency_key' => 'settle-b'])->assertOk();
-        $this->withToken($tokenC)->postJson('/v1/tickets', ['prediction' => ['R', 'B'], 'stake_kobo' => 20_000, 'idempotency_key' => 'settle-c'])->assertOk();
+        $this->withToken($tokenA)->postJson('/v1/tickets', ['prediction' => ['B', 'R'], 'stake_kobo' => 20_000, 'idempotency_key' => 'settle-a'])->assertOk();
+        $this->withToken($tokenB)->postJson('/v1/tickets', ['prediction' => ['B', 'R'], 'stake_kobo' => 60_000, 'idempotency_key' => 'settle-b'])->assertOk();
+        $this->withToken($tokenC)->postJson('/v1/tickets', ['prediction' => ['R', 'B'], 'stake_kobo' => 40_000, 'idempotency_key' => 'settle-c'])->assertOk();
 
         $pool = PoolDraw::where('gameCode', 'BLACKRED')->where('poolKey', 2)->sole();
         // Force the drawn outcome deterministically by aligning the fixture with

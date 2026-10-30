@@ -31,7 +31,7 @@ const GAME_TYPE_COPY = [
   { count: 5, label: "Five Cards", sub: "Big Win" },
 ];
 
-const STAKE_PRESETS_NAIRA = [100, 200, 500, 1000, 2000, 5000];
+const STAKE_PRESETS_NAIRA = [200, 500, 1000, 2000, 5000, 10000];
 
 const INSPECT_POSITIONS = [
   { x: -126, y: -30, r: -14 },

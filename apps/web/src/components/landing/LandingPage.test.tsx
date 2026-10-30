@@ -21,11 +21,12 @@ describe("Public information page", () => {
 
   it("explains Caged as a cash-out game and links each game to its own route", () => {
     render(<GamesSection />);
-    for (const [title, slug] of [["BlackRed", "blackred"], ["Heritage", "heritage"], ["Caged", "caged"]]) {
+    for (const [title, slug] of [["BlackRed", "blackred"], ["Heritage", "heritage"], ["Caged", "caged"], ["Doors", "doors"]]) {
       expect(screen.getByRole("heading", { level: 3, name: title })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: `Play ${title}` })).toHaveAttribute("href", `/games/${slug}`);
     }
     expect(screen.getByText(/cash out before the cage drops/)).toBeInTheDocument();
+    expect(screen.getByText(/Your first treasure ends the round: gold bars pay 3×, a chest 5×, and a card 2×/)).toBeInTheDocument();
   });
 
   it("keeps homepage section links connected to real sections", () => {

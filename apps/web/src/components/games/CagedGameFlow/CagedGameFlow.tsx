@@ -30,7 +30,7 @@ import {
   getSimulatedOnlineCount,
 } from "./cagedChatSystem";
 
-const PRESET_CHIPS_NAIRA = [100, 500, 2500, 10000];
+const PRESET_CHIPS_NAIRA = [200, 500, 2500, 10000];
 // Polling every 1000ms (1s) during FLYING keeps the single-threaded PHP dev server
 // responsive without request starvation or backlog queues. Since the growth rate
 // is 10s per 1.00x, 1000ms is accurate and smooth while reducing server load by 80%.

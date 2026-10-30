@@ -73,9 +73,9 @@ final class CagedPoolSettlementTest extends TestCase
         // the invariants below (ledger balances, payouts proportional to stake,
         // non-winners get zero, threshold winners are exactly those <= the draw)
         // hold regardless of the outcome.
-        $this->withToken($tokenA)->postJson('/v1/caged/tickets', ['target_birds' => 1, 'stake_kobo' => 10_000, 'idempotency_key' => 'cg-settle-a'])->assertOk();
-        $this->withToken($tokenB)->postJson('/v1/caged/tickets', ['target_birds' => 1, 'stake_kobo' => 30_000, 'idempotency_key' => 'cg-settle-b'])->assertOk();
-        $this->withToken($tokenC)->postJson('/v1/caged/tickets', ['target_birds' => 5, 'stake_kobo' => 20_000, 'idempotency_key' => 'cg-settle-c'])->assertOk();
+        $this->withToken($tokenA)->postJson('/v1/caged/tickets', ['target_birds' => 1, 'stake_kobo' => 20_000, 'idempotency_key' => 'cg-settle-a'])->assertOk();
+        $this->withToken($tokenB)->postJson('/v1/caged/tickets', ['target_birds' => 1, 'stake_kobo' => 60_000, 'idempotency_key' => 'cg-settle-b'])->assertOk();
+        $this->withToken($tokenC)->postJson('/v1/caged/tickets', ['target_birds' => 5, 'stake_kobo' => 40_000, 'idempotency_key' => 'cg-settle-c'])->assertOk();
 
         $pool = PoolDraw::where('gameCode', 'CAGED')->sole();
         app(CagedPoolSettlementService::class)->settle($pool, $this->params);

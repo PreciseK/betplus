@@ -27,7 +27,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Betplus — Your Move. Your Moment. Your Naira.",
   description:
-    "No waiting, no wondering, and no lost tickets. Play BlackRed, Heritage, and Caged with instant OPay direct settlement and zero-data USSD access (*7006#) in Nigeria.",
+    "Explore BlackRed, Heritage, Caged and Doors on Betplus in Nigeria. One account, OPay payments and selected games on USSD (*7006#).",
   icons: {
     icon: [
       { url: "/assets/betplus-favicon.png", type: "image/png" },

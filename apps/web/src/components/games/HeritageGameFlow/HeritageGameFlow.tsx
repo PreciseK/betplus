@@ -30,7 +30,7 @@ import {
 } from "@/mocks/heritage";
 import styles from "./HeritageGameFlow.module.css";
 
-const STAKE_PRESETS_KOBO = [10_000, 50_000, 100_000, 500_000] as const;
+const STAKE_PRESETS_KOBO = [20_000, 50_000, 100_000, 500_000] as const;
 type GamePhase = "configuring" | "confirming" | "resolving" | "settled";
 const ERROR_COPY: Record<string, string> = {
   INSUFFICIENT_PLAY_BALANCE:

@@ -167,6 +167,7 @@ final class CreateCagedTicket
             ]);
 
             $this->wallet->reserveStake($player, $stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
+            $bonusStakeKobo = $this->wallet->bonusStakeFor('ticket', $ticket->id);
 
             if ($withholding !== null) {
                 $taxWithheldKobo = $withholding->taxWithheldKobo;
@@ -188,7 +189,7 @@ final class CreateCagedTicket
                 'won' => $engineResult->won,
                 'grossPrizeKobo' => $engineResult->grossPrizeKobo,
                 'taxWithheldKobo' => $taxWithheldKobo,
-                'netCreditKobo' => $netCreditKobo,
+                'netCreditKobo' => $this->wallet->netAfterBonusReclaim($netCreditKobo, $bonusStakeKobo),
                 'taxRateBasisPoints' => $taxRateBasisPoints,
                 'taxBasisLabel' => $taxBasisLabel,
                 'taxRulesetVersion' => $taxRulesetVersion,
@@ -198,7 +199,7 @@ final class CreateCagedTicket
             if ($engineResult->won) {
                 $this->wallet->settleWin(
                     $player, $stakeKobo, $engineResult->grossPrizeKobo,
-                    $taxWithheldKobo, $netCreditKobo, 'ticket', $ticket->id, $attribution['stateCode'],
+                    $taxWithheldKobo, $netCreditKobo, 'ticket', $ticket->id, $attribution['stateCode'], $bonusStakeKobo,
                 );
 
                 // Offer 1: Weekend Double Win Boost (Marketing Subvention)
@@ -206,7 +207,7 @@ final class CreateCagedTicket
                     $player, $stakeKobo, $engineResult->grossPrizeKobo, self::GAME_CODE, $ticket->id,
                 );
             } else {
-                $this->wallet->settleLoss($stakeKobo, 'ticket', $ticket->id, $attribution['stateCode']);
+                $this->wallet->settleLoss($stakeKobo, 'ticket', $ticket->id, $attribution['stateCode'], $bonusStakeKobo);
             }
 
             $this->dailyLedger->recordSettlement(self::GAME_CODE, $stakeKobo, $engineResult->won ? $engineResult->grossPrizeKobo : 0);
