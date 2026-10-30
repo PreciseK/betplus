@@ -1,7 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { OperatorSessionGateway } from "@/mocks/operator-session";
 import { OperatorSignIn } from "./OperatorSignIn";
+
+afterEach(() => vi.unstubAllGlobals());
 
 function gateway(): OperatorSessionGateway {
   return {
@@ -21,6 +23,20 @@ function gateway(): OperatorSessionGateway {
 }
 
 describe("OperatorSignIn", () => {
+  it("shows authenticator setup and gives a manual fallback when copying fails", async () => {
+    const sessionGateway = gateway();
+    vi.mocked(sessionGateway.beginMfa).mockResolvedValue({ challengeId: "setup-1", maskedEmail: "a•••@betplus.ng", secret: "TESTSETUPKEY" });
+    vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockRejectedValue(new Error("Clipboard unavailable")) } });
+    render(<OperatorSignIn gateway={sessionGateway} />);
+    fireEvent.change(screen.getByLabelText("Work email"), { target: { value: "amaka.okafor@betplus.ng" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "secure-passphrase" } });
+    fireEvent.click(screen.getByRole("button", { name: "Continue to MFA" }));
+    expect(await screen.findByRole("heading", { name: "Set up authenticator" })).toHaveFocus();
+    fireEvent.click(screen.getByRole("button", { name: "Copy Key" }));
+    expect(await screen.findByText(/Copy failed. Select the setup key/)).toBeInTheDocument();
+    expect(screen.queryByText("Setup key copied.")).not.toBeInTheDocument();
+  });
+
   it("requires valid operator credentials before presenting MFA", async () => {
     const sessionGateway = gateway();
     render(<OperatorSignIn gateway={sessionGateway} />);

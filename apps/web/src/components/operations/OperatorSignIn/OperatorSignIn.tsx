@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ErrorSummary } from "@/components/auth/ErrorSummary/ErrorSummary";
 import { OPERATOR_ROLE_LABELS } from "@/components/operations/operations-navigation";
 import { Button } from "@/components/ui/Button/Button";
@@ -38,10 +38,16 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
   const [maskedEmail, setMaskedEmail] = useState("");
   const [mfaSecret, setMfaSecret] = useState<string>();
   const [copiedSecret, setCopiedSecret] = useState(false);
+  const [copyError, setCopyError] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [sessionExpiredNotice, setSessionExpiredNotice] = useState(false);
   const [providerError, setProviderError] = useState<string>();
   const [pending, setPending] = useState(false);
   const [session, setSession] = useState<OperatorSession>();
+
+  useEffect(() => {
+    if (step !== "credentials") headingRef.current?.focus();
+  }, [step]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -81,6 +87,10 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
         setMfaSecret(undefined);
       }
       setPassword("");
+      setCopiedSecret(false);
+      setCopyError(false);
+      setCode("");
+      setCodeError(undefined);
       setStep("mfa");
     } catch (error) {
       if (error instanceof OperatorSessionError && error.code === "IP_NOT_ALLOWED") {
@@ -117,7 +127,7 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
     return (
       <section className={styles.flow} aria-labelledby="operator-sign-in-title">
         <p className={styles.context}>Betplus back office</p>
-        <h1 id="operator-sign-in-title">Access confirmed</h1>
+        <h1 id="operator-sign-in-title" ref={headingRef} tabIndex={-1}>Access confirmed</h1>
         <InlineMessage tone="success" title="MFA verified">
           {session.operator.displayName} · {OPERATOR_ROLE_LABELS[session.operator.role]} · {session.approvedNetwork}
         </InlineMessage>
@@ -137,10 +147,10 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
   return (
     <section className={styles.flow} aria-labelledby="operator-sign-in-title">
       <div className={styles.intro}>
-        <p className={styles.context}>Betplus back office</p>
-        <h1 id="operator-sign-in-title">{step === "credentials" ? "Operator sign in" : (mfaSecret ? "Set up authenticator" : "Verify with MFA")}</h1>
+        <p className={styles.context}>{step === "credentials" ? "BETPLUS BACK OFFICE · 1 OF 2" : "BETPLUS BACK OFFICE · 2 OF 2"}</p>
+        <h1 id="operator-sign-in-title" ref={headingRef} tabIndex={-1}>{step === "credentials" ? "Operator sign in" : (mfaSecret ? "Set up authenticator" : "Verify with MFA")}</h1>
         <p>{step === "credentials"
-          ? "Use your assigned operator account. This surface is separate from player sign-in."
+          ? "Enter your work email and password to continue."
           : (mfaSecret
             ? `Add the secret key below into your authenticator app, then enter the 6-digit code.`
             : `Enter the current code from your authenticator app. A security notice was also sent to ${maskedEmail}.`)}</p>
@@ -195,43 +205,39 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
           <Button type="submit" status={pending ? "loading" : "idle"} statusLabel="Checking credentials…">
             Continue to MFA
           </Button>
-          <p className={styles.prototypeNote}>
-            Your password and authenticator code are verified by the Betplus institutional access service.
-            <br />
-            <small style={{ opacity: 0.85, marginTop: "6px", display: "inline-block" }}>
-              Local dev credentials: <code>admin@betplus.ng</code> · any 8+ char password · MFA: <code>123456</code>
-            </small>
-          </p>
+          <p className={styles.supportNote}>Need access or help with your authenticator? Contact your Betplus administrator.</p>
         </form>
       ) : (
         <form className={styles.form} noValidate onSubmit={verifyMfa}>
           <ErrorSummary errors={errors} />
           {mfaSecret && (
-            <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px", padding: "16px", marginBottom: "16px" }}>
-              <strong style={{ display: "block", marginBottom: "6px", fontSize: "0.95rem", color: "#f3f4f6" }}>
-                Set up Authenticator app
-              </strong>
-              <p style={{ margin: "0 0 10px 0", fontSize: "0.85rem", color: "#9ca3af" }}>
-                This account requires MFA registration. Enter this key into your authenticator app (Google Authenticator, Microsoft Authenticator, Apple Keychain):
+            <div className={styles.enrollment}>
+              <h2>Connect your authenticator</h2>
+              <p>
+                Add a new account in your authenticator app using this setup key. Keep the key private.
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(0,0,0,0.35)", padding: "8px 12px", borderRadius: "6px" }}>
-                <code style={{ fontFamily: "monospace", fontSize: "1rem", letterSpacing: "1px", wordBreak: "break-all", flex: 1, color: "#34d399" }}>
+              <div className={styles.setupKey}>
+                <code>
                   {mfaSecret}
                 </code>
                 <Button
                   variant="secondary"
                   type="button"
-                  onClick={() => {
-                    if (typeof navigator !== "undefined" && navigator.clipboard) {
-                      navigator.clipboard.writeText(mfaSecret);
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(mfaSecret);
+                      setCopiedSecret(true);
+                      setCopyError(false);
+                    } catch {
+                      setCopiedSecret(false);
+                      setCopyError(true);
                     }
-                    setCopiedSecret(true);
-                    setTimeout(() => setCopiedSecret(false), 2500);
                   }}
                 >
                   {copiedSecret ? "Copied!" : "Copy Key"}
                 </Button>
               </div>
+              <p role="status">{copyError ? "Copy failed. Select the setup key above and copy it manually." : copiedSecret ? "Setup key copied." : "Then enter the current six-digit code below."}</p>
             </div>
           )}
           <OtpInput
@@ -243,7 +249,7 @@ export function OperatorSignIn({ gateway = operatorSessionGateway }: OperatorSig
             helperText="You can paste all six digits. Codes are never stored in the browser."
           />
           <div className={styles.actions}>
-            <Button variant="secondary" type="button" onClick={() => { setStep("credentials"); setCode(""); setCodeError(undefined); }}>
+            <Button variant="secondary" type="button" disabled={pending} onClick={() => { setStep("credentials"); setCode(""); setCodeError(undefined); setProviderError(undefined); }}>
               Back
             </Button>
             <Button type="submit" status={pending ? "loading" : "idle"} statusLabel="Verifying MFA…">

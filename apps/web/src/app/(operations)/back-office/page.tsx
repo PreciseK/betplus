@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { OperatorSignIn } from "@/components/operations/OperatorSignIn/OperatorSignIn";
-import { Logo } from "@/components/ui/Logo/Logo";
-import { Icon } from "@/components/ui/Icon/Icon";
+import { AuthShell } from "@/components/auth/AuthShell/AuthShell";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -11,29 +10,22 @@ export const metadata: Metadata = {
 
 export default function BackOfficeSignInPage() {
   return (
-    <div className={styles.page}>
+    <>
       <a className="skip-link" href="#operator-sign-in">Skip to operator sign in</a>
-      <header className={styles.header}>
-        <div className={styles.brand}>
-          <Logo href="/" />
-          <span>Back office</span>
+      <AuthShell brandNote="Never share your password or authenticator codes." brandContent={<>
+        <div className={styles.brandCopy}>
+          <p className={styles.eyebrow}>BETPLUS · STAFF ACCESS</p>
+          <h2>Clarity.<br />{" "}Control.<br />{" "}Accountability.</h2>
+          <p className={styles.description}>Your workspace for Betplus operations.</p>
         </div>
-        <span className={styles.restricted}><Icon name="lock" /><span>Staff access</span></span>
-      </header>
-      <main className={styles.main} id="operator-sign-in">
-        <OperatorSignIn />
-        <aside className={styles.security} aria-labelledby="security-title">
-          <p className={styles.securityLabel}>Access controls</p>
-          <h2 id="security-title">Account security</h2>
-          <dl>
-            <div><dt>MFA</dt><dd>Required for every account</dd></div>
-            <div><dt>Network</dt><dd>Privileged roles require an approved IP</dd></div>
-            <div><dt>Permissions</dt><dd>Based on your assigned role</dd></div>
-            <div><dt>Audit</dt><dd>Every completed action records its operator</dd></div>
-          </dl>
-          <p>Never share credentials or authenticator codes. Betplus support will not ask for either.</p>
-        </aside>
-      </main>
-    </div>
+        <dl className={styles.accessDetails}>
+          <div><dt>Two-step sign in</dt><dd>Your password and authenticator app.</dd></div>
+          <div><dt>Access by role</dt><dd>The tools and permissions assigned to you.</dd></div>
+          <div><dt>Approved networks</dt><dd>Required for privileged roles.</dd></div>
+        </dl>
+      </>}>
+        <div className={styles.form} id="operator-sign-in"><OperatorSignIn /></div>
+      </AuthShell>
+    </>
   );
 }

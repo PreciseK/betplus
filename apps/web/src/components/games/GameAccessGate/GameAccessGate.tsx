@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import { useSignedIn } from "@/lib/player-auth";
 import { Button } from "@/components/ui/Button/Button";
+import { AuthShell } from "@/components/auth/AuthShell/AuthShell";
+import authStyles from "@/components/auth/AuthShell/AuthFlow.module.css";
 import styles from "./GameAccessGate.module.css";
 
 interface GameAccessGateProps {
@@ -22,19 +24,17 @@ export function GameAccessGate({ gameTitle, children }: GameAccessGateProps) {
 
   if (!signedIn) {
     return (
-      <div className={styles.gate}>
-        <div className={styles.panel}>
+      <AuthShell>
+        <div className={authStyles.formWrap}>
           <span className={styles.eyebrow}>Sign in required</span>
-          <h1 className={styles.title}>Sign in to play {gameTitle}</h1>
-          <p className={styles.description}>
-            Create a free Betplus account or sign back in to fund your wallet and play {gameTitle} for real stakes.
+          <h1 className={authStyles.stepH}>Sign in to play {gameTitle}</h1>
+          <p className={authStyles.stepSub}>
+            Sign in to your Betplus account to access your wallet and play {gameTitle}.
           </p>
-          <div className={styles.actions}>
-            <Button href="/login">Sign in</Button>
-            <Button href="/register" variant="secondary">Create an account</Button>
-          </div>
+          <Button href="/login" className={authStyles.btnPrimary}>Sign in</Button>
+          <p className={authStyles.footerLink}>New to Betplus? <a href="/register">Create an account</a></p>
         </div>
-      </div>
+      </AuthShell>
     );
   }
 

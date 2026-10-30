@@ -1,87 +1,21 @@
-.flow {
-  width: min(100%, var(--ops-auth-form-width));
-  min-width: 0;
-  max-width: 100%;
-  box-sizing: border-box;
-  display: grid;
-  gap: var(--ops-workspace-gap);
-}
-
-.intro {
-  display: grid;
-  gap: var(--ops-tight-gap);
-}
-
-.intro p,
-.supporting {
-  max-width: 62ch;
-  color: var(--text-secondary);
-}
-
-.context {
-  color: var(--action-primary) !important;
-  font-size: var(--type-small-size);
-  font-weight: var(--type-body-strong-weight);
-}
-
-.form {
-  min-width: 0;
-  display: grid;
-  gap: var(--ops-group-gap);
-}
-
-.form > button {
-  width: 100%;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--ops-tight-gap);
-}
-
-.prototypeNote {
-  padding-block-start: var(--ops-group-gap);
-  border-block-start: var(--ops-panel-border);
-  color: var(--text-secondary);
-  font-size: var(--type-caption-size);
-}
-
-.passwordToggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  background: transparent;
-  border: none;
-  border-radius: var(--control-radius, 4px);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition:
-    color var(--motion-fast, 150ms) ease,
-    transform var(--motion-fast, 150ms) cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.passwordToggle:hover {
-  color: var(--text-primary);
-}
-
-.passwordToggle:active {
-  transform: scale(0.92);
-}
-
-.passwordToggle:focus-visible {
-  outline: 2px solid var(--action-primary);
-  outline-offset: 2px;
-}
-
-@media (max-width: 480px) {
-  .actions {
-    display: grid;
-  }
-
-  .actions > * {
-    width: 100%;
-  }
-}
+.flow { width: 100%; min-width: 0; display: grid; gap: 24px; }
+.flow h1 { margin: 0; color: #f5f5f7; font-size: clamp(28px, 4vw, 34px); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; }
+.flow h1:focus { outline: none; }
+.intro { display: grid; gap: 14px; }
+.intro p, .supporting { margin: 0; color: #b0b0b9; font-size: 14px; line-height: 1.65; }
+.intro .context, .context { margin: 0; color: #b0b0b9; font-size: 11px; letter-spacing: .08em; line-height: 1.6; }
+.form { min-width: 0; display: grid; gap: 24px; }
+.form input { min-height: 52px; border-radius: 8px; font-size: 16px; }
+.form > button, .flow > a { width: 100%; min-height: 48px; }
+.actions { display: flex; gap: 12px; }
+.actions > * { flex: 1; min-height: 48px; }
+.supportNote { padding-top: 24px; margin: 0; border-top: 1px solid #303037; color: #b0b0b9; font-size: 12px; line-height: 1.65; }
+.passwordToggle { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 8px; border: none; border-radius: 6px; background: transparent; color: #b0b0b9; cursor: pointer; }
+.passwordToggle:hover { color: #f5f5f7; }
+.enrollment { min-width: 0; padding: 20px; border: 1px solid #38383f; border-radius: 8px; background: #19191d; }
+.enrollment h2 { margin: 0 0 10px; font-size: 16px; color: #f5f5f7; font-weight: 500; }
+.enrollment p { margin: 0; color: #b0b0b9; font-size: 12px; line-height: 1.65; }
+.setupKey { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0; }
+.setupKey code { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; color: #e4e4e8; font-size: 14px; letter-spacing: 1px; user-select: all; }
+.setupKey button { min-height: 44px; }
+@media (max-width: 380px) { .actions { flex-direction: column-reverse; } .actions > * { flex: auto; } }
