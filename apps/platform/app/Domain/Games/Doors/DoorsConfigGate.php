@@ -39,8 +39,9 @@ final class DoorsConfigGate
         }
         if (!is_string($d['certification_ref'] ?? null)) { return ['Doors certification reference must be text.']; }
         $cert = trim($d['certification_ref']);
-        if ($cert === '' || (app()->environment('production') && preg_match('/pending|draft|dev.only|test/i', $cert))) {
-            return ['Doors requires a certification reference; placeholders cannot be published in production.'];
+        // Same rule as the other games (REQ-GEC-025): a reference must be recorded, placeholder or not.
+        if ($cert === '') {
+            return ['Doors requires a certification reference.'];
         }
         return [];
     }

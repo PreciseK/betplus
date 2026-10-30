@@ -205,14 +205,16 @@ final class DoorsRoundTest extends TestCase
         $this->pick($token, $started['reference'], 19, 'pinned-win')->assertOk()->assertJson(['gross_prize_kobo' => 60_000, 'tax_withheld_kobo' => 3000, 'net_prize_kobo' => 57_000]);
     }
 
-    public function test_excluded_players_cannot_purchase_and_placeholder_certification_fails_in_production(): void
+    public function test_excluded_players_cannot_purchase_and_a_blank_certification_reference_fails(): void
     {
         [$player, $token] = $this->player();
         \App\Models\RegistryExclusion::updateOrCreate(['ninHash' => $player->ninHash], ['registryName' => 'test', 'excluded' => true, 'checkedAt' => now()]);
         $this->withToken($token)->postJson('/v1/doors/rounds', ['stake_kobo' => 20_000, 'duration_seconds' => 10, 'idempotency_key' => 'excluded'])->assertStatus(422)->assertJson(['code' => 'EXCLUDED']);
-        $this->app->instance('env', 'production');
         $config = GameEconomicsConfig::where('gameCode', 'DOORS')->firstOrFail();
-        $this->assertNotEmpty(app(GameEconomicsModelGate::class)->validate($config));
+        $params = $config->paramsJson;
+        $params['doors']['certification_ref'] = ' ';
+        $config->update(['paramsJson' => $params]);
+        $this->assertContains('Doors requires a certification reference.', app(GameEconomicsModelGate::class)->validate($config));
         $this->assertSame(0, DoorsRound::count());
     }
 
