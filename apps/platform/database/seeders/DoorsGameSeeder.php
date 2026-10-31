@@ -14,7 +14,7 @@ class DoorsGameSeeder extends Seeder
     public function run(): void
     {
         GameRegistry::firstOrCreate(['gameCode' => 'DOORS'], [
-            'engineVersion' => DoorsEngine::VERSION, 'status' => 'MAINTENANCE',
+            'engineVersion' => DoorsEngine::VERSION, 'status' => 'SUSPENDED',
             'minStakeKobo' => 20_000, 'maxStakeKobo' => 50_000,
             'enabledChannels' => ['web'], 'enabledStates' => ['LAG'],
         ]);

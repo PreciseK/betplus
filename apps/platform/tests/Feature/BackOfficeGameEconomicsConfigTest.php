@@ -109,7 +109,7 @@ final class BackOfficeGameEconomicsConfigTest extends TestCase
         $this->withToken($checker)->postJson('/backoffice/v1/changes/' . $proposal->json('id') . '/approve')->assertOk();
         $this->assertDatabaseHas('gameEconomicsConfig', ['id' => $draft['id'], 'status' => 'published']);
         // Publication does not silently enable real wagers.
-        $this->assertDatabaseHas('gameRegistry', ['gameCode' => 'DOORS', 'status' => 'MAINTENANCE']);
+        $this->assertDatabaseHas('gameRegistry', ['gameCode' => 'DOORS', 'status' => 'SUSPENDED']);
     }
 
     public function test_draft_create_and_delete_each_write_a_real_audit_log_entry(): void
