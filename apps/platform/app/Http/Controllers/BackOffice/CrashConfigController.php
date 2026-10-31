@@ -29,7 +29,7 @@ class CrashConfigController extends Controller
     ) {
     }
 
-    /** GET /backoffice/v1/crash-configs?game_code=BIRDESCAPE */
+    /** GET /backoffice/v1/crash-configs?game_code=CAGED_CRASH */
     public function index(Request $request): JsonResponse
     {
         $configs = CrashConfig::when($request->query('game_code'), fn ($q, $code) => $q->where('gameCode', $code))
@@ -40,14 +40,14 @@ class CrashConfigController extends Controller
     }
 
     /**
-     * GET /backoffice/v1/crash-configs/presets?game_code=BIRDESCAPE — named starting
+     * GET /backoffice/v1/crash-configs/presets?game_code=CAGED_CRASH — named starting
      * points (Fair/Good/Best), ranked by house revenue ratio. Registered before
      * /crash-configs/{id} in routes so "presets" isn't swallowed by the {id} wildcard.
      */
     public function presets(Request $request): JsonResponse
     {
         $code = strtoupper((string) $request->query('game_code'));
-        if (!in_array($code, ['BIRDESCAPE', 'CAGED'], true)) {
+        if (!in_array($code, ['CAGED_CRASH', 'CAGED'], true)) {
             return response()->json(['presets' => []]);
         }
 

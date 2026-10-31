@@ -1144,3 +1144,62 @@
   font-size: 13px;
   line-height: 1.6;
 }
+
+/* Shared dashboard surfaces for every operations console. */
+.page { gap:24px; padding-bottom:0; }
+.pageHeader { padding:0 0 2px; align-items:center; }
+.pageHeader > div { gap:6px; }
+.pageHeader h1 { font-size:28px; font-weight:600; letter-spacing:-.035em; }
+.pageHeader > div > p:last-child { font-size:12px; max-width:68ch; line-height:1.7; }
+.context { font-size:10px; letter-spacing:.06em; color:#858a91!important; }
+.section, .inspector, .evidenceBlock { padding:22px; border:1px solid #e8eaed; border-radius:14px; background:#fff; }
+.section .section { padding:0; border:0; }
+.sectionHeader { padding-bottom:14px; border-color:#eef0f2; align-items:center; }
+.sectionHeader h2, .inspectorHeader h2 { font-size:15px; font-weight:500; }
+.sectionHeader p { font-size:11px; line-height:1.7; }
+.contractNote { padding:16px 20px; border:1px solid #e8eaed; border-radius:12px; background:#fff; }
+.runStrip, .warningStrip, .receipt { padding:16px 20px; border:1px solid #e8eaed; border-radius:12px; background:#fff; }
+.runStrip { background:#f7f9f8; }
+.runStrip h2, .warningStrip h2 { font-size:13px; font-weight:500; }
+.runStrip p, .warningStrip p { font-size:11px; line-height:1.7; }
+.warningStrip { background:#fffaed; border-color:#f1e2bb; }
+.receipt { background:#eff8f2; border-color:#d5e9dc; }
+.subNavigation { width:fit-content; max-width:100%; display:flex; gap:4px; padding:5px; border:1px solid #e8eaed; border-radius:10px; background:#eceef0; align-self:start; }
+.subNavigation button { min-height:40px; padding:8px 16px; border:1px solid transparent; border-radius:7px; font-size:12px; font-weight:500; background:transparent; color:#747b84; }
+.subNavigation button[aria-current='page'], .subNavigation button[aria-selected='true'], .subNavigation button:hover { background:#fff; border-color:#e2e5e8; color:#292e35; box-shadow:0 1px 3px #18212a08; }
+.segmented { display:flex; flex-wrap:wrap; gap:6px; }
+.segment { min-height:42px; border:1px solid #e2e5e8; border-radius:8px; padding:8px 18px; color:#747b84; background:#fff; font:inherit; cursor:pointer; }
+.segmentActive, .segment[aria-checked='true'] { border-color:#b32c27; background:#fcf0ef; color:#a32c27; }
+.filters { display:flex; align-items:end; flex-wrap:wrap; gap:14px; }
+.reasonField { grid-column:1/-1; }
+.controls { gap:14px; padding:0 0 4px; }
+.selectField, .formField { font-size:11px; font-weight:400; gap:7px; }
+.selectField select, .formField input, .formField textarea, .formField select { border-color:#dfe2e6; font-size:12px; min-height:42px; background:#fff; color:#353a42; }
+.formField textarea { min-height:110px; padding:12px; }
+.tableContainer { border-color:#e8eaed; border-radius:10px; }
+.table { font-size:12px; }
+.table th, .table td { padding:14px 16px; }
+.table thead th { text-transform:none; letter-spacing:0; background:#f8f9fa; color:#777e87; font-size:11px; font-weight:400; }
+.sortButton { font-weight:400; font-size:11px; }
+.table tbody tr:hover { background:#fafbfc; }
+.selectedRow, .selectedRow td { background:#fcf3f2!important; }
+.statusLabel { font-size:10px; font-weight:500; border-radius:6px; padding:4px 8px; }
+.tableAction { font-size:11px; font-weight:500; color:#7a443f; text-decoration:none; border:1px solid #e6e8eb; padding:6px 10px; border-radius:6px; background:#fff; }
+.tableAction:hover { background:#f8f9fa; }
+.paginationFooter { border-color:#e8eaed; background:#fff; flex-wrap:wrap; row-gap:12px; }
+.summaryStrip { gap:14px; border:0; padding:0; background:transparent; }
+.summaryStrip > div { padding:18px; border:1px solid #e8eaed; border-radius:12px; background:#fff; }
+.summaryStrip dd { font-size:24px; font-weight:500; letter-spacing:-.03em; }
+.factsGrid { padding:16px; border:1px solid #e8eaed; border-radius:10px; background:#fafbfc; }
+.factsGrid > div { padding-left:0; border:0; }
+.actionBand { border:1px solid #e8eaed; border-radius:12px; padding:18px; background:#fafbfc; }
+.recordList { gap:8px; }
+.recordButton { border:1px solid #e8eaed; border-radius:10px; padding:16px; }
+.recordButton[data-selected='true'] { background:#fcf3f2; border-color:#dfb6b2; }
+.tableState { border:1px solid #e8eaed; border-radius:10px; padding:16px; }
+.tableState strong { font-size:13px; font-weight:500; }
+.tableState p { font-size:11px; }
+@media(max-width:760px) { .section, .inspector, .evidenceBlock { padding:16px; } .pageHeader h1 { font-size:25px; } .tableWrap { overflow:auto; } .table tr { margin:10px; border:1px solid #e8eaed; border-radius:8px; padding:12px; } .table th, .table td { padding:8px 0; } .subNavigation { width:100%; } .subNavigation button { padding-inline:12px; flex-shrink:0; } .filters, .filters > * { width:100%; } .summaryStrip > div { padding:16px; } .segment { flex:1; } }
+.advanced { grid-column:1/-1; padding:16px; border:1px solid #e8eaed; border-radius:10px; }.advanced summary { min-height:36px; color:#454b54; font-size:12px; cursor:pointer; }.advanced[open] summary { margin-bottom:16px; }.selectField input, .reasonField textarea { min-height:42px; padding:10px 12px; border:1px solid #dfe2e6; border-radius:8px; background:#fff; color:#353a42; font:inherit; }.reasonField textarea { min-height:100px; width:100%; }.formField > span { color:#858a91; font-size:10px; }
+.linkGrid { list-style:none; display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); gap:16px; padding:0; margin:0; }.linkGrid a { display:grid; gap:8px; padding:22px; min-height:130px; border:1px solid #e8eaed; border-radius:10px; color:#343a42; text-decoration:none; }.linkGrid strong { font-size:13px; font-weight:500; }.linkGrid span { color:#858a91; font-size:11px; line-height:1.7; }.linkGrid a:hover { background:#fafbfc; border-color:#cbd1d8; }
+.table input[type="number"] { min-width:0; max-width:100%; width:100px; min-height:38px; padding:8px 10px; border:1px solid #dfe2e6; border-radius:7px; background:#fff; color:#353a42; font:inherit; }.floatingBulkDock { border-radius:12px; border-color:#e8eaed; box-shadow:0 8px 30px #18212a16; max-width:calc(100vw - 32px); }.dockCountBadge { background:#fcf0ef; border-color:#edd6d3; color:#b32c27; }.dockClearBtn { min-height:36px; min-width:36px; }

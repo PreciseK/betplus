@@ -13,16 +13,16 @@ export type PlayerProtectionView = "reviews" | "limits" | "exclusions";
 
 function playerLink(playerId: number, reference: string) {
   return (
-    <Link className={styles.tableAction} href={`/back-office/player-responsible-play?player=${encodeURIComponent(reference)}`}>
+    <Link className={styles.tableAction} href={`/back-office/player-responsible-play?query=${playerId}`} aria-label={`View player ${reference}`}>
       View player
     </Link>
   );
 }
 
 const VIEW_META: Record<PlayerProtectionView, { title: string; description: string }> = {
-  reviews: { title: "Safer play reviews", description: "Real velocity flags awaiting a human decision." },
+  reviews: { title: "Safer play reviews", description: "Review unusual play patterns and follow up with players who may need support." },
   limits: { title: "Player limits", description: "Players who have reached or are near a real deposit or stake limit." },
-  exclusions: { title: "Exclusions", description: "Active self-exclusions and cool-offs, read live from playerProtectionEvent." },
+  exclusions: { title: "Exclusions", description: "View active self-exclusions and cooling-off periods." },
 };
 
 export function PlayerProtectionConsole({ view }: { view: PlayerProtectionView }) {

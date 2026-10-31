@@ -71,12 +71,12 @@ final class RoundLifecycleServiceTest extends TestCase
     /** A FLYING round with a known crash point and growth rate, bypassing the real RNG for deterministic tests. */
     private function craftFlyingRound(int $crashMultiplierHundredths, int $growthRateConstant, ?Carbon $flightStartedAt = null): CrashRound
     {
-        $config = CrashConfig::where('gameCode', 'BIRDESCAPE')->where('status', 'published')->firstOrFail();
+        $config = CrashConfig::where('gameCode', 'CAGED_CRASH')->where('status', 'published')->firstOrFail();
         $seed = app(SeedIssuer::class)->issue();
 
         return CrashRound::create([
-            'gameCode' => 'BIRDESCAPE',
-            'roundNumber' => 1 + (int) (CrashRound::where('gameCode', 'BIRDESCAPE')->max('roundNumber') ?? 0),
+            'gameCode' => 'CAGED_CRASH',
+            'roundNumber' => 1 + (int) (CrashRound::where('gameCode', 'CAGED_CRASH')->max('roundNumber') ?? 0),
             'status' => 'FLYING',
             'fairnessSeedId' => $seed->id,
             'rngAlgorithm' => $seed->algorithm,
@@ -89,7 +89,7 @@ final class RoundLifecycleServiceTest extends TestCase
             'commitmentDigest' => 'test-digest',
             'bettingStartedAt' => now()->subSeconds(10),
             'flightStartedAt' => $flightStartedAt ?? now()->subSeconds(5),
-            'engineVersion' => 'birdescape-1.0.0',
+            'engineVersion' => 'caged-crash-1.0.0',
         ]);
     }
 

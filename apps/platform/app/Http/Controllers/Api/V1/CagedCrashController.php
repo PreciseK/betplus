@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Cache;
 
 class CagedCrashController extends Controller
 {
-    private const GAME_CODE = 'BIRDESCAPE';
+    private const GAME_CODE = 'CAGED_CRASH';
     private const RECENT_ROUNDS_LIMIT = 25;
     private static ?GameRegistry $cachedGame = null;
 
@@ -34,7 +34,7 @@ class CagedCrashController extends Controller
     }
 
     /**
-     * GET /v1/birdescape/rounds/current — REQ-TKT-005-style non-disclosure: the crash
+     * GET /v1/caged/rounds/current — REQ-TKT-005-style non-disclosure: the crash
      * multiplier and seed are only ever present in the response once status=CRASHED.
      * That boundary is the actual secrecy guarantee of the whole game, enforced here.
      */
@@ -76,7 +76,7 @@ class CagedCrashController extends Controller
         ]);
     }
 
-    /** POST /v1/birdescape/rounds/{round}/bets */
+    /** POST /v1/caged/rounds/{round}/bets */
     public function placeBet(PlaceCrashBetRequest $request, CrashRound $round): JsonResponse
     {
         $player = $this->player();
@@ -106,7 +106,7 @@ class CagedCrashController extends Controller
     }
 
     /**
-     * POST /v1/birdescape/bets/{bet}/cashout — the authoritative gate. Recomputes
+     * POST /v1/caged/bets/{bet}/cashout — the authoritative gate. Recomputes
      * elapsed time and the multiplier fresh, from scratch, on every call — never
      * trusts the round's cached status — so this is correct even mid-transition or if
      * the supervised round loop has stalled entirely.
@@ -176,7 +176,7 @@ class CagedCrashController extends Controller
     /** @return list<array{round_number:int, crash_multiplier_hundredths:int, crashed_at:string}> */
     private function recentRounds(): array
     {
-        return Cache::remember('birdescape_recent_rounds', 3, function () {
+        return Cache::remember('caged_crash_recent_rounds', 3, function () {
             return CrashRound::where('gameCode', self::GAME_CODE)
                 ->where('status', 'CRASHED')
                 ->orderByDesc('roundNumber')
@@ -242,5 +242,4 @@ class CagedCrashController extends Controller
     }
 }
 
-class_alias(CagedCrashController::class, 'App\Http\Controllers\Api\V1\BirdEscapeController');
 

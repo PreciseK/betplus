@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\BackOffice\MakerChecker;
 
-use App\Domain\Games\BirdEscape\CrashConfigPublicationGate;
+use App\Domain\Games\CagedCrash\CrashConfigPublicationGate;
 use App\Models\CrashConfig;
 use App\Models\ReviewableChange;
 use RuntimeException;

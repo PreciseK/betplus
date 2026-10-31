@@ -132,5 +132,4 @@ final class PlaceCrashBet
     }
 }
 
-class_alias(PlaceCrashBet::class, 'App\Domain\Games\BirdEscape\PlaceCrashBet');
 

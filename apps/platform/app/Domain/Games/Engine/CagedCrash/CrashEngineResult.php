@@ -15,4 +15,3 @@ final readonly class CrashEngineResult
     }
 }
 
-class_alias(CrashEngineResult::class, 'App\Domain\Games\Engine\BirdEscape\CrashEngineResult');

@@ -1,6 +1,7 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { backOfficeGateway, BackOfficeApiError } from "@betplus/api-client";
 import { Button } from "@/components/ui/Button/Button";
 import { Icon } from "@/components/ui/Icon/Icon";
@@ -21,6 +22,20 @@ const VIEW_COPY: Record<Player360View, { title: string; description: string }> =
 
 type PlayerRecord = Awaited<ReturnType<typeof backOfficeGateway.player>>;
 
+function isPlayerRecord(value: unknown): value is PlayerRecord {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Partial<PlayerRecord>;
+  return typeof record.profile?.id === "number"
+    && Number.isFinite(record.balances?.play_balance_kobo)
+    && Number.isFinite(record.balances?.winnings_balance_kobo)
+    && typeof record.rg_status?.registry_status === "string"
+    && Array.isArray(record.tickets)
+    && Array.isArray(record.payments?.deposits)
+    && Array.isArray(record.payments?.payouts)
+    && Array.isArray(record.kyc_records)
+    && Array.isArray(record.notification_history);
+}
+
 export function Player360({ view = "case-resolution" }: { view?: Player360View }) {
   const [query, setQuery] = useState("");
   const [lastSearch, setLastSearch] = useState("");
@@ -29,15 +44,16 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  async function searchPlayer(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!query.trim()) return;
-    setLastSearch(query.trim());
+  const loadPlayer = useCallback(async (reference: string) => {
+    if (!reference.trim()) return;
+    setLastSearch(reference.trim());
     setNotFound(false);
+    setPlayer(undefined);
     setError("");
     setIsLoading(true);
     try {
-      const result = await backOfficeGateway.player(query.trim());
+      const result = await backOfficeGateway.player(reference.trim());
+      if (!isPlayerRecord(result)) throw new Error("Incomplete player response");
       setPlayer(result);
     } catch (err) {
       setPlayer(undefined);
@@ -49,6 +65,20 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const reference = new URLSearchParams(window.location.search).get("query");
+    if (reference) { setQuery(reference); void loadPlayer(reference); }
+  }, [loadPlayer]);
+
+  async function searchPlayer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!query.trim()) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("query", query.trim());
+    window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+    await loadPlayer(query);
   }
 
   return (
@@ -72,13 +102,21 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
         </form>
       </header>
 
+      <nav className={styles.tabs} aria-label="Player details">
+        {([
+          ["case-resolution", "players", "Overview"], ["tickets", "player-tickets", "Tickets"],
+          ["payments", "player-payments", "Payments"], ["notifications", "player-notifications", "Messages"],
+          ["responsible-play", "player-responsible-play", "Safer play"],
+        ] as const).map(([tabView, route, label]) => <Link key={route} href={`/back-office/${route}${lastSearch ? `?query=${encodeURIComponent(lastSearch)}` : ""}`} aria-current={view === tabView ? "page" : undefined}>{label}</Link>)}
+      </nav>
+
       {error && <p className={styles.fieldError} role="alert"><Icon name="error" />{error}</p>}
 
       {!player && !notFound && !error && (
         <EmptyState
           icon="account"
           title="Find a player record"
-          description="Enter a numeric player ID above to inspect profile data, KYC verifications, wallet balances, ticket logs, and payment receipts."
+          description="Enter a player ID to view their profile, verification status, balances, and activity."
         />
       )}
 
@@ -120,7 +158,7 @@ export function Player360({ view = "case-resolution" }: { view?: Player360View }
                 <section className={styles.identityDetail} aria-labelledby="kyc-title">
                   <div>
                     <h2 id="kyc-title">Identity and KYC records</h2>
-                    <p><Icon name="lock" />Raw NIN/BVN are never returned by this view — only verification status.</p>
+                    <p><Icon name="lock" />Only verification status is shown. Identity numbers remain private.</p>
                   </div>
                   {player.kyc_records.length === 0 ? (
                     <EmptyState

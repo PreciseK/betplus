@@ -1,6 +1,7 @@
 "use client";
+import { operationsLabel } from "../operations-labels";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { backOfficeGateway, type BackOfficeAuditEvent } from "@betplus/api-client";
 import { Icon } from "@/components/ui/Icon/Icon";
 import { TextField } from "@/components/ui/TextField/TextField";
@@ -84,8 +85,8 @@ export function AuditLog() {
       <section className={styles.integrityStrip} aria-labelledby="integrity-title">
         <Icon name="lock" />
         <div>
-          <h2 id="integrity-title">Immutable at the database level</h2>
-          <p>A DB trigger refuses any UPDATE or DELETE against this table. There is no hash chain and no off-server copy yet — that infra is not built.</p>
+          <h2 id="integrity-title">A permanent record of operator activity</h2>
+          <p>Records cannot be edited or deleted here. Open an event to see who acted, when it happened, and what changed.</p>
         </div>
         <span>Read only</span>
       </section>
@@ -136,11 +137,11 @@ export function AuditLog() {
                   const evidenceId = `audit-${event.id}-evidence`;
                   const diff = diffFields(event.before, event.after);
                   return (
-                    <>
+                    <Fragment key={event.id}>
                       <tr className={styles.eventRow} key={event.id}>
                         <td data-label="Timestamp"><time dateTime={event.created_at}>{new Date(event.created_at).toLocaleString()}</time></td>
-                        <td data-label="Actor"><strong>{event.actor_type}</strong><span>#{event.actor_id ?? "—"}</span></td>
-                        <th scope="row" data-label="Action"><strong>{event.action}</strong></th>
+                        <td data-label="Actor"><strong>{operationsLabel(event.actor_type)}</strong><span>#{event.actor_id ?? "—"}</span></td>
+                        <th scope="row" data-label="Action"><strong>{operationsLabel(event.action)}</strong></th>
                         <td data-label="Target"><span>{event.target_table ?? "—"} {event.target_id ? `#${event.target_id}` : ""}</span></td>
                         <td className={styles.evidenceCell}>
                           <button type="button" aria-expanded={expanded} aria-controls={evidenceId} onClick={() => setExpandedId(expanded ? null : event.id)}>
@@ -180,7 +181,7 @@ export function AuditLog() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </tbody>

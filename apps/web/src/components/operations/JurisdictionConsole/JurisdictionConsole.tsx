@@ -94,7 +94,7 @@ export function JurisdictionConsole() {
         <div>
           <p className={styles.context}>Compliance task</p>
           <h1>Jurisdictions and tax</h1>
-          <p>Monitor licence expiry and the withholding rates applied to regulated activity by state. Tax rate changes have no back-office maker-checker workflow yet — rates are read from configuration only.</p>
+          <p>Track licence expiry and withholding rates by state. Tax rates are shown for reference and cannot be edited here.</p>
         </div>
       </header>
 
@@ -171,7 +171,7 @@ export function JurisdictionConsole() {
             </dl>
 
             <section className={styles.actionBand} aria-labelledby="licence-edit-title">
-              <div><h2 id="licence-edit-title">Update licence record</h2><p>Applies immediately — this endpoint has no maker-checker gate. Withholding tax rates come from configuration and can't be changed here.</p></div>
+              <div><h2 id="licence-edit-title">Update licence record</h2><p>Licence updates take effect immediately. Tax rates are read-only.</p></div>
               <Button leadingIcon={<Icon name="activity" />} onClick={openEdit}>Update licence</Button>
             </section>
           </article>

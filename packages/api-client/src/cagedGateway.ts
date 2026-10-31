@@ -26,10 +26,6 @@ export class CagedCashoutError extends Error {
 }
 
 // Aliases for backwards compatibility
-export type BirdEscapeEligibilityCode = CagedEligibilityCode;
-export const BirdEscapeGatewayError = CagedGatewayError;
-export type BirdEscapeCashoutCode = CagedCashoutCode;
-export const BirdEscapeCashoutError = CagedCashoutError;
 
 type ApiRoundPlayer = {
   username?: string | null;
@@ -97,7 +93,7 @@ export const cagedGateway = {
       }>("/caged/rounds/current");
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        round = await get<any>("/birdescape/rounds/current");
+        round = await get<any>("/caged/rounds/current");
       } else {
         throw err;
       }
@@ -170,7 +166,7 @@ export const cagedGateway = {
             play_balance_after_kobo: number;
             status: "placed";
           }>(
-            `/birdescape/rounds/${input.roundId}/bets`,
+            `/caged/rounds/${input.roundId}/bets`,
             {
               stake_kobo: input.stakeKobo,
               auto_cashout_multiplier_hundredths: input.autoCashoutMultiplierHundredths ?? null,
@@ -219,7 +215,7 @@ export const cagedGateway = {
             tax_withheld_kobo: number | null;
             net_credit_kobo: number | null;
             winnings_balance_after_kobo: number;
-          }>(`/birdescape/bets/${betId}/cashout`, {});
+          }>(`/caged/bets/${betId}/cashout`, {});
         } else {
           throw err;
         }
@@ -240,7 +236,6 @@ export const cagedGateway = {
   },
 };
 
-export const birdEscapeGateway = cagedGateway;
 
 function toCagedError(error: unknown): Error {
   if (error instanceof ApiError && error.status === 422 && typeof error.body.code === "string") {

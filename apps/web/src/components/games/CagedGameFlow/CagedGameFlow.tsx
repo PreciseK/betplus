@@ -39,7 +39,6 @@ const FLYING_POLL_INTERVAL_MS = 1000;
 export interface CagedGameFlowProps {
   gateway?: CagedGateway;
 }
-export type BirdEscapeGameFlowProps = CagedGameFlowProps;
 
 function idleSlot(stake: number, autoCashoutMult: number): BetSlotState {
   return { stake, autoCashout: false, autoCashoutMult, status: "idle" };
@@ -1311,4 +1310,3 @@ export function CagedGameFlow({ gateway = mockCagedGateway }: CagedGameFlowProps
   );
 }
 
-export const BirdEscapeGameFlow = CagedGameFlow;

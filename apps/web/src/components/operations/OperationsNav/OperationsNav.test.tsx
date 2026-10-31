@@ -12,8 +12,8 @@ describe("OperationsNav", () => {
   it("removes destinations outside a support agent's permission scope", () => {
     render(<OperationsNav role="support-agent" variant="desktop" />);
 
-    expect(screen.getByRole("link", { name: "Current case" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ledger" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Players" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Ledger" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Support tickets" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Reconciliation" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Team access" })).not.toBeInTheDocument();
@@ -21,11 +21,11 @@ describe("OperationsNav", () => {
 
   it("shows the complete task navigation to a super administrator", () => {
     render(<OperationsNav role="super-admin" variant="desktop" />);
-    expect(screen.getAllByRole("link")).toHaveLength(28);
+    expect(screen.getAllByRole("link")).toHaveLength(22);
     expect(screen.getByRole("link", { name: "Team access" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Promotions & Boosts" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Promotions" })).toBeInTheDocument();
     expect(screen.getByText("Customers")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Notifications" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Notifications" })).not.toBeInTheDocument();
   });
 
   it("keeps system administration separate from business operations", () => {
@@ -46,7 +46,7 @@ describe("OperationsNav", () => {
 
   it("marks the current task semantically", () => {
     render(<OperationsNav role="support-lead" variant="desktop" />);
-    expect(screen.getByRole("link", { name: "Current case" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Players" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Dashboard" })).not.toHaveAttribute("aria-current");
   });
 });

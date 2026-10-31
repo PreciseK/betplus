@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BackOfficeApiError } from "@betplus/api-client";
 import { Player360 } from "./Player360";
 
@@ -32,6 +32,16 @@ const FIXTURE = {
 };
 
 describe("Player360", () => {
+  beforeEach(() => { window.history.replaceState({}, "", "/back-office/players"); player.mockReset(); });
+
+  it("opens a player from the sidebar search and preserves the player in detail links", async () => {
+    window.history.replaceState({}, "", "/back-office/players?query=42");
+    player.mockResolvedValueOnce(FIXTURE);
+    render(<Player360 />);
+    expect(await screen.findByRole("heading", { name: "Adaeze N." })).toBeInTheDocument();
+    expect(player).toHaveBeenCalledWith("42");
+    expect(screen.getByRole("link", { name: "Tickets" })).toHaveAttribute("href", "/back-office/player-tickets?query=42");
+  });
   it("shows nothing until a player is searched, then calls the real gateway with the query", async () => {
     player.mockResolvedValueOnce(FIXTURE);
     render(<Player360 />);
@@ -64,6 +74,14 @@ describe("Player360", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open player" }));
 
     expect(await screen.findByRole("heading", { name: /No player found/ })).toBeInTheDocument();
+  });
+
+  it.each([{}, null, { profile: FIXTURE.profile }])("rejects an incomplete player response without rendering it: %j", async (response) => {
+    player.mockResolvedValueOnce(response);
+    window.history.replaceState({}, "", "/back-office/players?query=1");
+    render(<Player360 />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not load that player");
+    expect(screen.queryByLabelText("Player balances")).not.toBeInTheDocument();
   });
 
   it("shows only real ticket data on the tickets view, never a support-case narrative that has no backend", async () => {

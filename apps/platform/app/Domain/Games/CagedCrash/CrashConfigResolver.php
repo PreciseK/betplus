@@ -22,4 +22,3 @@ final class CrashConfigResolver
     }
 }
 
-class_alias(CrashConfigResolver::class, 'App\Domain\Games\BirdEscape\CrashConfigResolver');

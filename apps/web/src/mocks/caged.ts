@@ -163,11 +163,6 @@ import {
   cagedMultiplierHundredthsAtElapsedMs,
   type CagedEligibilityCode,
   type CagedCashoutCode,
-  BirdEscapeGatewayError,
-  BirdEscapeCashoutError,
-  birdEscapeMultiplierHundredthsAtElapsedMs,
-  type BirdEscapeEligibilityCode,
-  type BirdEscapeCashoutCode,
 } from "@betplus/api-client";
 
 // Re-exported so `error instanceof CagedGatewayError` is true
@@ -176,10 +171,6 @@ export {
   CagedCashoutError,
   type CagedEligibilityCode,
   type CagedCashoutCode,
-  BirdEscapeGatewayError,
-  BirdEscapeCashoutError,
-  type BirdEscapeEligibilityCode,
-  type BirdEscapeCashoutCode,
 };
 
 export interface CagedBet {
@@ -192,10 +183,9 @@ export interface CagedBet {
   taxWithheldKobo: number | null;
   netCreditKobo: number | null;
 }
-export type BirdEscapeBet = CagedBet;
 
 export interface CagedRoundState {
-  gameCode: "CAGED" | "BIRDESCAPE";
+  gameCode: "CAGED" | "CAGED_CRASH";
   serverTime: string;
   roundId: number;
   roundNumber: number;
@@ -215,7 +205,6 @@ export interface CagedRoundState {
   players: { username?: string; stakeKobo: number; status: "PLACED" | "CASHED_OUT" | "LOST"; cashedOutAtMultiplierHundredths: number | null }[];
   myBets: CagedBet[];
 }
-export type BirdEscapeRoundState = CagedRoundState;
 
 export interface CagedGateway {
   loadCurrentRound(): Promise<CagedRoundState>;
@@ -242,7 +231,6 @@ export interface CagedGateway {
     winningsBalanceAfterKobo: number;
   }>;
 }
-export type BirdEscapeGateway = CagedGateway;
 
 const MOCK_BETTING_WINDOW_SECONDS = 7;
 const MOCK_POST_CRASH_INTERVAL_SECONDS = 5;
@@ -261,7 +249,7 @@ interface MockRound {
 }
 
 /**
- * Same provably-fair formula as the real backend's BirdEscapeEngine::resolve()
+ * Same provably-fair formula as the real backend's CagedCrashEngine::resolve()
  * (crash = (1 - houseEdge) / (1 - r)), so this mock respects the same invariant the
  * real engine enforces: a crash game's multiplier is never below 1.00x (100
  * hundredths) — the settlement math below (stake * multiplier) is identical to the
@@ -521,7 +509,6 @@ export const mockCagedGateway: CagedGateway = {
   },
 };
 
-export const mockBirdEscapeGateway = mockCagedGateway;
 export const cagedGateway = mockCagedGateway;
 
 export const MOCK_CHAT_MESSAGES: ChatMessage[] = [

@@ -144,11 +144,11 @@ function liveMetrics(
   const deposits = eventTotal(rows, "deposit_completed");
   const payouts = eventTotal(rows, "payout_completed");
   const base: Record<string, DashboardMetric> = {
-    plays: { label: "Paid plays", value: paidPlays.toLocaleString("en-NG"), change: "Settled event volume", context: "Selected day" },
+    plays: { label: "Paid plays", value: paidPlays.toLocaleString("en-NG"), change: "Completed plays", context: "Selected day" },
     players: { label: "New players", value: registrations.toLocaleString("en-NG"), change: "Completed registrations", context: "Selected day" },
-    deposits: { label: "Deposits", value: deposits.toLocaleString("en-NG"), change: "Completed funding events", context: "Selected day" },
-    payouts: { label: "Payouts", value: payouts.toLocaleString("en-NG"), change: "Completed payout events", context: "Selected day" },
-    approvals: { label: "Needs approval", value: changes.length.toLocaleString("en-NG"), change: "Independent checker required", context: "Open maker-checker changes" },
+    deposits: { label: "Deposits", value: deposits.toLocaleString("en-NG"), change: "Successful deposits", context: "Selected day" },
+    payouts: { label: "Payouts", value: payouts.toLocaleString("en-NG"), change: "Successful payouts", context: "Selected day" },
+    approvals: { label: "Needs approval", value: changes.length.toLocaleString("en-NG"), change: "Awaiting a second operator", context: "Pending review" },
     exceptions: { label: "Open exceptions", value: exceptions.length.toLocaleString("en-NG"), change: "Reconciliation review", context: "Unresolved entries" },
     licences: { label: "Licence alerts", value: jurisdictions.filter((item) => item.is_expired || item.expiry_alert).length.toLocaleString("en-NG"), change: "Expired or due within 60 days", context: "Licensed states" },
     games: { label: "Live games", value: games.filter((item) => item.status?.toLowerCase() === "active").length.toLocaleString("en-NG"), change: `${games.length} registered`, context: "Runtime registry" },

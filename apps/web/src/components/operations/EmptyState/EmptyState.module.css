@@ -48,3 +48,4 @@
 .action {
   margin-top: var(--ops-tight-gap);
 }
+.emptyState { min-height:230px; border-radius:12px; background:#fff; gap:14px; }.iconWrap { width:44px; height:44px; border-color:#e8eaed; background:#f8f9fa; }.copy h3 { font-size:14px; font-weight:500; }.copy p { font-size:12px; }

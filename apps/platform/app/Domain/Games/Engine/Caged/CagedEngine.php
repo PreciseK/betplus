@@ -13,7 +13,7 @@ use RuntimeException;
  * contract as BlackRedEngine (REQ-GEC-001/002/003), swept by the same
  * tests/Unit/EnginePurityTest.php. One fresh seed is issued per TICKET (see
  * CreateCagedTicket), matching BlackRedEngine's per-ticket-seed shape rather
- * than BirdEscapeEngine's per-round shape.
+ * than CagedCrashEngine's per-round shape.
  */
 final class CagedEngine
 {
@@ -40,7 +40,7 @@ final class CagedEngine
         $h = $unpacked[1]; // uint32, 0..4294967295
 
         // Normalized uniform draw [0.0, 1.0) — same normalization style as
-        // BirdEscapeEngine::resolve().
+        // CagedCrashEngine::resolve().
         $r = ($h % 100_000) / 100_000.0;
 
         $escapedBirds = $this->escapedBirdsFor($r, $tiers);

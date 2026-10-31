@@ -107,7 +107,7 @@ export function GameRegistryConsole() {
       setGames((current) => current?.map((game) => (game.game_code === selectedGame.game_code ? { ...game, status: nextStatus } : game)));
       setSuspensionOpen(false);
       setSuspensionReason("");
-      setReceipt(`${selectedGame.game_code} status updated to "${nextStatus}". This applies immediately — updating game status has no maker-checker gate on this endpoint.`);
+      setReceipt(`${selectedGame.game_code} status updated to "${nextStatus}". This status change takes effect immediately.`);
     } catch {
       setSuspensionError("Could not update game status. Please try again.");
     }
@@ -259,7 +259,7 @@ export function GameRegistryConsole() {
               <thead><tr><th scope="col">Game</th><th scope="col">Engine</th><th scope="col" className={styles.money}>Stake range</th><th scope="col">Channels</th><th scope="col">States</th><th scope="col">Status</th><th scope="col">Configure</th></tr></thead>
               <tbody>{games.map((game) => (
                 <tr key={game.game_code}>
-                  <th scope="row" data-label="Game"><strong>{game.game_code}</strong></th>
+                  <th scope="row" data-label="Game"><strong>{game.game_code.replaceAll("_", " ")}</strong></th>
                   <td data-label="Engine">{game.engine_version}</td>
                   <td data-label="Stake range" className={styles.money}>{formatKobo(game.min_stake_kobo)}–{formatKobo(game.max_stake_kobo)}</td>
                   <td data-label="Channels">{game.enabled_channels.join(", ") || "None"}</td>
@@ -286,7 +286,7 @@ export function GameRegistryConsole() {
             <Fact label="Enabled states" value={selectedGame.enabled_states.join(", ") || "None"} />
           </dl>
           <section className={styles.actionBand} aria-labelledby="suspension-title">
-            <div><h2 id="suspension-title">Suspend or reactivate</h2><p>Changes the game's runtime status directly — this endpoint applies immediately and is not maker-checker gated.</p></div>
+            <div><h2 id="suspension-title">Suspend or reactivate</h2><p>Suspend or reactivate this game immediately. Review your choice before confirming.</p></div>
             <Button variant="secondary" leadingIcon={<Icon name="lock" />} onClick={() => setSuspensionOpen(true)}>Configure status</Button>
           </section>
         </article>
@@ -342,7 +342,7 @@ export function GameRegistryConsole() {
         <header className={styles.sectionHeader}>
           <div>
             <h2 id="prize-drafting-title">{draftId === null ? "Draft a prize table" : `Editing draft #${draftId}`}</h2>
-            <p>{draftId === null ? "Creating a draft is direct (not maker-checker gated); publishing it is a separate, gated action below." : "Saving replaces this draft's tiers entirely. It has not been published, so this is safe."}</p>
+            <p>{draftId === null ? "Save a draft to prepare your changes. Publishing requires approval from another operator." : "Saving replaces this draft's tiers entirely. It has not been published, so this is safe."}</p>
           </div>
         </header>
 
@@ -414,7 +414,7 @@ export function GameRegistryConsole() {
 
       <Dialog open={suspensionOpen} title={`Update ${selectedGame?.game_code ?? "game"} status?`} confirmLabel="Apply status change" onClose={() => setSuspensionOpen(false)} onConfirm={routeSuspension}>
         <div className={styles.dialogBody}>
-          <p>This applies immediately — there is no approval step on this endpoint.</p>
+          <p>This change takes effect immediately. Review the details before confirming.</p>
           <label className={styles.formField} htmlFor="suspension-scope">Scope<select id="suspension-scope" value={scope} onChange={(event) => setScope(event.target.value as SuspensionScope)}><option>Platform-wide</option></select></label>
           <label className={styles.formField} htmlFor="suspension-reason">Reason <span aria-hidden="true">*</span><textarea id="suspension-reason" value={suspensionReason} aria-invalid={Boolean(suspensionError)} onChange={(event) => { setSuspensionReason(event.target.value); if (suspensionError) setSuspensionError(""); }} /></label>
           {suspensionError && <p className={styles.fieldError} role="alert"><Icon name="error" />{suspensionError}</p>}

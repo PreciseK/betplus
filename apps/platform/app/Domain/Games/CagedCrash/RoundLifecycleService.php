@@ -35,7 +35,7 @@ final class RoundLifecycleService
     ) {
     }
 
-    public function currentOrNextRound(string $gameCode = 'BIRDESCAPE'): CrashRound
+    public function currentOrNextRound(string $gameCode = 'CAGED_CRASH'): CrashRound
     {
         $latest = CrashRound::where('gameCode', $gameCode)->orderByDesc('id')->first();
 
@@ -50,7 +50,7 @@ final class RoundLifecycleService
         return $this->advanceIfDue($latest);
     }
 
-    public function startRound(string $gameCode = 'BIRDESCAPE', ?int $lastCrashMultiplierHundredths = null): CrashRound
+    public function startRound(string $gameCode = 'CAGED_CRASH', ?int $lastCrashMultiplierHundredths = null): CrashRound
     {
         $config = $this->configs->resolveFor($gameCode);
         if ($config === null) {
@@ -196,5 +196,4 @@ final class RoundLifecycleService
     }
 }
 
-class_alias(RoundLifecycleService::class, 'App\Domain\Games\BirdEscape\RoundLifecycleService');
 

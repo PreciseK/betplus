@@ -25,7 +25,7 @@ final class CagedCrashEconomicsCapTest extends TestCase
         $this->seed(CagedCrashGameSeeder::class);
         FloatSnapshot::create(['opayBalanceKobo' => 100_000_000, 'alertState' => 'ok', 'polledAt' => now()]);
         GameEconomicsConfig::create([
-            'gameCode' => 'BIRDESCAPE', 'version' => 'GEC-BE-1', 'status' => 'published',
+            'gameCode' => 'CAGED_CRASH', 'version' => 'GEC-BE-1', 'status' => 'published',
             'activeModel' => 'BALANCED_HYBRID', 'paramsJson' => ['kelly_factor_basis_points' => 500], // cap = 5,000,000 kobo
             'effectiveAt' => now()->subMinute(), 'publishedAt' => now(),
         ]);
@@ -48,7 +48,7 @@ final class CagedCrashEconomicsCapTest extends TestCase
 
     public function test_a_bet_within_the_exposure_cap_is_accepted_and_grows_exposure(): void
     {
-        $round = app(RoundLifecycleService::class)->startRound('BIRDESCAPE');
+        $round = app(RoundLifecycleService::class)->startRound('CAGED_CRASH');
         $player = $this->fundedPlayer();
 
         // Worst case for 20,000 kobo = 300,000 kobo (15.00x max multiplier), well under the 5,000,000 cap.
@@ -59,7 +59,7 @@ final class CagedCrashEconomicsCapTest extends TestCase
 
     public function test_a_bet_over_the_exposure_cap_is_rejected(): void
     {
-        $round = app(RoundLifecycleService::class)->startRound('BIRDESCAPE');
+        $round = app(RoundLifecycleService::class)->startRound('CAGED_CRASH');
         $player = $this->fundedPlayer();
 
         // Worst case for 400,000 kobo = 6,000,000 kobo (15.00x max multiplier) > 5,000,000 cap.
@@ -74,7 +74,7 @@ final class CagedCrashEconomicsCapTest extends TestCase
 
     public function test_a_second_bet_that_would_push_cumulative_exposure_over_the_cap_is_rejected(): void
     {
-        $round = app(RoundLifecycleService::class)->startRound('BIRDESCAPE');
+        $round = app(RoundLifecycleService::class)->startRound('CAGED_CRASH');
         $player = $this->fundedPlayer();
         // First bet: worst case 3,000,000 kobo (200,000 stake @ 15.00x) — accepted, exposure now 3,000,000.
         app(PlaceCrashBet::class)->place($player, $round, 200_000, null, 'idem-be-first-1');

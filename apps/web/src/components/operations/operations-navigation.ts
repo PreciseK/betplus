@@ -16,7 +16,7 @@ export interface OperationsDestination {
 
 export const OPERATIONS_DESTINATIONS: readonly OperationsDestination[] = [
   { href: "/back-office/overview", label: "Dashboard", shortLabel: "Dashboard", icon: "home", group: "Home", capability: "overview.view" },
-  { href: "/back-office/players", label: "Current case", shortLabel: "Current case", icon: "account", group: "Customers", subgroup: "Player details", capability: "players.read" },
+  { href: "/back-office/players", label: "Players", shortLabel: "Players", icon: "account", group: "Customers", subgroup: "Player details", capability: "players.read" },
   { href: "/back-office/player-ledger", label: "Ledger", shortLabel: "Ledger", icon: "activity", group: "Customers", subgroup: "Player details", capability: "players.read" },
   { href: "/back-office/player-tickets", label: "Tickets", shortLabel: "Tickets", icon: "ticket", group: "Customers", subgroup: "Player details", capability: "players.read" },
   { href: "/back-office/player-payments", label: "Payments", shortLabel: "Payments", icon: "money", group: "Customers", subgroup: "Player details", capability: "players.read" },
@@ -30,9 +30,9 @@ export const OPERATIONS_DESTINATIONS: readonly OperationsDestination[] = [
   { href: "/back-office/adjustments", label: "Adjustments", shortLabel: "Adjustments", icon: "activity", group: "Finance", subgroup: "Controls", capability: "money.read" },
   { href: "/back-office/games", label: "Game overview", shortLabel: "Games", icon: "games", group: "Product", subgroup: "Game management", capability: "games.manage" },
   { href: "/back-office/game-configurations", label: "Configurations", shortLabel: "Configurations", icon: "limits", group: "Product", subgroup: "Game management", capability: "games.manage" },
-  { href: "/back-office/game-economics", label: "Economics models", shortLabel: "Economics", icon: "limits", group: "Product", subgroup: "Game management", capability: "games.manage" },
-  { href: "/back-office/promotions", label: "Promotions & Boosts", shortLabel: "Promotions", icon: "activity", group: "Product", subgroup: "Promotions", capability: "games.manage" },
-  { href: "/back-office/content", label: "Content releases", shortLabel: "Content", icon: "games", group: "Product", subgroup: "Content", capability: "content.manage" },
+  { href: "/back-office/game-economics", label: "Game settings", shortLabel: "Economics", icon: "limits", group: "Product", subgroup: "Game management", capability: "games.manage" },
+  { href: "/back-office/promotions", label: "Promotions", shortLabel: "Promotions", icon: "activity", group: "Product", subgroup: "Promotions", capability: "games.manage" },
+  { href: "/back-office/content", label: "Content", shortLabel: "Content", icon: "games", group: "Product", subgroup: "Content", capability: "content.manage" },
   { href: "/back-office/responsible-play", label: "Safer play reviews", shortLabel: "Safer play", icon: "limits", group: "Compliance", subgroup: "Player protection", capability: "responsible-play.read" },
   { href: "/back-office/player-limits", label: "Limits", shortLabel: "Limits", icon: "limits", group: "Compliance", subgroup: "Player protection", capability: "responsible-play.read" },
   { href: "/back-office/exclusions", label: "Exclusions", shortLabel: "Exclusions", icon: "lock", group: "Compliance", subgroup: "Player protection", capability: "responsible-play.read" },

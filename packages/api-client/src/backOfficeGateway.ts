@@ -367,6 +367,7 @@ async function request<T>(
   options: { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; query?: Record<string, QueryValue>; authenticated?: boolean } = {},
 ): Promise<T> {
   const token = options.authenticated === false ? null : readToken();
+  const recordLookup = path.startsWith("/players/") || path.startsWith("/tickets/");
   const headers: Record<string, string> = { Accept: "application/json" };
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -379,7 +380,7 @@ async function request<T>(
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
     });
   } catch (err) {
-    if (token?.startsWith("dev-mock")) {
+    if (token?.startsWith("dev-mock") && !recordLookup) {
       return getDevMockResponse<T>(path);
     }
     throw err;
@@ -387,7 +388,7 @@ async function request<T>(
 
   const body = await response.json().catch(() => ({})) as Record<string, unknown>;
   if (!response.ok) {
-    if (token?.startsWith("dev-mock")) {
+    if (token?.startsWith("dev-mock") && !recordLookup) {
       return getDevMockResponse<T>(path);
     }
     if (response.status === 401 && options.authenticated !== false) {
@@ -638,8 +639,8 @@ export const backOfficeGateway = {
       seed_algorithm: string;
       engine_version: string;
       prediction: string[];
-      stored: { result: string[] | null; won: boolean | null; digest: string | null };
-      replayed: { result: string[]; won: boolean; digest: string };
+      stored: { result: string[] | { opened: number[]; multiplier: number } | null; won: boolean | null; digest: string | null };
+      replayed: { result: string[] | { opened: number[]; multiplier: number }; won: boolean; digest: string };
       matches: boolean;
     }>(`/tickets/${encodeURIComponent(reference)}/replay`);
   },

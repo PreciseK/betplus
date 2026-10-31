@@ -3,6 +3,7 @@ export const OPERATIONS_GAME_OPTIONS = [
   { id: "blackred", label: "BlackRed", shortLabel: "BlackRed" },
   { id: "heritage", label: "Heritage", shortLabel: "Heritage" },
   { id: "caged", label: "Caged", shortLabel: "Caged" },
+  { id: "doors", label: "Doors", shortLabel: "Doors" },
 ] as const;
 
 export type OperationsGameScope = (typeof OPERATIONS_GAME_OPTIONS)[number]["id"];

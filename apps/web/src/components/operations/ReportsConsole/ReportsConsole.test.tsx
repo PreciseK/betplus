@@ -60,7 +60,7 @@ describe("ReportsConsole", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Queue export" }));
 
-    expect(screen.getByRole("alert")).toHaveTextContent("valid bounded date range");
+    expect(screen.getByRole("alert")).toHaveTextContent("valid date range");
     expect(requestFinancialReport).not.toHaveBeenCalled();
   });
 });

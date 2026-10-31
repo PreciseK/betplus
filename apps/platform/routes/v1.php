@@ -69,7 +69,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/caged/rounds/{round}/bets', [CagedCrashController::class, 'placeBet'])->middleware('idempotent');
         Route::post('/caged/bets/{bet}/cashout', [CagedCrashController::class, 'cashout'])->middleware('idempotent');
 
-        // Backwards compatibility aliases
+        // Old pre-rename URLs, kept so already-loaded clients keep working.
         Route::get('/birdescape/rounds/current', [CagedCrashController::class, 'currentRound']);
         Route::post('/birdescape/rounds/{round}/bets', [CagedCrashController::class, 'placeBet'])->middleware('idempotent');
         Route::post('/birdescape/bets/{bet}/cashout', [CagedCrashController::class, 'cashout'])->middleware('idempotent');

@@ -16,4 +16,3 @@ export function ConnectedCagedGameFlow() {
   return <CagedGameFlow gateway={cagedGateway} />;
 }
 
-export const ConnectedBirdEscapeGameFlow = ConnectedCagedGameFlow;

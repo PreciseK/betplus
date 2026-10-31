@@ -19,7 +19,6 @@ class RoundLoopCommand extends Command
 {
     protected $signature = 'caged:round-loop {--once : Run a single tick and exit, instead of looping forever}';
 
-    protected $aliases = ['birdescape:round-loop'];
 
     protected $description = 'Advance the live Caged crash round (betting -> flying -> crashed -> next round) on a tight loop.';
 

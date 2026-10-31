@@ -64,7 +64,7 @@ export function ReportsConsole() {
       return;
     }
     if (!filters.from || !filters.to || filters.from > filters.to) {
-      setDateError("Choose a valid bounded date range; the start date must not follow the end date.");
+      setDateError("Choose a valid date range. The start date must be before the end date.");
       return;
     }
     setDateError("");
@@ -103,7 +103,7 @@ export function ReportsConsole() {
         </header>
         <div className={styles.controls}>
           <label className={styles.selectField} htmlFor="report-state">Attributed state<select id="report-state" value={filters.state} onChange={(event) => { updateFilter("state", event.target.value); setDateError(""); }}><option value="ALL">All states</option><option value="LAG">Lagos</option></select></label>
-          <label className={styles.selectField} htmlFor="report-game">Game<select id="report-game" value={filters.game} onChange={(event) => updateFilter("game", event.target.value)}><option value="ALL">All games</option><option>BLACKRED</option><option>HERITAGE</option><option>CAGED</option></select></label>
+          <label className={styles.selectField} htmlFor="report-game">Game<select id="report-game" value={filters.game} onChange={(event) => updateFilter("game", event.target.value)}><option value="ALL">All games</option><option>BLACKRED</option><option>HERITAGE</option><option>CAGED</option><option>DOORS</option></select></label>
           <label className={styles.formField} htmlFor="report-from">From<input id="report-from" type="date" value={filters.from} aria-invalid={Boolean(dateError)} onChange={(event) => { updateFilter("from", event.target.value); setDateError(""); }} /></label>
           <label className={styles.formField} htmlFor="report-to">To<input id="report-to" type="date" value={filters.to} aria-invalid={Boolean(dateError)} onChange={(event) => { updateFilter("to", event.target.value); setDateError(""); }} /></label>
           <Button leadingIcon={<Icon name="activity" />} onClick={queueExport} disabled={isSubmitting}>{isSubmitting ? "Queuing…" : "Queue export"}</Button>

@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class CagedCrashSettlement
 {
-    private const GAME_CODE = 'BIRDESCAPE';
+    private const GAME_CODE = 'CAGED_CRASH';
 
     public function __construct(
         private readonly WalletService $wallet,
@@ -95,6 +95,4 @@ final class CagedCrashSettlement
     }
 }
 
-class_alias(CagedCrashSettlement::class, 'App\Domain\Games\BirdEscape\BirdEscapeSettlement');
-class_alias(CagedCrashSettlement::class, 'App\Domain\Games\CagedCrash\BirdEscapeSettlement');
 

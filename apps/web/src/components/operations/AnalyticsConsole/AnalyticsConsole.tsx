@@ -88,7 +88,7 @@ export function AnalyticsConsole() {
   return (
     <div className={styles.page}>
       <header className={styles.pageHeader}>
-        <div><p className={styles.context}>Analytics</p><h1>First-party analytics</h1><p>Review player activity and conversion by date, game, and channel.</p></div>
+        <div><p className={styles.context}>Analytics</p><h1>Player analytics</h1><p>Review player activity and conversion by date, game, and channel.</p></div>
       </header>
 
       <section className={styles.runStrip} aria-labelledby="analytics-store-title">
@@ -101,7 +101,7 @@ export function AnalyticsConsole() {
         <header className={styles.sectionHeader}><div><h2 id="analytics-scope-title">Analytics scope</h2><p>The default range is 30 days. App version and locale filters are not available.</p></div></header>
         <div className={styles.controls}>
           <SelectFilter id="analytics-channel" label="Channel" value={filters.channel} options={["ALL", "web"]} onChange={(value) => updateFilter("channel", value)} />
-          <SelectFilter id="analytics-game" label="Game" value={filters.game} options={["ALL", "BLACKRED", "HERITAGE", "CAGED"]} onChange={(value) => updateFilter("game", value)} />
+          <SelectFilter id="analytics-game" label="Game" value={filters.game} options={["ALL", "BLACKRED", "HERITAGE", "CAGED", "CAGED_CRASH", "DOORS"]} onChange={(value) => updateFilter("game", value)} />
           <SelectFilter id="analytics-state" label="State" value={filters.state} options={["ALL", "LAG"]} onChange={(value) => updateFilter("state", value)} />
           <label className={styles.formField} htmlFor="analytics-from">From<input id="analytics-from" type="date" value={filters.from} onChange={(event) => updateFilter("from", event.target.value)} /></label>
           <label className={styles.formField} htmlFor="analytics-to">To<input id="analytics-to" type="date" value={filters.to} onChange={(event) => updateFilter("to", event.target.value)} /></label>
@@ -126,7 +126,7 @@ export function AnalyticsConsole() {
         </div>
 
         <article className={styles.inspector} aria-labelledby="selected-funnel-title">
-          <header className={styles.inspectorHeader}><div><h2 id="selected-funnel-title">{FUNNEL_LABELS[filters.funnel]}</h2></div><span className={styles.statusLabel}><Icon name="activity" />Pre-aggregated</span></header>
+          <header className={styles.inspectorHeader}><div><h2 id="selected-funnel-title">{FUNNEL_LABELS[filters.funnel]}</h2></div><span className={styles.statusLabel}><Icon name="activity" />Daily totals</span></header>
 
           {state === "loading" && <p className={styles.muted}>Loading…</p>}
           {state === "error" && <p className={styles.muted}>Live funnel data could not be loaded. Sign in again if this persists.</p>}
@@ -151,21 +151,23 @@ export function AnalyticsConsole() {
       </section>
 
       <section className={styles.section} aria-labelledby="rollup-table-title">
-        <header className={styles.sectionHeader}><div><h2 id="rollup-table-title">Underlying rollup table</h2><p>Aggregated activity for the selected filters and dates.</p></div></header>
+        <header className={styles.sectionHeader}><div><h2 id="rollup-table-title">Activity by day</h2><p>Aggregated activity for the selected filters and dates.</p></div></header>
         <OperationalDataTable
-          caption="Analytics daily rollup rows"
+          caption="Daily activity"
           columns={rollupColumns}
           rows={rollups ?? []}
           getRowId={(row) => `${row.day}-${row.event_name}-${row.channel}-${row.game_code}-${row.state_code}`}
           dataState={state}
-          stateMessage={state === "error" ? "Live rollup data could not be loaded." : undefined}
+          stateMessage={state === "error" ? "Daily activity could not be loaded." : undefined}
         />
       </section>
 
+      <details className={styles.advanced}>
+      <summary>Data and privacy details</summary>
       <section className={styles.evidenceGrid} aria-label="Analytics event and privacy contract">
         <div className={styles.evidenceBlock}>
           <h2>Tracked event envelope</h2>
-          <p className={styles.muted}>Money and outcome events are emitted server-side. Client events are labelled UX telemetry and cannot establish financial truth.</p>
+          <p className={styles.muted}>Financial figures come from confirmed transactions. Browsing activity is reported separately.</p>
           <ul className={styles.referenceList}>{ANALYTICS_EVENT_FIELDS.map((field) => <li key={field}><Icon name="check" /><div><strong>{field}</strong><span>Required event field</span></div></li>)}</ul>
         </div>
         <div className={styles.evidenceBlock}>
@@ -174,6 +176,7 @@ export function AnalyticsConsole() {
           <ul className={styles.referenceList}>{ANALYTICS_EXCLUDED_FIELDS.map((field) => <li key={field}><Icon name="lock" /><div><strong>{field}</strong><span>Prohibited analytics payload field</span></div></li>)}</ul>
         </div>
       </section>
+      </details>
     </div>
   );
 }

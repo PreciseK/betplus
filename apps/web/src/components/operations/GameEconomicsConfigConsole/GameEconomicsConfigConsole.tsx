@@ -16,6 +16,10 @@ import styles from "@/components/operations/OperationsConsole.module.css";
 type DraftResult = BackOfficeGameEconomicsConfig & { gate_errors: string[] };
 
 const MODELS: EconomicsModel[] = ["FIXED_RTP", "BALANCED_HYBRID", "DAILY_LOSS_STOP", "PARI_MUTUEL_POOL"];
+const MODEL_LABELS: Record<EconomicsModel, string> = {
+  FIXED_RTP: "Fixed payouts", BALANCED_HYBRID: "Balance-based limits",
+  DAILY_LOSS_STOP: "Daily loss limit", PARI_MUTUEL_POOL: "Shared prize pool",
+};
 
 function toDatetimeLocalInput(iso: string): string {
   return iso.slice(0, 16);
@@ -200,7 +204,7 @@ export function GameEconomicsConfigConsole() {
         <EmptyState
           icon="error"
           title="Could not load game economics"
-          description="Live game data could not be loaded from the back-office gateway. Try refreshing or signing in again."
+          description="Game settings could not be loaded. Refresh this page or sign in again."
         />
       </div>
     );
@@ -211,14 +215,14 @@ export function GameEconomicsConfigConsole() {
       <header className={styles.pageHeader}>
         <div>
           <p className={styles.context}>Game operations task</p>
-          <h1>Economics models</h1>
-          <p>Switch which economics model governs bet acceptance for a game. A switch takes effect at the next round or ticket after approval — nothing changes mid-flight.</p>
+          <h1>Game settings</h1>
+          <p>Manage game funding and payout rules. Approved changes apply to the next round or ticket.</p>
         </div>
       </header>
 
       <section className={styles.runStrip} aria-labelledby="economics-runtime-title">
         <Icon name="limits" size="control" />
-        <div><h2 id="economics-runtime-title">Model changes are maker-checker gated</h2><p>Proposing a publication produces a change record that another operator must approve.</p></div>
+        <div><h2 id="economics-runtime-title">A second operator must approve changes</h2><p>Save a draft, then send it for review before it goes live.</p></div>
       </section>
 
       {receipt && <div className={styles.receipt} role="status"><Icon name="check" />{receipt}</div>}
@@ -233,7 +237,7 @@ export function GameEconomicsConfigConsole() {
                 type="button"
                 role="radio"
                 aria-checked={game.game_code === selectedGameCode}
-                className={game.game_code === selectedGameCode ? styles.segmentActive : styles.segment}
+                className={`${styles.segment} ${game.game_code === selectedGameCode ? styles.segmentActive : ""}`}
                 onClick={() => setSelectedGameCode(game.game_code)}
               >
                 {game.game_code}
@@ -245,7 +249,7 @@ export function GameEconomicsConfigConsole() {
 
       <section className={styles.section} aria-labelledby="configs-title">
         <header className={styles.sectionHeader}>
-          <div><h2 id="configs-title">Economics configs for {selectedGameCode ?? "this game"}</h2><p>Drafts can be edited or deleted here. Published configs are permanent history.</p></div>
+          <div><h2 id="configs-title">Settings history for {selectedGameCode ?? "this game"}</h2><p>Drafts can be edited or deleted here. Published configs are permanent history.</p></div>
           <Button leadingIcon={<Icon name="activity" />} onClick={startCreateDraft}>New draft</Button>
         </header>
         {configsError && <p className={styles.fieldError} role="alert"><Icon name="error" />{configsError}</p>}
@@ -265,12 +269,12 @@ export function GameEconomicsConfigConsole() {
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
-              <caption className="sr-only">Economics configs for {selectedGameCode}</caption>
+              <caption className="sr-only">Settings history for {selectedGameCode}</caption>
               <thead><tr><th scope="col">Version</th><th scope="col">Model</th><th scope="col">Status</th><th scope="col">Effective</th><th scope="col">Actions</th></tr></thead>
               <tbody>{configs.map((config) => (
                 <tr key={config.id}>
                   <th scope="row" data-label="Version"><strong>{config.version}</strong></th>
-                  <td data-label="Model">{config.active_model}</td>
+                  <td data-label="Model">{MODEL_LABELS[config.active_model]}</td>
                   <td data-label="Status"><span className={styles.statusLabel}><Icon name={config.status === "published" ? "check" : "warning"} />{config.status}</span></td>
                   <td data-label="Effective">{new Date(config.effective_at).toLocaleString()}</td>
                   <td data-label="Actions">
@@ -292,23 +296,23 @@ export function GameEconomicsConfigConsole() {
       <section className={styles.section} aria-labelledby="drafting-title">
         <header className={styles.sectionHeader}>
           <div>
-            <h2 id="drafting-title">{draftId === null ? "Draft an economics config" : `Editing draft #${draftId}`}</h2>
-            <p>{draftId === null ? "Creating a draft is direct (not maker-checker gated); publishing it is a separate, gated action below." : "Saving replaces this draft entirely. It has not been published, so this is safe."}</p>
+            <h2 id="drafting-title">{draftId === null ? "Create draft settings" : `Editing draft #${draftId}`}</h2>
+            <p>{draftId === null ? "Save a draft to prepare your changes. Publishing requires approval from another operator." : "Saving updates this draft. Live game settings stay unchanged."}</p>
           </div>
         </header>
 
         <div className={styles.controls}>
           <label className={styles.formField} htmlFor="draft-version">Version <span aria-hidden="true">*</span><input id="draft-version" value={draftVersion} onChange={(event) => setDraftVersion(event.target.value)} placeholder="GEC-1" /></label>
-          <label className={styles.formField} htmlFor="draft-model">Model<select id="draft-model" value={draftModel} onChange={(event) => setDraftModel(event.target.value as EconomicsModel)}>{MODELS.map((model) => <option key={model} value={model}>{model}</option>)}</select></label>
+          <label className={styles.formField} htmlFor="draft-model">Funding model<select id="draft-model" value={draftModel} onChange={(event) => setDraftModel(event.target.value as EconomicsModel)}>{MODELS.map((model) => <option key={model} value={model}>{MODEL_LABELS[model]}</option>)}</select></label>
           {draftModel === "BALANCED_HYBRID" && (
-            <label className={styles.formField} htmlFor="draft-kelly">Kelly factor (basis points)<input id="draft-kelly" type="number" min="1" max="2000" value={draftKellyFactor} onChange={(event) => setDraftKellyFactor(event.target.value)} /></label>
+            <label className={styles.formField} htmlFor="draft-kelly">Stake limit factor (basis points)<input id="draft-kelly" type="number" min="1" max="2000" value={draftKellyFactor} onChange={(event) => setDraftKellyFactor(event.target.value)} /><span>100 basis points equals 1%.</span></label>
           )}
           {draftModel === "DAILY_LOSS_STOP" && (
             <label className={styles.formField} htmlFor="draft-daily-loss-cap">Daily loss cap (kobo)<input id="draft-daily-loss-cap" type="number" min="1" value={draftDailyLossCap} onChange={(event) => setDraftDailyLossCap(event.target.value)} /></label>
           )}
           {draftModel === "PARI_MUTUEL_POOL" && (
             <>
-              <label className={styles.formField} htmlFor="draft-rake-bps">Rake (basis points, min 1200)<input id="draft-rake-bps" type="number" min="1200" max="10000" value={draftRakeBps} onChange={(event) => setDraftRakeBps(event.target.value)} /></label>
+              <label className={styles.formField} htmlFor="draft-rake-bps">House share (basis points)<input id="draft-rake-bps" type="number" min="1200" max="10000" value={draftRakeBps} onChange={(event) => setDraftRakeBps(event.target.value)} /><span>Minimum 1200 basis points (12%).</span></label>
               <label className={styles.formField} htmlFor="draft-pool-window">Pool window (minutes)<input id="draft-pool-window" type="number" min="1" value={draftPoolWindowMinutes} onChange={(event) => setDraftPoolWindowMinutes(event.target.value)} /></label>
               {selectedGameCode === "HERITAGE" && (
                 <>
@@ -321,7 +325,7 @@ export function GameEconomicsConfigConsole() {
               )}
             </>
           )}
-          {selectedGameCode === "DOORS" && <label className={styles.formField} htmlFor="draft-doors-settings">Doors odds and bankroll settings (JSON)<textarea id="draft-doors-settings" rows={18} value={draftDoorsParams} onChange={event => setDraftDoorsParams(event.target.value)} /><span>Draft only. Publication checks the RTP ceiling, exact treasure multipliers, funding limits, and certification reference. A second operator must approve publication.</span></label>}
+          {selectedGameCode === "DOORS" && <details className={styles.advanced}><summary>Advanced Doors settings</summary><label className={styles.formField} htmlFor="draft-doors-settings">Doors odds and bankroll settings (JSON)<textarea id="draft-doors-settings" rows={18} value={draftDoorsParams} onChange={event => setDraftDoorsParams(event.target.value)} /><span>For authorised game specialists. These settings are validated before publication and require a second operator’s approval.</span></label></details>}
           <label className={styles.formField} htmlFor="draft-effective">Effective at <span aria-hidden="true">*</span><input id="draft-effective" type="datetime-local" value={draftEffectiveAt} onChange={(event) => setDraftEffectiveAt(event.target.value)} /></label>
         </div>
 

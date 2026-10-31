@@ -33,15 +33,15 @@ describe("AuditLog", () => {
   it("shows real operator events and a real DB-immutability note instead of a hash-chain claim", async () => {
     render(<AuditLog />);
 
-    expect(await screen.findByRole("rowheader", { name: /game_registry_updated/ })).toBeInTheDocument();
-    expect(screen.getByText("Immutable at the database level")).toBeInTheDocument();
-    expect(screen.getByText(/no hash chain/)).toBeInTheDocument();
+    expect(await screen.findByRole("rowheader", { name: /Game Registry Updated/ })).toBeInTheDocument();
+    expect(screen.getByText("A permanent record of operator activity")).toBeInTheDocument();
+    expect(screen.getByText(/Records cannot be edited or deleted here/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Export filtered log" })).not.toBeInTheDocument();
   });
 
   it("expands a real before/after diff computed from the stored snapshots", async () => {
     render(<AuditLog />);
-    await screen.findByRole("rowheader", { name: /game_registry_updated/ });
+    await screen.findByRole("rowheader", { name: /Game Registry Updated/ });
 
     fireEvent.click(screen.getByRole("button", { name: /View evidence/ }));
 
@@ -53,7 +53,7 @@ describe("AuditLog", () => {
 
   it("filters client-side by actor, action or target", async () => {
     render(<AuditLog />);
-    await screen.findByRole("rowheader", { name: /game_registry_updated/ });
+    await screen.findByRole("rowheader", { name: /Game Registry Updated/ });
 
     fireEvent.change(screen.getByLabelText("Search events"), { target: { value: "no-match-at-all" } });
 
@@ -62,7 +62,7 @@ describe("AuditLog", () => {
 
   it("re-fetches from the real endpoint with a date range instead of filtering fixtures", async () => {
     render(<AuditLog />);
-    await screen.findByRole("rowheader", { name: /game_registry_updated/ });
+    await screen.findByRole("rowheader", { name: /Game Registry Updated/ });
 
     auditLog.mockResolvedValueOnce({ events: [] });
     fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-08-01" } });

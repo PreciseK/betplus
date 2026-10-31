@@ -43,7 +43,7 @@ describe("MakerCheckerWorkspace", () => {
   it("shows the real change queue and a real field-by-field diff computed from payload/before_snapshot", async () => {
     render(<MakerCheckerWorkspace />);
 
-    expect(await screen.findByRole("heading", { name: "prize_table_publish" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Prize table publication" })).toBeInTheDocument();
     expect(screen.getByText("18")).toBeInTheDocument();
     expect(screen.getByText("20")).toBeInTheDocument();
     expect(screen.getByText("New actuarial certification received.")).toBeInTheDocument();
@@ -52,7 +52,7 @@ describe("MakerCheckerWorkspace", () => {
   it("surfaces the backend's real self-approval refusal rather than a client-guessed rule", async () => {
     approveChange.mockRejectedValueOnce(new BackOfficeApiError(422, { message: "A maker may not approve their own change." }));
     render(<MakerCheckerWorkspace />);
-    await screen.findByRole("heading", { name: "prize_table_publish" });
+    await screen.findByRole("heading", { name: "Prize table publication" });
 
     fireEvent.click(screen.getByRole("button", { name: "Approve change" }));
     fireEvent.click(within(screen.getByRole("dialog", { name: "Approve this change?" })).getByRole("button", { name: "Record approval" }));
@@ -64,7 +64,7 @@ describe("MakerCheckerWorkspace", () => {
   it("requires a rejection reason and calls the real reject endpoint", async () => {
     rejectChange.mockResolvedValueOnce({ ...CHANGE, status: "REJECTED", rejection_reason: "Legal directive attachment is not countersigned." });
     render(<MakerCheckerWorkspace />);
-    await screen.findByRole("heading", { name: "prize_table_publish" });
+    await screen.findByRole("heading", { name: "Prize table publication" });
 
     fireEvent.click(screen.getByRole("button", { name: "Reject change" }));
     const dialog = screen.getByRole("dialog", { name: "Reject this change?" });
@@ -81,7 +81,7 @@ describe("MakerCheckerWorkspace", () => {
   it("records a real approval and shows the applied state returned by the backend", async () => {
     approveChange.mockResolvedValueOnce({ ...CHANGE, status: "APPLIED", checker_id: 3, applied_at: "2026-08-02T00:00:00Z" });
     render(<MakerCheckerWorkspace />);
-    await screen.findByRole("heading", { name: "prize_table_publish" });
+    await screen.findByRole("heading", { name: "Prize table publication" });
 
     fireEvent.click(screen.getByRole("button", { name: "Approve change" }));
     fireEvent.click(within(screen.getByRole("dialog", { name: "Approve this change?" })).getByRole("button", { name: "Record approval" }));

@@ -53,4 +53,3 @@ final class CrashConfigPublicationGate
     }
 }
 
-class_alias(CrashConfigPublicationGate::class, 'App\Domain\Games\BirdEscape\CrashConfigPublicationGate');

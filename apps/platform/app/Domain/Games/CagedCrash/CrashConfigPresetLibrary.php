@@ -35,11 +35,11 @@ final class CrashConfigPresetLibrary
     /** @return list<array{key:string, label:string, house_edge_basis_points:int, modelled_rtp_basis_points:int}> */
     public function forCaged(): array
     {
-        return $this->forBirdEscape();
+        return $this->forCagedCrash();
     }
 
     /** @return list<array{key:string, label:string, house_edge_basis_points:int, modelled_rtp_basis_points:int}> */
-    public function forBirdEscape(): array
+    public function forCagedCrash(): array
     {
         $labels = [
             'fair' => 'Fair (zero margin, reference only)',
@@ -56,4 +56,3 @@ final class CrashConfigPresetLibrary
     }
 }
 
-class_alias(CrashConfigPresetLibrary::class, 'App\Domain\Games\BirdEscape\CrashConfigPresetLibrary');

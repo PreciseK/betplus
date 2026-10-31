@@ -71,12 +71,12 @@ describe("AnalyticsConsole", () => {
 
   it("shows the underlying rollup table and the fixed privacy contract", async () => {
     render(<AnalyticsConsole />);
-    const table = await screen.findByRole("table", { name: "Analytics daily rollup rows" });
+    const table = await screen.findByRole("table", { name: "Daily activity" });
     expect(within(table).getByText("ticket_purchased")).toBeInTheDocument();
 
     expect(screen.getByText("pseudonymised_player_id")).toBeInTheDocument();
     expect(screen.getByText("Raw MSISDN")).toBeInTheDocument();
-    expect(screen.getByText(/Money and outcome events are emitted server-side/)).toBeInTheDocument();
+    expect(screen.getByText(/Financial figures come from confirmed transactions/)).toBeInTheDocument();
   });
 
   it("persists real filters in the URL and refetches on change", async () => {

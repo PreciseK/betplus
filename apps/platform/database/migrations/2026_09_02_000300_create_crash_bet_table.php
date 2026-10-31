@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         // One player's stake in one shared round. status transitions PLACED ->
-        // CASHED_OUT|LOST exactly once, enforced by BirdEscapeSettlement's
+        // CASHED_OUT|LOST exactly once, enforced by CagedCrashSettlement's
         // conditional `UPDATE ... WHERE status='PLACED'` guard rather than a DB
         // trigger — unlike ticketOutcome/fairnessSeed this table is a mutable status
         // projection, not the fairness ledger of record (that's fairnessSeed's

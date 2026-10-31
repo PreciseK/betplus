@@ -24,7 +24,7 @@ class CagedRoundAuditController extends Controller
     /** GET /backoffice/v1/caged/rounds/{roundNumber}/replay */
     public function replay(string $roundNumber): JsonResponse
     {
-        $round = CrashRound::with('fairnessSeed')->where('gameCode', 'BIRDESCAPE')->where('roundNumber', $roundNumber)->firstOrFail();
+        $round = CrashRound::with('fairnessSeed')->where('gameCode', 'CAGED_CRASH')->where('roundNumber', $roundNumber)->firstOrFail();
 
         $replayed = $this->engine->replay($round->fairnessSeed->seedHex, $round->roundNumber, $round->houseEdgeBasisPoints);
 
@@ -46,4 +46,3 @@ class CagedRoundAuditController extends Controller
     }
 }
 
-class_alias(CagedRoundAuditController::class, 'App\Http\Controllers\BackOffice\BirdEscapeRoundAuditController');

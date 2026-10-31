@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Games\Economics;
 
-use App\Domain\Games\Engine\BirdEscape\BirdEscapeEngine;
+use App\Domain\Games\Engine\CagedCrash\CagedCrashEngine;
 use App\Domain\Payout\Float\FloatService;
 use App\Domain\Ticket\TicketEligibilityException;
 use LogicException;
 
 /**
- * Model 1's per-round lever for the crash engine (Caged-web/BirdEscape) — the
+ * Model 1's per-round lever for the crash engine (Caged Crash) — the
  * highest-value, lowest-risk slice identified in docs/game-engine-economics.md
  * Part 5 #1: bounds a live round's worst-case aggregate liability, not any
  * individual round's actual outcome. A bet-acceptance limit, not an odds change.
@@ -31,7 +31,7 @@ final class BalancedHybridCrashStrategy implements EconomicsModelStrategy
         }
 
         $capKobo = intdiv($this->float->currentFloatKobo() * $this->params->kellyFactorBasisPoints, 10_000);
-        $projectedExposureKobo = $round->exposureKobo + BirdEscapeEngine::worstCaseLiabilityKobo($stakeKobo);
+        $projectedExposureKobo = $round->exposureKobo + CagedCrashEngine::worstCaseLiabilityKobo($stakeKobo);
 
         if ($projectedExposureKobo > $capKobo) {
             throw new TicketEligibilityException(

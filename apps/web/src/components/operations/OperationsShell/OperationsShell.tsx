@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { backOfficeGateway } from "@betplus/api-client";
 import { OperationsNav } from "@/components/operations/OperationsNav/OperationsNav";
-import { OPERATOR_ROLE_LABELS } from "@/components/operations/operations-navigation";
+import { OPERATIONS_DESTINATIONS, OPERATOR_ROLE_LABELS } from "@/components/operations/operations-navigation";
 import { Logo } from "@/components/ui/Logo/Logo";
 import type { OperatorIdentity, OperatorRole } from "@/mocks/operator-session";
 import type { OperationsCapability } from "@/components/operations/operations-permissions";
@@ -24,6 +25,8 @@ export function OperationsShell({ children, operatorName, role, requiredCapabili
   const [activeOperator, setActiveOperator] = useState<OperatorIdentity | null>(null);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const pathname = usePathname();
+  const destination = OPERATIONS_DESTINATIONS.find(item => pathname.replace(/\/$/, "") === item.href);
 
   useEffect(() => {
     function handleShortcut(event: KeyboardEvent) {
@@ -56,7 +59,7 @@ export function OperationsShell({ children, operatorName, role, requiredCapabili
   if (hasSession === false) {
     return (
       <div className={styles.viewport}>
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", color: "white" }}>
+        <div className={styles.redirect}>
           Redirecting to operator sign in…
         </div>
       </div>
@@ -73,9 +76,8 @@ export function OperationsShell({ children, operatorName, role, requiredCapabili
       <div className={styles.shell}>
         <aside className={styles.sidebar}>
           <div className={styles.workspaceCard}>
-            <div className={styles.workspaceIcon} aria-hidden="true">B+</div>
+            <Logo href="/back-office/overview" variant="color" height={34} />
             <div className={styles.workspaceMeta}>
-              <strong>Betplus</strong>
               <span className={styles.workspaceSubtext}>Back office</span>
             </div>
           </div>
@@ -121,13 +123,14 @@ export function OperationsShell({ children, operatorName, role, requiredCapabili
         <div className={styles.workspace}>
           <header className={styles.header}>
             <div className={styles.mobileBrand}>
-              <Logo href="/back-office/overview" />
+              <Logo href="/back-office/overview" variant="color" height={30} />
             </div>
             <div className={styles.shiftBadge}>
 
               <div className={styles.shiftMeta}>
-                <strong>Back office</strong>
-                <span>{OPERATOR_ROLE_LABELS[effectiveRole]}</span>
+                <span>{destination?.group === "Home" ? "Workspace" : destination?.group ?? "Workspace"}</span>
+                <Icon name="chevron-right" />
+                <strong>{destination?.label ?? "Approvals"}</strong>
               </div>
             </div>
             <form className={styles.globalSearch} role="search" action="/back-office/players">

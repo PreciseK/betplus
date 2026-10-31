@@ -25,9 +25,9 @@ class CagedCrashGameSeeder extends Seeder
     public function run(): void
     {
         GameRegistry::updateOrCreate(
-            ['gameCode' => 'BIRDESCAPE'],
+            ['gameCode' => 'CAGED_CRASH'],
             [
-                'engineVersion' => 'birdescape-1.0.0',
+                'engineVersion' => 'caged-crash-1.0.0',
                 'status' => 'ACTIVE',
                 'minStakeKobo' => 20_000,
                 'maxStakeKobo' => 1_000_000,
@@ -52,7 +52,7 @@ class CagedCrashGameSeeder extends Seeder
         );
 
         $config = CrashConfig::updateOrCreate(
-            ['gameCode' => 'BIRDESCAPE', 'version' => 'BE-NG-2026.1'],
+            ['gameCode' => 'CAGED_CRASH', 'version' => 'BE-NG-2026.1'],
             [
                 'status' => 'draft',
                 // Recalibrated 2026-09-14 (was 1200bp — itself an earlier same-day
@@ -78,12 +78,11 @@ class CagedCrashGameSeeder extends Seeder
         // config and should fail the seed run.
         $unexpected = array_values(array_filter($errors, fn (string $e) => !str_contains($e, 'actuarial')));
         if ($unexpected !== []) {
-            throw new RuntimeException('BirdEscape crash config failed the publication gate: ' . implode('; ', $unexpected));
+            throw new RuntimeException('Caged Crash config failed the publication gate: ' . implode('; ', $unexpected));
         }
 
         $config->update(['status' => 'published', 'publishedAt' => now()]);
     }
 }
 
-class_alias(CagedCrashGameSeeder::class, 'Database\Seeders\BirdEscapeGameSeeder');
 

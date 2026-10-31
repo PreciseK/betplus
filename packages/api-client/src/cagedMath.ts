@@ -21,4 +21,3 @@ export function cagedMultiplierHundredthsAtElapsedMs(
 
 // Aliases for backwards compatibility
 export const multiplierHundredthsAtElapsedMs = cagedMultiplierHundredthsAtElapsedMs;
-export const birdEscapeMultiplierHundredthsAtElapsedMs = cagedMultiplierHundredthsAtElapsedMs;

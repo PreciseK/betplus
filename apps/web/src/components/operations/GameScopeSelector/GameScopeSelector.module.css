@@ -1,41 +1,4 @@
-.field {
-  min-width: 168px;
-  display: grid;
-  grid-template-columns: auto minmax(112px, 1fr);
-  align-items: center;
-  gap: var(--ops-tight-gap);
-}
-
-.field label {
-  color: var(--text-secondary);
-  font-size: var(--type-caption-size);
-  font-weight: var(--type-body-strong-weight);
-}
-
-.field select {
-  min-height: 40px;
-  padding-inline: var(--ops-compact-padding) 34px;
-  border: var(--ops-panel-border);
-  border-radius: var(--ops-control-radius);
-  background: var(--ops-panel-background);
-  color: var(--text-primary);
-  font: inherit;
-  font-size: var(--type-small-size);
-  font-weight: var(--type-body-strong-weight);
-}
-
-@media (max-width: 620px) {
-  .field {
-    min-width: 138px;
-    grid-template-columns: 1fr;
-    gap: 2px;
-  }
-
-  .field label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-  }
-}
+.field { display:flex; align-items:center; gap:8px; min-width:0; }
+.field label { font-size:11px; color:#8a8f98; }
+.field select { min-height:40px; min-width:130px; max-width:180px; border:1px solid #e8eaed; border-radius:8px; padding:8px 28px 8px 12px; background:#fff; color:#454b54; font:inherit; font-size:11px; }
+@media(max-width:600px) { .field label { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); } .field select { min-width:105px; max-width:130px; padding-left:9px; } }

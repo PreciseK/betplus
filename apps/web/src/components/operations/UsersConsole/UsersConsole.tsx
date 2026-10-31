@@ -73,7 +73,7 @@ export function UsersConsole() {
         <div>
           <p className={styles.context}>Administration</p>
           <h1>Team access</h1>
-          <p>Real institution-user accounts. Applies immediately — no maker-checker gate on account management.</p>
+          <p>Manage staff accounts and their access. Account changes take effect immediately.</p>
         </div>
       </header>
 

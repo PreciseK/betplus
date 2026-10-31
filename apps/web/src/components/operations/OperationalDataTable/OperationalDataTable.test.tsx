@@ -25,7 +25,7 @@ describe("OperationalDataTable", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: "Select A" }));
     fireEvent.click(screen.getByRole("button", { name: "Export selected" }));
     const dialog = screen.getByRole("dialog", { name: "Export selected for 1 records?" });
-    expect(within(dialog).getByText(/restricted to the 1 explicitly selected records/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/restricted to the 1 records you selected/)).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Export selected" }));
     expect(onBulkAction).toHaveBeenCalledTimes(1);
     expect(onBulkAction.mock.calls[0][0]).toHaveLength(1);
@@ -34,11 +34,11 @@ describe("OperationalDataTable", () => {
   it("gives loading, partial, stale, error and empty states distinct text", () => {
     const common = { caption: "States", columns, getRowId: (row: Row) => row.id };
     const { rerender } = render(<OperationalDataTable {...common} rows={rows} dataState="loading" />);
-    expect(screen.getByRole("status")).toHaveTextContent("Loading bounded records");
+    expect(screen.getByRole("status")).toHaveTextContent("Loading records");
     rerender(<OperationalDataTable {...common} rows={rows} dataState="partial" stateMessage="Some rows are pending." />);
-    expect(screen.getByRole("status")).toHaveTextContent("Partial result set");
+    expect(screen.getByRole("status")).toHaveTextContent("Some records are unavailable");
     rerender(<OperationalDataTable {...common} rows={rows} dataState="stale" stateMessage="Snapshot is old." />);
-    expect(screen.getByRole("status")).toHaveTextContent("Stale snapshot");
+    expect(screen.getByRole("status")).toHaveTextContent("Data needs refreshing");
     rerender(<OperationalDataTable {...common} rows={rows} dataState="error" />);
     expect(screen.getByRole("alert")).toHaveTextContent("Records could not be loaded");
     rerender(<OperationalDataTable {...common} rows={[]} />);

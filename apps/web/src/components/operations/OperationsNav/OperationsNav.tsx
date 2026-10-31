@@ -39,6 +39,10 @@ const GROUP_HEADER_LABELS: Record<OperationsNavigationGroup, string> = {
 };
 
 const NAVIGATION_FILTER_DEFAULTS = { game: "all" };
+const GROUP_ICONS: Record<OperationsNavigationGroup, OperationsDestination["icon"]> = {
+  Home: "home", Customers: "account", Finance: "wallet", Product: "games",
+  Compliance: "lock", Insights: "activity", Administration: "support",
+};
 
 function scopedHref(href: string, game: OperationsGameScope) {
   return game === "all" ? href : `${href}?game=${encodeURIComponent(game)}`;
@@ -57,7 +61,10 @@ function NavigationLinks({ role }: { role: OperatorRole }) {
   const pathname = usePathname();
   const { filters } = useOperationsUrlFilters(NAVIGATION_FILTER_DEFAULTS);
   const selectedGame = isOperationsGameScope(filters.game) ? filters.game : "all";
-  const destinations = destinationsForRole(role);
+  // Player-specific views are available in the player's own tab bar.
+  const destinations = destinationsForRole(role).filter(destination =>
+    destination.subgroup !== "Player details" || destination.href === "/back-office/players",
+  );
 
   return (
     <div className={styles.groups}>
@@ -70,7 +77,6 @@ function NavigationLinks({ role }: { role: OperatorRole }) {
           const current = pathname === destination.href || pathname.startsWith(`${destination.href}/`);
           return (
             <div key={group} className={styles.groupSection}>
-              <span className={styles.sectionHeader}>{GROUP_HEADER_LABELS[group]}</span>
               <DestinationLink destination={destination} current={current} game={selectedGame} />
             </div>
           );
@@ -94,13 +100,13 @@ function NavigationLinks({ role }: { role: OperatorRole }) {
           <div key={group} className={styles.groupSection}>
             <details className={styles.group} open={containsCurrent || undefined}>
               <summary>
+                <Icon name={GROUP_ICONS[group]} />
                 <span className={styles.sectionHeader}>{GROUP_HEADER_LABELS[group]}</span>
                 <Icon name="chevron-right" />
               </summary>
               <div className={styles.groupBody}>
                 {subgroups.map((subgroup, index) => (
                   <div className={styles.subgroup} key={subgroup.name ?? index}>
-                    {subgroup.name ? <p className={styles.subgroupLabel}>{subgroup.name}</p> : null}
                     <ul>
                       {subgroup.items.map((destination) => {
                         const current = pathname === destination.href || pathname.startsWith(`${destination.href}/`);

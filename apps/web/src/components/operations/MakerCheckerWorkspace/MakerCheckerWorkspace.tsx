@@ -1,4 +1,5 @@
 "use client";
+import { operationsLabel } from "../operations-labels";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { backOfficeGateway, BackOfficeApiError, type BackOfficeChange } from "@betplus/api-client";
@@ -150,7 +151,7 @@ export function MakerCheckerWorkspace() {
         <div>
           <p className={styles.context}>Shared review workflow</p>
           <h1>Change approvals</h1>
-          <p>Review the evidence and application timing before recording a decision. The single shared maker-checker workflow covers every reviewable change type.</p>
+          <p>Review proposed changes, compare the details, and approve or reject each request.</p>
         </div>
       </header>
 
@@ -162,7 +163,7 @@ export function MakerCheckerWorkspace() {
           <div className={styles.queueHeading}>
             <div>
               <h2 id="queue-title">Review queue</h2>
-              <p>{changes.length} changes in scope</p>
+              <p>{changes.length} {changes.length === 1 ? "request" : "requests"}</p>
             </div>
             <label htmlFor="approval-state-filter">
               <span className="sr-only">Filter by workflow state</span>
@@ -189,7 +190,7 @@ export function MakerCheckerWorkspace() {
                     onClick={() => selectChange(change.id)}
                   >
                     <span className={styles.queueMeta}><span>{STATE_LABELS[change.status]}</span></span>
-                    <strong>{change.change_type}</strong>
+                    <strong>{operationsLabel(change.change_type)}</strong>
                     <span>#{change.id}</span>
                     <span>Maker: #{change.maker_id}</span>
                   </button>
@@ -207,8 +208,8 @@ export function MakerCheckerWorkspace() {
         <article className={styles.review} aria-labelledby="review-title">
           <header className={styles.reviewHeader}>
             <div>
-              <p>#{selected.id} · {selected.change_type}</p>
-              <h2 id="review-title">{selected.change_type}</h2>
+              <p>#{selected.id} · {operationsLabel(selected.change_type)}</p>
+              <h2 id="review-title">{operationsLabel(selected.change_type)}</h2>
             </div>
             <span className={styles.state}>{STATE_LABELS[selected.status]}</span>
           </header>
@@ -217,10 +218,10 @@ export function MakerCheckerWorkspace() {
 
           <div className={styles.reviewGrid}>
             <section className={styles.makerEvidence} aria-labelledby="maker-title">
-              <h3 id="maker-title">Maker evidence</h3>
+              <h3 id="maker-title">Request details</h3>
               <dl>
-                <div><dt>Maker</dt><dd>Institution user #{selected.maker_id}</dd></div>
-                <div><dt>Submitted</dt><dd>{selected.submitted_at ?? "—"}</dd></div>
+                <div><dt>Requested by</dt><dd>Staff member #{selected.maker_id}</dd></div>
+                <div><dt>Submitted</dt><dd>{selected.submitted_at ? new Date(selected.submitted_at).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" }) : "—"}</dd></div>
                 <div className={styles.fullRow}><dt>Justification</dt><dd>{selected.maker_justification}</dd></div>
               </dl>
             </section>
@@ -228,7 +229,7 @@ export function MakerCheckerWorkspace() {
 
           <section className={styles.diff} aria-labelledby="diff-title">
             <h3 id="diff-title">Before and after</h3>
-            <p className={styles.muted}>Computed directly from the change's stored before_snapshot and payload.</p>
+            <p className={styles.muted}>Compare the current values with the proposed changes.</p>
             <div className={styles.diffHeader} aria-hidden="true"><span>Field</span><span>Before</span><span>After</span></div>
             {diff.map((row) => (
               <div className={styles.diffRow} key={row.field}>
@@ -269,7 +270,7 @@ export function MakerCheckerWorkspace() {
             <footer className={styles.actions}>
               <div>
                 <strong>Decision will be audited</strong>
-                <span>Your identity, decision and the change evidence version are recorded. The backend structurally refuses approving your own change.</span>
+                <span>Your identity, decision, and the reviewed details are recorded. You cannot approve your own request.</span>
               </div>
               <Button variant="secondary" onClick={() => { setRejectOpen(true); setRejectionError(""); }}>Reject change</Button>
               <Button onClick={requestApproval}>Approve change</Button>
@@ -287,9 +288,9 @@ export function MakerCheckerWorkspace() {
       >
         <div className={styles.confirmation}>
           <dl>
-            <div><dt>Change</dt><dd>#{selected.id} · {selected.change_type}</dd></div>
+            <div><dt>Change</dt><dd>#{selected.id} · {operationsLabel(selected.change_type)}</dd></div>
           </dl>
-          <p className={styles.auditConsequence}><Icon name="lock" /><span><strong>Audit consequence</strong>Your identity, decision and evidence version will be appended to the immutable audit log, and the change applies immediately on approval.</span></p>
+          <p className={styles.auditConsequence}><Icon name="lock" /><span><strong>Audit consequence</strong>Your decision is recorded in the audit log. Approval applies this change immediately.</span></p>
         </div>
       </Dialog>
 
@@ -303,7 +304,7 @@ export function MakerCheckerWorkspace() {
       >
         <div className={styles.confirmation}>
           <dl>
-            <div><dt>Change</dt><dd>#{selected.id} · {selected.change_type}</dd></div>
+            <div><dt>Change</dt><dd>#{selected.id} · {operationsLabel(selected.change_type)}</dd></div>
           </dl>
           <label className={styles.noteField} htmlFor="rejection-reason">
             <span>Rejection reason <span aria-hidden="true">*</span></span>

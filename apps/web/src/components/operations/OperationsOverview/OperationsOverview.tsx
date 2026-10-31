@@ -69,6 +69,7 @@ function PerformanceChart({ analytics, periodLabel }: { analytics: DashboardAnal
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label={`${analytics.title}. ${analytics.summary}`}>
         <title>{analytics.title}</title>
         {[0, .5, 1].map((ratio) => <line key={ratio} className={styles.gridLine} x1={chartPadding} x2={chartWidth - chartPadding} y1={chartPadding + usableHeight * ratio} y2={chartPadding + usableHeight * ratio} />)}
+        {analytics.points.map((point, index) => <rect key={`bar-${index}`} className={styles.primaryBar} x={x(index) - 16} y={y(point.primary)} width="32" height={Math.max(0, y(0) - y(point.primary))} rx="5"><title>{`${point.label}: ${analytics.primaryLabel} ${displayValue(analytics, point.primary)}`}</title></rect>)}
         <polyline className={styles.comparisonLine} points={comparisonPoints} />
         <polyline className={styles.primaryLine} points={primaryPoints} />
         {analytics.points.map((point, index) => (
@@ -153,12 +154,18 @@ export function OperationsOverview({ role = "super-admin" }: OperationsOverviewP
         {(error || data.source === "live") && <button type="button" onClick={refresh}>{loading ? "Refreshing…" : "Refresh"}</button>}
       </div>
 
+      <div className={styles.briefing}>
+        <span className={styles.briefingIcon}><Icon name="activity" /></span>
+        <div><strong>Your operations at a glance</strong><p>{visibleQueue.length ? `${visibleQueue.length} ${visibleQueue.length === 1 ? "item needs" : "items need"} attention in this view.` : "Your current work queue is clear."} Review performance and follow up below.</p></div>
+        <a href="#attention-title">View work queue <Icon name="arrow-right" /></a>
+      </div>
+
       <div className={styles.dashboardGrid}>
         <div className={styles.primaryColumn}>
           <section className={styles.metrics} aria-label="Key metrics">
             {data.metrics.map((metric) => (
               <article key={metric.label}>
-                <div className={styles.metricTop}><p>{metric.label}</p></div>
+                <div className={styles.metricTop}><p>{metric.label}</p><Icon name="activity" /></div>
                 <strong>{metric.value}</strong>
                 <span className={styles.change}>{metric.change}</span>
                 <small>{selectedGame === "all" ? metric.context : `${selectedGameLabel} only · ${metric.context}`}</small>
@@ -170,7 +177,7 @@ export function OperationsOverview({ role = "super-admin" }: OperationsOverviewP
 
           <section className={styles.attention} aria-labelledby="attention-title">
             <div className={styles.sectionHeader}>
-              <div><h2 id="attention-title">Needs attention</h2><p>{dashboard.queueSummary}</p></div>
+              <div><h2 id="attention-title">Needs attention</h2><p>Items that need a review or follow-up.</p></div>
               <span>{visibleQueue.length}</span>
             </div>
             {visibleQueue.length > 0 ? (

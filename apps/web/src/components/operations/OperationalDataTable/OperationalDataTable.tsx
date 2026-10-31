@@ -112,7 +112,7 @@ export function OperationalDataTable<Row>({
     return (
       <div className={styles.tableState} data-state="loading" role="status" aria-live="polite">
         <Icon name="loading" size="control" />
-        <div><strong>Loading bounded records</strong><p>{stateMessage ?? "The scoped result set is being prepared."}</p></div>
+        <div><strong>Loading records</strong><p>{stateMessage ?? "Loading the records for your filters."}</p></div>
         <span className={styles.skeletonLines} aria-hidden="true" />
       </div>
     );
@@ -138,7 +138,7 @@ export function OperationalDataTable<Row>({
         <div className={styles.tableState} data-state={dataState} role="status">
           <Icon name={dataState === "stale" ? "warning" : "info"} />
           <div>
-            <strong>{dataState === "stale" ? "Stale snapshot" : "Partial result set"}</strong>
+            <strong>{dataState === "stale" ? "Data needs refreshing" : "Some records are unavailable"}</strong>
             <p>{stateMessage}</p>
           </div>
         </div>
@@ -339,7 +339,7 @@ export function OperationalDataTable<Row>({
         onClose={() => setConfirmOpen(false)}
         onConfirm={confirmBulkAction}
       >
-        <p>The action is restricted to the {selectedRows.length} explicitly selected records in this bounded result set.</p>
+        <p>The action is restricted to the {selectedRows.length} records you selected.</p>
       </Dialog>
     </div>
   );

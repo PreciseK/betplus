@@ -8,15 +8,9 @@ export {
   CagedCashoutError,
   type CagedEligibilityCode,
   type CagedCashoutCode,
-  birdEscapeGateway,
-  BirdEscapeGatewayError,
-  BirdEscapeCashoutError,
-  type BirdEscapeEligibilityCode,
-  type BirdEscapeCashoutCode,
 } from "./cagedGateway";
 export {
   cagedMultiplierHundredthsAtElapsedMs,
-  multiplierHundredthsAtElapsedMs as birdEscapeMultiplierHundredthsAtElapsedMs,
 } from "./cagedMath";
 export { heritageGateway, HeritageGatewayError, type HeritageGatewayErrorCode } from "./heritageGateway";
 export { payoutGateway } from "./payoutGateway";

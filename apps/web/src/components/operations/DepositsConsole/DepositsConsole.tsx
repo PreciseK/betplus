@@ -92,7 +92,7 @@ export function DepositsConsole() {
         <div>
           <p className={styles.context}>Finance</p>
           <h1>Deposits</h1>
-          <p>Real OPay collection status, from initiation through to a confirmed play-balance credit. A pending_review deposit exceeded the auto-credit threshold and is held until approved or rejected here.</p>
+          <p>Track OPay deposits and review payments awaiting approval. Held deposits are credited only after approval.</p>
         </div>
         <div className={styles.controls}>
           <label className={styles.selectField} htmlFor="deposit-status">

@@ -84,7 +84,7 @@ export function AdjustmentsConsole() {
         <div>
           <p className={styles.context}>Finance</p>
           <h1>Manual adjustments</h1>
-          <p>Real maker-checker credit/debit proposals — the same workflow every other reviewable change uses.</p>
+          <p>Request a wallet credit or debit. Another authorised operator must review it before the balance changes.</p>
         </div>
       </header>
 

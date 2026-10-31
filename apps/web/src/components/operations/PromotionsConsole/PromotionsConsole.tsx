@@ -152,11 +152,10 @@ export function PromotionsConsole() {
     <div className={opsStyles.page}>
       <header className={opsStyles.pageHeader}>
         <div>
-          <span className={opsStyles.context}>Product & Marketing Governance</span>
-          <h1>Promotions & Boost Controls</h1>
+          <span className={opsStyles.context}>Marketing</span>
+          <h1>Promotions</h1>
           <p>
-            Oversee active promotional campaigns, subvention budgets, and draw pools. All rule adjustments
-            strictly enforce Maker-Checker dual authorization pursuant to LSLGA compliance.
+            Manage campaigns, promotional budgets, and monthly draws. Rule changes need approval from another operator.
           </p>
         </div>
       </header>

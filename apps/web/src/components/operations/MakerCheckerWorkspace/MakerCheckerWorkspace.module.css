@@ -602,3 +602,18 @@
     transition: none;
   }
 }
+
+/* Operations dashboard surfaces. */
+.page { min-width:0; gap:24px; padding-bottom:0; }
+.pageHeader { align-items:center; }
+.pageHeader h1 { font-size:28px; font-weight:600; letter-spacing:-.035em; }
+.pageHeader p { font-size:12px; line-height:1.7; }
+.context { color:#858a91!important; font-size:10px; letter-spacing:.06em; }
+.queue, .review, .coverage { border:1px solid #e8eaed; border-radius:14px; background:#fff; padding:22px; }
+.page :where(table) { font-size:12px; }
+.page :where(thead th) { background:#f8f9fa; color:#777e87; text-transform:none; font-size:11px; font-weight:400; letter-spacing:0; }
+.page :where(select) { border:1px solid #dfe2e6; border-radius:8px; min-height:42px; background:#fff; color:#454b54; }
+@media(max-width:760px) { .pageHeader { display:grid; grid-template-columns:1fr; } .pageHeader h1 { font-size:25px; } .queue, .review, .coverage { padding:16px; } }
+
+.muted { color:#727780; font-size:12px; }
+.queueHeading { display:grid; grid-template-columns:1fr; align-items:start; }.queueHeading select { width:100%; }.queueItem { border-radius:8px; }.queueList { border:0; }.queueList li { border:0; }.queueItem[aria-pressed="true"] { background:#fcf3f2; }.workflow { border-radius:8px; overflow:hidden; }

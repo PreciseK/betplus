@@ -9,7 +9,6 @@ export interface Caged3DStageProps {
   multiplier: number;
 }
 
-export type BirdEscape3DStageProps = Caged3DStageProps;
 
 interface BirdInstance {
   meshGroup: THREE.Group;
@@ -422,4 +421,3 @@ export function Caged3DStage({ roundPhase, multiplier }: Caged3DStageProps) {
   );
 }
 
-export const BirdEscape3DStage = Caged3DStage;

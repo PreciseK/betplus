@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // BirdEscape's analogue of prizeTable (2026_08_17_000300): versioned,
+        // Caged Crash's analogue of prizeTable (2026_08_17_000300): versioned,
         // draft/published/retired, maker-checker-gated configuration, not code
         // (REQ-GEC-020 in spirit). A crash game's margin is one scalar house-edge
         // parameter feeding the engine's crash-point formula, not a per-tier

@@ -16,7 +16,7 @@ use InvalidArgumentException;
  */
 final class CagedCrashEngine
 {
-    public const VERSION = 'birdescape-1.0.0';
+    public const VERSION = 'caged-crash-1.0.0';
 
     /**
      * Cap closes a real overflow risk: an unlucky (1-in-2^32) draw would otherwise
@@ -193,12 +193,10 @@ final class CagedCrashEngine
     public function describe(): array
     {
         return [
-            'gameCode' => 'BIRDESCAPE',
+            'gameCode' => 'CAGED_CRASH',
             'engineVersion' => self::VERSION,
         ];
     }
 }
 
-class_alias(CagedCrashEngine::class, 'App\Domain\Games\Engine\BirdEscape\BirdEscapeEngine');
-class_alias(CagedCrashEngine::class, 'App\Domain\Games\Engine\CagedCrash\BirdEscapeEngine');
 

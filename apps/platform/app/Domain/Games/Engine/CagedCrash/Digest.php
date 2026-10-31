@@ -19,4 +19,3 @@ final class Digest
     }
 }
 
-class_alias(Digest::class, 'App\Domain\Games\Engine\BirdEscape\Digest');

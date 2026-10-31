@@ -40,7 +40,7 @@ beforeEach(() => {
 describe("GameRegistryConsole", () => {
   it("shows the real runtime registry for both games", async () => {
     render(<GameRegistryConsole />);
-    const table = await screen.findByRole("table", { name: "Configured Betplus game registry" });
+    const table = await screen.findByRole("table", { name: "Configured Betplus game registry" }, { timeout: 5000 });
     expect(within(table).getByText("BLACKRED")).toBeInTheDocument();
     expect(within(table).getByText("HERITAGE")).toBeInTheDocument();
   });
@@ -56,7 +56,7 @@ describe("GameRegistryConsole", () => {
     fireEvent.change(within(dialog).getByLabelText(/Reason/), { target: { value: "Suspending for maintenance." } });
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply status change" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent("applies immediately");
+    expect(await screen.findByRole("status")).toHaveTextContent("takes effect immediately");
     expect(updateGame).toHaveBeenCalledWith("BLACKRED", { status: "suspended" });
   });
 

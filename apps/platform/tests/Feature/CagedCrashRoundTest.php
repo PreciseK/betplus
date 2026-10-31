@@ -54,7 +54,7 @@ final class CagedCrashRoundTest extends TestCase
     {
         $this->withToken($token)->getJson('/v1/caged/rounds/current');
 
-        return CrashRound::where('gameCode', 'BIRDESCAPE')->firstOrFail();
+        return CrashRound::where('gameCode', 'CAGED_CRASH')->firstOrFail();
     }
 
     public function test_current_round_never_discloses_the_crash_point_before_it_crashes(): void

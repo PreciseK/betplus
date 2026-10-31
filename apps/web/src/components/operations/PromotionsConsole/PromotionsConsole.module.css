@@ -201,3 +201,4 @@
   font-size: 0.9rem;
   margin-block-end: 12px;
 }
+.promoGrid { grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); }.promoCard { border-radius:14px; background:#fff; border-color:#e8eaed; padding:22px; }.promoCard:hover { box-shadow:none; border-color:#cbd1d8; }.cardTitleBlock h2 { font-size:16px; font-weight:500; }.cardDescription { font-size:12px; }.statusBadge { font-size:10px; font-weight:500; text-transform:none; letter-spacing:0; }

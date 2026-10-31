@@ -781,3 +781,24 @@
     scroll-behavior: auto;
   }
 }
+
+/* Operations dashboard surfaces. */
+.page { min-width:0; gap:24px; padding-bottom:0; }
+.pageHeader { align-items:center; }
+.pageHeader h1 { font-size:28px; font-weight:600; letter-spacing:-.035em; }
+.pageHeader p { font-size:12px; line-height:1.7; }
+.context { color:#858a91!important; font-size:10px; letter-spacing:.06em; }
+.identityBand, .identityDetail, .evidenceSection, .profileRail section { border:1px solid #e8eaed; border-radius:14px; background:#fff; padding:22px; }
+.page :where(table) { font-size:12px; }
+.page :where(thead th) { background:#f8f9fa; color:#777e87; text-transform:none; font-size:11px; font-weight:400; letter-spacing:0; }
+.page :where(select) { border:1px solid #dfe2e6; border-radius:8px; min-height:42px; background:#fff; color:#454b54; }
+@media(max-width:760px) { .pageHeader { display:grid; grid-template-columns:1fr; } .pageHeader h1 { font-size:25px; } .identityBand, .identityDetail, .evidenceSection, .profileRail section { padding:16px; } }
+
+.tabs { display:flex; width:fit-content; max-width:100%; gap:4px; padding:5px; overflow-x:auto; background:#eceef0; border:1px solid #e8eaed; border-radius:10px; }
+.tabs a { display:inline-flex; align-items:center; min-height:40px; padding:8px 16px; border:1px solid transparent; border-radius:7px; white-space:nowrap; color:#747b84; font-size:12px; text-decoration:none; }
+.tabs a[aria-current='page'] { background:#fff; border-color:#e2e5e8; color:#292e35; box-shadow:0 1px 3px #18212a08; }
+.tabs a:hover { background:#fff; }
+.search { min-width:0; }
+.identityBand { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:22px; }
+.balances { grid-column:1/-1; border-top:1px solid #eef0f2; padding-top:20px; }
+@media(max-width:760px) { .identityBand { grid-template-columns:1fr; } .tabs { width:100%; } .search { width:100%; } }

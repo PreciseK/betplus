@@ -50,7 +50,7 @@ final class BackOfficeCrashConfigTest extends TestCase
     private function draftPayload(string $version, ?string $actuarialCertRef = null, int $houseEdgeBasisPoints = 500): array
     {
         return [
-            'game_code' => 'BIRDESCAPE',
+            'game_code' => 'CAGED_CRASH',
             'version' => $version,
             'house_edge_basis_points' => $houseEdgeBasisPoints,
             'betting_window_seconds' => 5,
@@ -77,7 +77,7 @@ final class BackOfficeCrashConfigTest extends TestCase
     {
         $token = $this->institutionToken('game_ops');
 
-        $response = $this->withToken($token)->getJson('/backoffice/v1/crash-configs/presets?game_code=BIRDESCAPE');
+        $response = $this->withToken($token)->getJson('/backoffice/v1/crash-configs/presets?game_code=CAGED_CRASH');
 
         $response->assertOk();
         $presets = collect($response->json('presets'))->keyBy('key');
@@ -95,7 +95,7 @@ final class BackOfficeCrashConfigTest extends TestCase
     public function test_the_good_and_best_presets_pass_the_publication_gate(): void
     {
         $token = $this->institutionToken('game_ops');
-        $presets = collect($this->withToken($token)->getJson('/backoffice/v1/crash-configs/presets?game_code=BIRDESCAPE')->json('presets'))->keyBy('key');
+        $presets = collect($this->withToken($token)->getJson('/backoffice/v1/crash-configs/presets?game_code=CAGED_CRASH')->json('presets'))->keyBy('key');
 
         foreach (['good', 'best'] as $key) {
             $response = $this->withToken($token)->postJson('/backoffice/v1/crash-configs', $this->draftPayload(
@@ -112,7 +112,7 @@ final class BackOfficeCrashConfigTest extends TestCase
     public function test_the_fair_preset_always_fails_the_publication_gate(): void
     {
         $token = $this->institutionToken('game_ops');
-        $presets = collect($this->withToken($token)->getJson('/backoffice/v1/crash-configs/presets?game_code=BIRDESCAPE')->json('presets'))->keyBy('key');
+        $presets = collect($this->withToken($token)->getJson('/backoffice/v1/crash-configs/presets?game_code=CAGED_CRASH')->json('presets'))->keyBy('key');
 
         $response = $this->withToken($token)->postJson('/backoffice/v1/crash-configs', $this->draftPayload(
             'DRAFT-FAIR-1',
@@ -187,7 +187,7 @@ final class BackOfficeCrashConfigTest extends TestCase
         $proposeResponse = $this->withToken($maker)->postJson('/backoffice/v1/changes', [
             'change_type' => 'crash_config_publish',
             'payload' => ['crash_config_id' => $draft['id']],
-            'justification' => 'Launching BirdEscape at a 15% house edge.',
+            'justification' => 'Launching Caged Crash at a 15% house edge.',
         ]);
         $proposeResponse->assertStatus(201);
 
@@ -209,7 +209,7 @@ final class BackOfficeCrashConfigTest extends TestCase
         $proposeResponse = $this->withToken($maker)->postJson('/backoffice/v1/changes', [
             'change_type' => 'crash_config_publish',
             'payload' => ['crash_config_id' => $draft['id']],
-            'justification' => 'Launching BirdEscape.',
+            'justification' => 'Launching Caged Crash.',
         ]);
 
         // ...but the cert reference is cleared before approval — the gate must catch

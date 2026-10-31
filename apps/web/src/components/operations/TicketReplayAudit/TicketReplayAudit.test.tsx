@@ -22,6 +22,33 @@ const MATCHING = {
 };
 
 describe("TicketReplayAudit", () => {
+  it.each([{}, null, { ...MATCHING, stored: undefined }, { ...MATCHING, replayed: {} }])("handles an incomplete replay response without crashing: %j", async (response) => {
+    ticketReplay.mockResolvedValueOnce(response);
+    render(<TicketReplayAudit />);
+    fireEvent.change(screen.getByLabelText("Ticket reference"), { target: { value: "BR-1" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not run that replay");
+    expect(screen.queryByText("Verified replay")).not.toBeInTheDocument();
+  });
+
+  it("renders the structured Doors result without treating it as a card array", async () => {
+    const outcome = { opened: [0, 6], multiplier: 3 };
+    ticketReplay.mockResolvedValueOnce({ ...MATCHING, reference: "DOORS-1", engine_version: "doors-1.0.0", prediction: [], stored: { result: outcome, won: true, digest: "digest-doors" }, replayed: { result: outcome, won: true, digest: "digest-doors" } });
+    render(<TicketReplayAudit />);
+    fireEvent.change(screen.getByLabelText("Ticket reference"), { target: { value: "DOORS-1" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
+    expect(await screen.findByRole("heading", { name: "DOORS-1" })).toBeInTheDocument();
+    expect(screen.getAllByText("Doors: 1, 7 · 3×")).toHaveLength(2);
+  });
+
+  it("does not label an unrecorded outcome as a loss", async () => {
+    ticketReplay.mockResolvedValueOnce({ ...MATCHING, stored: { result: null, won: null, digest: null }, matches: false });
+    render(<TicketReplayAudit />);
+    fireEvent.change(screen.getByLabelText("Ticket reference"), { target: { value: "BR-1" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
+    expect(await screen.findByText("Recorded outcome: Not recorded")).toBeInTheDocument();
+  });
+
   it("shows nothing until a reference is searched, then calls the real replay endpoint", async () => {
     ticketReplay.mockResolvedValueOnce(MATCHING);
     render(<TicketReplayAudit />);
@@ -29,7 +56,7 @@ describe("TicketReplayAudit", () => {
     expect(screen.queryByRole("heading", { name: "BR-982104" })).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Ticket reference"), { target: { value: "br-982104" } });
-    fireEvent.click(screen.getByRole("button", { name: "Run deterministic replay" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
 
     expect(await screen.findByRole("heading", { name: "BR-982104" })).toBeInTheDocument();
     expect(ticketReplay).toHaveBeenCalledWith("BR-982104");
@@ -39,7 +66,7 @@ describe("TicketReplayAudit", () => {
     ticketReplay.mockResolvedValueOnce(MATCHING);
     render(<TicketReplayAudit />);
     fireEvent.change(screen.getByLabelText("Ticket reference"), { target: { value: "BR-982104" } });
-    fireEvent.click(screen.getByRole("button", { name: "Run deterministic replay" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
 
     await screen.findByRole("heading", { name: "BR-982104" });
     expect(screen.getByText("abc123")).toBeInTheDocument();
@@ -55,7 +82,7 @@ describe("TicketReplayAudit", () => {
     });
     render(<TicketReplayAudit />);
     fireEvent.change(screen.getByLabelText("Ticket reference"), { target: { value: "BR-982104" } });
-    fireEvent.click(screen.getByRole("button", { name: "Run deterministic replay" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
 
     expect(await screen.findByRole("heading", { name: "Digest mismatch" })).toBeInTheDocument();
     expect(screen.getByText(/needs investigation/)).toBeInTheDocument();
@@ -66,7 +93,7 @@ describe("TicketReplayAudit", () => {
     render(<TicketReplayAudit />);
 
     fireEvent.change(screen.getByLabelText("Ticket reference"), { target: { value: "BR-000000" } });
-    fireEvent.click(screen.getByRole("button", { name: "Run deterministic replay" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
 
     expect(await screen.findByRole("heading", { name: /No replay record for/ })).toBeInTheDocument();
   });
@@ -75,7 +102,7 @@ describe("TicketReplayAudit", () => {
     ticketReplay.mockResolvedValueOnce(MATCHING);
     render(<TicketReplayAudit />);
     fireEvent.change(screen.getByLabelText("Ticket reference"), { target: { value: "BR-982104" } });
-    fireEvent.click(screen.getByRole("button", { name: "Run deterministic replay" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
 
     await screen.findByRole("heading", { name: "BR-982104" });
     expect(screen.queryByRole("button", { name: /Propose compensating entry/ })).not.toBeInTheDocument();
